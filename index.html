@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Classroom Tools Hub</title>
+    <style>
+        /* --- RESET & BASE --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --sidebar-width: 280px;
+            --bg-dark: #0f172a;
+            --sidebar-bg: #1e293b;
+            --accent-color: #3b82f6;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --hover-bg: #334155;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --container-max-width: 1400px;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            height: 100vh;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        /* --- CENTERED CONTAINER (the universal fix) --- */
+        #app-container {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            max-width: var(--container-max-width);
+            height: 100vh;
+            margin: 0 auto;
+            background-color: var(--bg-dark);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+        }
+
+        /* --- SIDEBAR (collapses by width, not margin) --- */
+        #sidebar {
+            width: var(--sidebar-width);
+            min-width: 0;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease, padding 0.3s ease;
+            overflow: hidden;
+            padding: 0;
+            flex-shrink: 0;
+        }
+
+        #sidebar.collapsed {
+            width: 0;
+            padding: 0;
+            border-right: none;
+        }
+
+        .sidebar-header {
+            padding: 16px 16px 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.1rem;
+            color: var(--text-main);
+        }
+
+        .search-box {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 8px 12px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-main);
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .search-box input:focus {
+            border-color: var(--accent-color);
+        }
+
+        .nav-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 16px;
+        }
+
+        .category-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin: 16px 8px 6px 8px;
+            white-space: nowrap;
+        }
+
+        .tool-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            color: var(--text-main);
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            transition: background 0.2s ease;
+            margin-bottom: 2px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .tool-link:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .tool-link.active {
+            background-color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        /* --- MAIN CONTENT --- */
+        #main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        #top-bar {
+            height: 50px;
+            background: var(--sidebar-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            flex-shrink: 0;
+        }
+
+        .top-left-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .top-right-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .btn-toggle,
+        .btn-action {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: 0.2s;
+            flex-shrink: 0;
+        }
+
+        .btn-toggle:hover,
+        .btn-action:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .class-select {
+            background: var(--bg-dark);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 6px 10px;
+            border-radius: 6px;
+            outline: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        #active-tool-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #tool-frame {
+            width: 100%;
+            flex: 1;
+            border: none;
+            background: #000;
+        }
+
+        /* --- ROSTER MODAL --- */
+        #roster-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+
+        .modal-content {
+            background: var(--sidebar-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            width: 600px;
+            max-width: 90%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .modal-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .roster-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .roster-group textarea {
+            width: 100%;
+            height: 200px;
+            background: var(--bg-dark);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px;
+            font-family: inherit;
+            resize: none;
+            outline: none;
+        }
+
+        .roster-group textarea:focus {
+            border-color: var(--accent-color);
+        }
+
+        .modal-footer {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn-save {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-save:hover { filter: brightness(1.1); }
+    </style>
+</head>
+<body>
+    <!-- CENTERED CONTAINER -->
+    <div id="app-container">
+
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar">
+            <div class="sidebar-header">
+                <h2>🎓 Classroom Hub</h2>
+            </div>
+
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search tools..." onkeyup="filterTools()" />
+            </div>
+
+            <nav class="nav-list" id="nav-list">
+                <div class="category-title">Competition</div>
+                <a class="tool-link" onclick="loadTool('tools/competition/Tourney.html', 'Live Tournament Bracket', this)">
+                    <span>🏆</span> Tournament Bracket
+                </a>
+                <a class="tool-link" onclick="loadTool('tools/competition/tracker_black-hole.html', 'Lives Tracker - Black Hole', this)">
+                    <span>❤️</span> Lives Tracker - Black Hole 🌀
+                </a>
+                <a class="tool-link" onclick="loadTool('tools/competition/tracker_shark/tracker_shark.html', 'Lives Tracker - Shark', this)">
+                    <span>❤️</span> Lives Tracker - Shark 🦈
+                </a>
+                <div class="category-title">Games</div>
+                <a class="tool-link" onclick="loadTool('tools/games/jeopardy.html', 'Team Trivia Board', this)">
+                    <span>🏺</span> Team Trivia Board
+                </a>
+                <a class="tool-link" onclick="loadTool('tools/games/teamfight-rockets/teamfight_rockets.html', 'Teamfight Rockets', this)">
+                    <span>🚀</span> Teamfight Rockets
+                </a>
+                <a class="tool-link" onclick="loadTool('tools/games/pile-sort/pile-sort.html', 'Pile Sort', this)">
+                    <span>📦</span> Pile Sort
+                </a>
+                <a class="tool-link" onclick="loadTool('tools/games/parts-of-speech/parts-of-speech_win.html', 'Parts of Speech', this)">
+                    <span>✍️</span> Parts of Speech
+                </a>
+                <div class="category-title">Timers</div>
+                <a class="tool-link" onclick="loadTool('tools/timers/multi-timer.html', 'Multi-Timer', this)">
+                    <span>⏱️</span> Multi-Timer
+                </a>
+                <div class="category-title">Pickers</div>
+                <a class="tool-link" onclick="loadTool('tools/pickers/wheel/wheel.html', 'Name Wheel', this)">
+                    <span>🎡</span> Name Wheel
+                </a>
+                <a class="tool-link" onclick="loadTool('tools/pickers/picker.html', 'Name Picker', this)">
+                    <span>🎯</span> Desk Picker
+                </a>
+                <a class="tool-link" onclick="loadTool('tools/pickers/bingo-blower/picker_bingo-blower.html', 'Bingo Blower', this)">
+                    <span>🎱</span> Bingo Blower
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Viewport -->
+        <main id="main-content">
+            <div id="top-bar">
+                <div class="top-left-controls">
+                    <button class="btn-toggle" onclick="toggleSidebar()" title="Toggle Menu">☰</button>
+                    <span id="active-tool-title">Select a Tool</span>
+                </div>
+
+                <div class="top-right-controls">
+                    <label for="class-selector" style="font-size:0.85rem; color:var(--text-muted)">Active Class:</label>
+                    <select id="class-selector" class="class-select" onchange="broadcastRoster()">
+                        <option value="classA">Class A</option>
+                        <option value="classB">Class B</option>
+                    </select>
+
+                    <button class="btn-action" onclick="openRosterModal()">⚙️ Manage Students</button>
+                </div>
+            </div>
+            <iframe id="tool-frame" src="tools/pickers/wheel/wheel.html" onload="broadcastRoster()"></iframe>
+        </main>
+
+    </div> <!-- end #app-container -->
+
+    <!-- Roster Manager Modal -->
+    <div id="roster-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>👥 Manage Student Lists</h3>
+                <button class="btn-toggle" onclick="closeRosterModal()">✖</button>
+            </div>
+            <div class="modal-body">
+                <div class="roster-group">
+                    <label for="roster-a">Class A (One name per line)</label>
+                    <textarea id="roster-a" placeholder="Alex&#10;Sam&#10;Jordan..."></textarea>
+                </div>
+                <div class="roster-group">
+                    <label for="roster-b">Class B (One name per line)</label>
+                    <textarea id="roster-b" placeholder="Taylor&#10;Morgan&#10;Riley..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-action" onclick="closeRosterModal()">Cancel</button>
+                <button class="btn-save" onclick="saveRosters()">Save Rosters</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Roster Storage
+        let rosters = {
+            classA: JSON.parse(localStorage.getItem('roster_classA')) || ["Student 1", "Student 2", "Student 3", "Student 4"],
+            classB: JSON.parse(localStorage.getItem('roster_classB')) || ["Student A", "Student B", "Student C", "Student D"]
+        };
+
+        // --- Sidebar toggle (universal width‑based collapse) ---
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+        }
+
+        // --- Collapse sidebar automatically (if expanded) ---
+        function collapseSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (!sidebar.classList.contains('collapsed')) {
+                sidebar.classList.add('collapsed');
+            }
+        }
+
+        // --- Load a tool into the iframe ---
+        function loadTool(url, title, element) {
+            document.getElementById('tool-frame').src = url;
+            document.getElementById('active-tool-title').innerText = title;
+
+            const links = document.querySelectorAll('.tool-link');
+            links.forEach(link => link.classList.remove('active'));
+            if (element) element.classList.add('active');
+
+            // Auto‑collapse sidebar after selecting a tool
+            collapseSidebar();
+        }
+
+        // --- Search filter ---
+        function filterTools() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const links = document.querySelectorAll('.tool-link');
+            links.forEach(link => {
+                const text = link.innerText.toLowerCase();
+                link.style.display = text.includes(query) ? 'flex' : 'none';
+            });
+        }
+
+        // --- Roster modal ---
+        function openRosterModal() {
+            document.getElementById('roster-a').value = rosters.classA.join('\n');
+            document.getElementById('roster-b').value = rosters.classB.join('\n');
+            document.getElementById('roster-modal').style.display = 'flex';
+        }
+
+        function closeRosterModal() {
+            document.getElementById('roster-modal').style.display = 'none';
+        }
+
+        function saveRosters() {
+            const listA = document.getElementById('roster-a').value.split('\n').map(n => n.trim()).filter(n => n.length > 0);
+            const listB = document.getElementById('roster-b').value.split('\n').map(n => n.trim()).filter(n => n.length > 0);
+
+            rosters.classA = listA;
+            rosters.classB = listB;
+
+            localStorage.setItem('roster_classA', JSON.stringify(listA));
+            localStorage.setItem('roster_classB', JSON.stringify(listB));
+
+            closeRosterModal();
+            broadcastRoster();
+        }
+
+        // --- Send roster to iframe ---
+        function broadcastRoster() {
+            const selectedClass = document.getElementById('class-selector').value;
+            const activeRoster = rosters[selectedClass] || [];
+            const iframe = document.getElementById('tool-frame');
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage({
+                    type: 'CLASSROOM_ROSTER_UPDATE',
+                    roster: activeRoster
+                }, '*');
+            }
+        }
+
+        // --- Auto‑collapse on user interaction with main content ---
+        function setupAutoCollapse() {
+            const mainContent = document.getElementById('main-content');
+            const iframe = document.getElementById('tool-frame');
+
+            // 1. Click on the top bar or empty area of main content (outside iframe)
+            mainContent.addEventListener('pointerdown', (e) => {
+                // Ignore clicks inside the iframe (they trigger blur separately)
+                if (e.target === iframe) return;
+                collapseSidebar();
+            });
+
+            // 2. When the iframe gains focus (click inside), collapse sidebar
+            //    We use 'focus' on the iframe, but we need to listen on the window blur
+            //    because the iframe steals focus from the main page.
+            window.addEventListener('blur', () => {
+                // Check if the active element is the iframe
+                if (document.activeElement === iframe) {
+                    collapseSidebar();
+                }
+            });
+
+            // Also collapse when clicking the iframe directly (pointerdown inside it)
+            iframe.addEventListener('pointerdown', () => {
+                collapseSidebar();
+            });
+        }
+
+        // --- Auto‑load first tool on start ---
+        window.addEventListener('DOMContentLoaded', () => {
+            const wheelLink = document.querySelector('.tool-link[onclick*="wheel.html"]');
+            if (wheelLink) {
+                wheelLink.click();
+            } else {
+                const firstTool = document.querySelector('.tool-link');
+                if (firstTool) firstTool.click();
+            }
+
+            // Activate auto‑collapse
+            setupAutoCollapse();
+        });
+    </script>
+</body>
+</html>
