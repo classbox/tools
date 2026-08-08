@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Classroom Points Tracker - Black Hole Edition</title>
+<style>
+    /* CSS Variables & Global Reset */
+    :root {
+        --space-bg: #050510;
+        --bh-glow: #7b2cbf;
+        --bh-accretion: #ff9e00;
+        --tether-color: #bde0fe;
+        --danger: #ff4d4d;
+        --success: #8AC926;
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--space-bg);
+        /* Starry space background using layered radial gradients */
+        background-image: 
+            radial-gradient(2px 2px at 15% 15%, rgba(255,255,255,0.8) 100%, transparent),
+            radial-gradient(1px 1px at 25% 45%, rgba(255,255,255,0.5) 100%, transparent),
+            radial-gradient(2px 2px at 45% 25%, rgba(255,255,255,0.9) 100%, transparent),
+            radial-gradient(1.5px 1.5px at 65% 55%, rgba(255,255,255,0.6) 100%, transparent),
+            radial-gradient(1px 1px at 85% 10%, rgba(255,255,255,0.8) 100%, transparent),
+            radial-gradient(2px 2px at 95% 75%, rgba(255,255,255,0.4) 100%, transparent),
+            radial-gradient(1.5px 1.5px at 10% 85%, rgba(255,255,255,0.7) 100%, transparent),
+            radial-gradient(1px 1px at 35% 80%, rgba(255,255,255,0.5) 100%, transparent),
+            radial-gradient(2.5px 2.5px at 75% 35%, rgba(255,255,255,0.9) 100%, transparent),
+            radial-gradient(1.5px 1.5px at 55% 85%, rgba(255,255,255,0.4) 100%, transparent);
+        background-size: 400px 400px;
+        overflow: hidden; 
+        height: 100vh;
+        width: 100vw;
+    }
+
+    /* Modal / Settings Panel */
+    #settings-modal {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.85);
+        display: flex; justify-content: center; align-items: center;
+        z-index: 100;
+        transition: opacity 0.3s ease;
+    }
+    .modal-content {
+        background: #0f101a;
+        color: #e0e0e0;
+        padding: 30px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 400px;
+        border: 1px solid #7b2cbf;
+        box-shadow: 0 10px 40px rgba(123, 44, 191, 0.5);
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+    }
+    .modal-content h2 { margin-bottom: 20px; text-align: center; color: #fff; flex-shrink: 0; }
+    .form-group { margin-bottom: 15px; flex-shrink: 0; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #aaa; }
+    .form-group input { 
+        width: 100%; padding: 8px; border: 1px solid #444; border-radius: 6px; font-size: 16px; 
+        background: #1a1b2e; color: #fff;
+    }
+    
+    /* Scrollable container for team names so modal doesn't runaway off screen */
+    .team-names-scroll {
+        max-height: 150px;
+        overflow-y: auto;
+        padding-right: 5px;
+        border: 1px solid #2a2b4e;
+        border-radius: 6px;
+        padding: 8px;
+        background: rgba(0,0,0,0.2);
+    }
+    .team-name-input { margin-bottom: 8px; width: 100%; padding: 6px; border: 1px solid #444; border-radius: 4px; background: #1a1b2e; color: #fff;}
+    .team-name-input:last-child { margin-bottom: 0; }
+    
+    .start-btn {
+        width: 100%; padding: 12px; background: #7b2cbf; color: white;
+        border: none; border-radius: 6px; font-size: 18px; font-weight: bold;
+        cursor: pointer; margin-top: 15px; transition: background 0.2s; flex-shrink: 0;
+    }
+    .start-btn:hover { background: #9d4edd; }
+
+    /* Settings Gear Button */
+    #gear-btn {
+        position: absolute; top: 15px; right: 15px; z-index: 50;
+        background: rgba(0, 0, 0, 0.6); border: 1px solid var(--tether-color); border-radius: 50%;
+        color: var(--tether-color);
+        width: 45px; height: 45px; font-size: 24px; cursor: pointer;
+        box-shadow: 0 0 10px rgba(189, 224, 254, 0.4);
+        transition: all 0.2s ease;
+    }
+    #gear-btn:hover {
+        background: var(--tether-color); color: #000;
+        box-shadow: 0 0 20px var(--tether-color);
+    }
+
+    /* Main Game Board */
+    #board {
+        display: flex;
+        width: 100%;
+        height: 100%;
+        position: relative;
+    }
+
+    /* Top Structural Line (Space Station Girder) */
+    #top-bar {
+        position: absolute;
+        top: 130px; 
+        left: 0; width: 100%; height: 16px;
+        background-color: #2a2d34;
+        background-image: 
+            linear-gradient(90deg, transparent 50%, rgba(0,0,0,0.5) 50%),
+            linear-gradient(0deg, #1f2228 0%, #3d424b 50%, #1f2228 100%);
+        background-size: 30px 100%, 100% 100%;
+        border-top: 2px solid #5a606d;
+        border-bottom: 3px solid #111;
+        z-index: 10;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.8), 0 0 15px rgba(136, 204, 255, 0.2);
+    }
+
+    /* Team Columns */
+    .team-col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        height: 100%;
+    }
+
+    /* Controls (Name, Heart + Buttons UI) */
+    .controls {
+        height: 130px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 20;
+        position: relative;
+        padding: 5px;
+    }
+    .team-name {
+        font-weight: bold; font-size: clamp(12px, 1.5vw, 18px);
+        color: #fff; margin-bottom: 8px; text-align: center;
+        width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    }
+    
+    /* Heart & Inline Controls Layout */
+    .status-bar {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .btn {
+        width: 24px; height: 24px; border: none; border-radius: 4px; cursor: pointer;
+        font-weight: bold; font-size: 14px; color: white; display: flex; 
+        align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    }
+    .btn-plus { background: var(--success); }
+    .btn-minus { background: var(--danger); }
+    .btn:active { transform: translateY(2px); box-shadow: 0 0 2px rgba(0,0,0,0.4); }
+    .btn:disabled { filter: grayscale(1); cursor: not-allowed; opacity: 0.5; }
+
+    .life-container {
+        position: relative; width: 50px; height: 50px;
+    }
+    .life-svg { width: 100%; height: 100%; filter: drop-shadow(0 0 5px rgba(255, 77, 109, 0.8)); }
+    .lives-text {
+        position: absolute; top: 52%; left: 50%; transform: translate(-50%, -50%);
+        color: #fff; font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 22px; 
+        text-shadow: 0 0 4px #000, 0 0 8px #ff4d6d;
+    }
+
+    /* Animation Containers (Sway, Jerk, Quiver) */
+    .pendulum-container {
+        position: absolute;
+        top: 138px;
+        left: 0;
+        width: 100%;
+        height: calc(100vh - 138px);
+        transform-origin: top center;
+        z-index: 5; 
+    }
+    .jerk-container, .quiver-container {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        transform-origin: top center;
+    }
+
+    /* Tethers and Astronaut Figures */
+    .rope {
+        position: absolute;
+        top: 0;
+        left: 50%; transform: translateX(-50%);
+        width: 4px;
+        background: var(--tether-color);
+        box-shadow: 0 0 8px #00bbf9;
+        height: 0px; 
+        transition: height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .rope.snapped {
+        height: 0 !important;
+        box-shadow: none;
+        transition: height 0.1s ease-in;
+    }
+
+    .stick-figure-wrapper {
+        position: absolute;
+        left: 50%; transform: translateX(-50%);
+        width: 100px; height: 200px;
+        transition: top 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    
+    .stick-figure-wrapper.dead-state {
+        animation: spaghettify 3s forwards cubic-bezier(0.5, 0, 1, 1);
+    }
+
+    /* SVG Stick Figure Styling */
+    .stick-figure { width: 100%; height: 100%; }
+    .sf-dead-eye { display: none; }
+    .sf-alive-eye { display: block; }
+    .dead .sf-dead-eye { display: block; }
+    .dead .sf-alive-eye { display: none; }
+    .dead .sf-mouth { d: path("M 42 182 Q 50 176 58 182"); }
+
+    /* --- BLACK HOLE ENVIRONMENT --- */
+    #black-hole-container {
+        position: absolute;
+        bottom: -10vh;
+        left: 0;
+        width: 100vw;
+        height: 30vh;
+        pointer-events: none;
+    }
+
+    .event-horizon {
+        position: absolute;
+        width: 20vw;
+        height: 20vw;
+        left: 50%;
+        top: 50%;
+        margin-left: -10vw;
+        margin-top: -10vw;
+        border-radius: 50%;
+        background: #000;
+        box-shadow: 
+            inset 0 0 20px #000,
+            0 0 40px 10px #000,
+            0 0 60px 20px var(--bh-glow),
+            0 0 120px 40px var(--bh-accretion);
+        z-index: 2; 
+    }
+
+    .disk-wrapper {
+        position: absolute;
+        width: 70vw;
+        height: 70vw;
+        left: 50%;
+        top: 50%;
+        margin-left: -35vw;
+        margin-top: -35vw;
+        transform: rotateX(76deg);
+        border-radius: 50%;
+    }
+    
+    .disk-wrapper.back {
+        z-index: 1; 
+        clip-path: polygon(0 0, 100% 0, 100% 50%, 0 50%);
+    }
+    
+    .disk-wrapper.front {
+        z-index: 10; 
+        clip-path: polygon(0 50%, 100% 50%, 100% 100%, 0 100%);
+    }
+
+    .disk-spin {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: conic-gradient(
+            rgba(255,150,0,0.1), 
+            rgba(255,200,50,0.8) 20%, 
+            rgba(255,150,0,0.1) 40%, 
+            rgba(255,200,50,0.8) 60%, 
+            rgba(255,150,0,0.1) 80%,
+            rgba(255,200,50,0.8) 100%
+        );
+        -webkit-mask-image: radial-gradient(closest-side, transparent 35%, black 40%, black 80%, transparent 100%);
+        mask-image: radial-gradient(closest-side, transparent 35%, black 40%, black 80%, transparent 100%);
+        animation: spinDisk 10s linear infinite;
+        box-shadow: 0 0 50px rgba(255,158,0,0.5), inset 0 0 50px rgba(255,158,0,0.5);
+    }
+
+    /* --- RANDOM EVENT (HAWKING RADIATION FLASH) STYLES --- */
+    .radiation-flash {
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        background: radial-gradient(circle at 50% 100%, rgba(123, 44, 191, 0.4) 0%, transparent 80%);
+        pointer-events: none; z-index: 0; opacity: 0;
+    }
+    .flash-active { animation: flashAnim 2s ease-out forwards; }
+    
+    .radiation-particle {
+        position: absolute; 
+        bottom: 5vh; 
+        left: 50%;
+        width: 3px; height: 18px;
+        background: #fff;
+        border-radius: 2px;
+        box-shadow: 0 0 10px 3px #00f5d4;
+        pointer-events: none; z-index: 15; 
+    }
+
+    /* Keyframe Animations */
+    @keyframes spinDisk {
+        0% { transform: rotateZ(0deg); }
+        100% { transform: rotateZ(360deg); }
+    }
+    @keyframes flashAnim {
+        0% { opacity: 0; background-color: rgba(123, 44, 191, 0); }
+        10% { opacity: 1; background-color: rgba(123, 44, 191, 0.25); }
+        100% { opacity: 0; background-color: rgba(123, 44, 191, 0); }
+    }
+    @keyframes sway {
+        0% { transform: rotate(-3.5deg); }
+        100% { transform: rotate(3.5deg); }
+    }
+    @keyframes jerk-anim {
+        0% { transform: scaleY(1) rotate(0deg); }
+        25% { transform: scaleY(1.03) rotate(4deg); }
+        50% { transform: scaleY(0.98) rotate(-3deg); }
+        75% { transform: scaleY(1.01) rotate(1.5deg); }
+        100% { transform: scaleY(1) rotate(0deg); }
+    }
+    .jerk-active {
+        animation: jerk-anim 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    
+    @keyframes quiver {
+        0% { transform: translate(0, 0); }
+        20% { transform: translate(calc(-1px * var(--quiver)), calc(1px * var(--quiver))); }
+        40% { transform: translate(calc(1px * var(--quiver)), calc(-1px * var(--quiver))); }
+        60% { transform: translate(calc(-1px * var(--quiver)), calc(-1px * var(--quiver))); }
+        80% { transform: translate(calc(1px * var(--quiver)), calc(1px * var(--quiver))); }
+        100% { transform: translate(0, 0); }
+    }
+
+    @keyframes spaghettify {
+        0% { 
+            transform: translateX(-50%) scale(1) translateY(0); 
+            opacity: 1; 
+            filter: brightness(1) hue-rotate(0deg);
+        }
+        100% { 
+            transform: translateX(-50%) scaleY(15) scaleX(0.01) translateY(150px); 
+            opacity: 0; 
+            filter: brightness(3) hue-rotate(90deg);
+        }
+    }
+
+</style>
+</head>
+<body>
+
+<!-- Ambient Flash Element for Hawking Radiation Events -->
+<div id="ambient-flash" class="radiation-flash"></div>
+
+<!-- Settings Modal -->
+<div id="settings-modal">
+    <div class="modal-content">
+        <h2>Game Settings</h2>
+        <div class="form-group">
+            <label for="lives-input">Lives:</label>
+            <input type="number" id="lives-input" value="5" min="1" max="50">
+        </div>
+        <div class="form-group">
+            <label for="teams-input">Number of Teams:</label>
+            <input type="number" id="teams-input" value="4" min="1" max="15">
+        </div>
+        <div class="form-group">
+            <label>Team Names:</label>
+            <div class="team-names-scroll" id="team-names-list"></div>
+        </div>
+        <button class="start-btn" onclick="startGame()">Start / Apply</button>
+    </div>
+</div>
+
+<button id="gear-btn" onclick="openSettings()">⚙️</button>
+
+<div id="board">
+    <div id="top-bar"></div>
+    <!-- Team columns injected here via JS -->
+</div>
+
+<div id="black-hole-container">
+    <div class="disk-wrapper back">
+        <div class="disk-spin"></div>
+    </div>
+    <div class="event-horizon"></div>
+    <div class="disk-wrapper front">
+        <div class="disk-spin"></div>
+    </div>
+</div>
+
+<script>
+    // State variables
+    let maxLives = 5;
+    let numTeams = 4;
+    let teams = [];
+
+    // Distinct vibrant neon colors for space astronauts
+    const palette = [
+        '#FF595E', '#FFCA3A', '#8AC926', '#1982C4', '#F15BB5', 
+        '#00BBF9', '#00F5D4', '#FEE440', '#9B5DE5', '#E07A5F', 
+        '#81B29A', '#F2CC8F', '#D90429', '#a2d2ff', '#ffafcc'
+    ];
+
+    const modal = document.getElementById('settings-modal');
+    const teamsInput = document.getElementById('teams-input');
+    const livesInput = document.getElementById('lives-input');
+    const teamNamesList = document.getElementById('team-names-list');
+    const board = document.getElementById('board');
+    const ambientFlash = document.getElementById('ambient-flash');
+
+    teamsInput.addEventListener('input', updateTeamNameInputs);
+
+    function updateTeamNameInputs() {
+        const count = parseInt(teamsInput.value) || 1;
+        teamNamesList.innerHTML = '';
+        for(let i = 0; i < count; i++) {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'team-name-input';
+            input.value = (teams[i] && teams[i].name) ? teams[i].name : `Team ${i + 1}`;
+            teamNamesList.appendChild(input);
+        }
+    }
+
+    function openSettings() {
+        modal.style.display = 'flex';
+        teamsInput.value = teams.length || 4;
+        livesInput.value = maxLives;
+        updateTeamNameInputs();
+    }
+
+    function startGame() {
+        maxLives = parseInt(livesInput.value) || 5;
+        numTeams = parseInt(teamsInput.value) || 4;
+        
+        const nameInputs = document.querySelectorAll('.team-name-input');
+        
+        teams = [];
+        for(let i = 0; i < numTeams; i++) {
+            teams.push({
+                name: nameInputs[i].value || `Team ${i + 1}`,
+                lives: maxLives,
+                color: palette[i % palette.length]
+            });
+        }
+        
+        modal.style.display = 'none';
+        renderBoard();
+    }
+
+    function changeLives(index, delta) {
+        teams[index].lives += delta;
+        if (teams[index].lives > maxLives) teams[index].lives = maxLives;
+        if (teams[index].lives < 0) teams[index].lives = 0;
+        
+        updateTeamUI(index);
+
+        // Trigger the elastic jerk/wobble animation on button press
+        const jerkContainer = document.getElementById(`jerk-${index}`);
+        jerkContainer.classList.remove('jerk-active');
+        void jerkContainer.offsetWidth; // Force CSS reflow to restart animation instantly
+        jerkContainer.classList.add('jerk-active');
+    }
+
+    function renderBoard() {
+        board.innerHTML = '<div id="top-bar"></div>';
+        
+        teams.forEach((team, index) => {
+            const col = document.createElement('div');
+            col.className = 'team-col';
+            
+            const swayDuration = 3 + (index % 4) * 0.4;
+            const swayDelay = -index * 0.9;
+            
+            col.innerHTML = `
+                <div class="controls">
+                    <div class="team-name" title="${team.name}">${team.name}</div>
+                    <div class="status-bar">
+                        <button class="btn btn-minus" id="btn-minus-${index}" onclick="changeLives(${index}, -1)">-</button>
+                        <div class="life-container">
+                            <svg class="life-svg" viewBox="0 0 24 24" fill="#ff4d6d" stroke="#c9184a" stroke-width="1.5">
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                            </svg>
+                            <span class="lives-text" id="lives-text-${index}">${team.lives}</span>
+                        </div>
+                        <button class="btn btn-plus" id="btn-plus-${index}" onclick="changeLives(${index}, 1)">+</button>
+                    </div>
+                </div>
+                
+                <div class="pendulum-container" style="animation: sway ${swayDuration}s ease-in-out ${swayDelay}s infinite alternate;">
+                    <div class="jerk-container" id="jerk-${index}">
+                        <div class="quiver-container" id="quiver-${index}">
+                            <div class="rope" id="rope-${index}"></div>
+                            <div class="stick-figure-wrapper" id="figure-wrapper-${index}">
+                                <svg class="stick-figure" id="figure-svg-${index}" viewBox="0 0 100 200">
+                                    <!-- Tether segment inside SVG -->
+                                    <line x1="50" y1="0" x2="50" y2="40" stroke="var(--tether-color)" stroke-width="4"/>
+                                    <!-- Astronaut Body -->
+                                    <line x1="50" y1="40" x2="50" y2="90" stroke="${team.color}" stroke-width="8" stroke-linecap="round"/>
+                                    <polyline points="50,90 75,60 85,75" fill="none" stroke="${team.color}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <line x1="50" y1="90" x2="50" y2="140" stroke="${team.color}" stroke-width="8" stroke-linecap="round"/>
+                                    <polyline points="50,140 25,160 20,190" fill="none" stroke="${team.color}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <polyline points="50,140 75,160 80,190" fill="none" stroke="${team.color}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                                    
+                                    <!-- Space Helmet -->
+                                    <circle cx="50" cy="170" r="24" fill="#111" stroke="${team.color}" stroke-width="4"/>
+                                    <!-- Glass Visor -->
+                                    <path d="M 32 170 Q 50 150 68 170 Q 50 190 32 170" fill="rgba(136, 204, 255, 0.4)" stroke="rgba(255,255,255,0.8)" stroke-width="1.5" />
+                                    
+                                    <!-- Face inside Visor -->
+                                    <circle cx="43" cy="168" r="2.5" fill="${team.color}" class="sf-alive-eye"/>
+                                    <circle cx="57" cy="168" r="2.5" fill="${team.color}" class="sf-alive-eye"/>
+                                    <path d="M 42 178 Q 50 184 58 178" stroke="${team.color}" stroke-width="2.5" fill="none" class="sf-mouth sf-alive-eye"/>
+                                    
+                                    <!-- Dead Face -->
+                                    <path d="M 40 165 L 46 171 M 46 165 L 40 171" stroke="${team.color}" stroke-width="2.5" class="sf-dead-eye"/>
+                                    <path d="M 54 165 L 60 171 M 60 165 L 54 171" stroke="${team.color}" stroke-width="2.5" class="sf-dead-eye"/>
+                                    <path d="M 42 182 Q 50 176 58 182" stroke="${team.color}" stroke-width="2.5" fill="none" class="sf-mouth sf-dead-eye"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            board.appendChild(col);
+            updateTeamUI(index); 
+        });
+    }
+
+    function updateTeamUI(index) {
+        const team = teams[index];
+        
+        document.getElementById(`lives-text-${index}`).innerText = team.lives;
+        document.getElementById(`btn-minus-${index}`).disabled = (team.lives === 0);
+        document.getElementById(`btn-plus-${index}`).disabled = (team.lives === maxLives);
+
+        const wrapper = document.getElementById(`figure-wrapper-${index}`);
+        const rope = document.getElementById(`rope-${index}`);
+        const svg = document.getElementById(`figure-svg-${index}`);
+        const quiverContainer = document.getElementById(`quiver-${index}`);
+        
+        const lossRatio = (maxLives - team.lives) / maxLives;
+        
+        const maxTravelStr = `95vh - 308px`; 
+        const dropFormula = `calc(${lossRatio} * (${maxTravelStr}))`;
+        
+        wrapper.style.top = dropFormula;
+        rope.style.height = dropFormula;
+
+        // Dynamic proximity trembling (Quiver) as they near the black hole
+        const quiverAmt = Math.pow(lossRatio, 2) * 8; 
+        quiverContainer.style.setProperty('--quiver', quiverAmt);
+
+        if (lossRatio > 0 && team.lives > 0) {
+            const speed = Math.max(0.05, 0.3 - (lossRatio * 0.25)); 
+            quiverContainer.style.animation = `quiver ${speed}s infinite linear`;
+        } else {
+            quiverContainer.style.animation = 'none';
+        }
+
+        if(team.lives === 0) {
+            svg.classList.add('dead');
+            wrapper.classList.add('dead-state');
+            rope.classList.add('snapped');
+        } else {
+            svg.classList.remove('dead');
+            wrapper.classList.remove('dead-state');
+            rope.classList.remove('snapped');
+        }
+    }
+
+    // --- RANDOM HAWKING RADIATION / ASTROPHYSICAL JET EVENTS ---
+    function triggerHawkingRadiation() {
+        ambientFlash.classList.remove('flash-active');
+        void ambientFlash.offsetWidth; // Force reflow to restart animation
+        ambientFlash.classList.add('flash-active');
+        
+        const numParticles = 40 + Math.floor(Math.random() * 30);
+        
+        for(let i = 0; i < numParticles; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'radiation-particle';
+            particle.style.left = `50vw`; 
+            document.body.appendChild(particle);
+            
+            const angle = (Math.random() - 0.5) * 0.8; 
+            const velocityY = 50 + Math.random() * 50; 
+            const velocityX = Math.sin(angle) * (20 + Math.random() * 20); 
+            const duration = 1500 + Math.random() * 2000; 
+
+            particle.animate([
+                { transform: 'translate(-50%, 0) scale(1)', opacity: 1, backgroundColor: '#fff' },
+                { transform: `translate(calc(-50% + ${velocityX}vw), -${velocityY * 0.5}vh) scale(0.8)`, backgroundColor: '#00f5d4', offset: 0.5 },
+                { transform: `translate(calc(-50% + ${velocityX * 1.5}vw), -${velocityY}vh) scale(0)`, opacity: 0, backgroundColor: '#7b2cbf' }
+            ], {
+                duration: duration,
+                easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)'
+            });
+            
+            setTimeout(() => particle.remove(), duration);
+        }
+        
+        const nextDelay = 20000 + Math.random() * 30000;
+        setTimeout(triggerHawkingRadiation, nextDelay);
+    }
+    
+    setTimeout(triggerHawkingRadiation, 5000 + Math.random() * 8000); 
+
+    // Initialize Game
+    updateTeamNameInputs();
+
+</script>
+</body>
+</html>

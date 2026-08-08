@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classroom Bingo Blower</title>
+    <!-- Imported Fredoka for friendly classroom text + Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4ade80;
+            --primary-hover: #22c55e;
+            --bg-dark: #090d16;
+            --bg-panel: rgba(15, 23, 42, 0.85);
+            --border-panel: rgba(255, 255, 255, 0.12);
+            --text: #f8fafc;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: radial-gradient(circle at 50% 30%, #1e293b 0%, var(--bg-dark) 100%);
+            font-family: 'Poppins', sans-serif;
+            color: var(--text);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            user-select: none;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 32px;
+            z-index: 10;
+        }
+
+        .brand { display: flex; align-items: center; gap: 12px; }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-badge {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid var(--border-panel);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #94a3b8;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        button {
+            background: var(--primary);
+            color: #052e16;
+            border: none;
+            padding: 10px 22px;
+            font-size: 15px;
+            font-weight: 700;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.15s ease, background 0.15s ease;
+            font-family: 'Poppins', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button:hover:not(:disabled) {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        button:active:not(:disabled) { transform: translateY(0); }
+
+        button:disabled {
+            background: #334155;
+            color: #64748b;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .controls { display: flex; gap: 12px; }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: #f1f5f9;
+            border: 1px solid var(--border-panel);
+        }
+
+        .btn-secondary:hover:not(:disabled) { background: rgba(255, 255, 255, 0.16); }
+
+        #machine-container {
+            flex-grow: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        canvas#machine {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        #settings-panel {
+            position: fixed; 
+            top: 0; 
+            right: -400px; 
+            width: 380px; 
+            height: 100vh;
+            background: var(--bg-panel); 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-left: 1px solid var(--border-panel);
+            transition: right 0.3s ease;
+            z-index: 100; 
+            display: flex; 
+            flex-direction: column; 
+            padding: 32px 28px;
+        }
+
+        #settings-panel.open { right: 0; }
+        
+        #settings-panel h2 { 
+            margin-top: 0; 
+            font-size: 20px; 
+            font-weight: 700;
+            border-bottom: 1px solid var(--border-panel); 
+            padding-bottom: 16px; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .close-btn { 
+            background: transparent; 
+            color: #94a3b8; 
+            font-size: 20px; 
+            padding: 4px 8px; 
+            min-width: auto;
+        }
+
+        .setting-group { margin-bottom: 20px; }
+        .setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .setting-row label { font-size: 14px; color: #cbd5e1; font-weight: 500; }
+        .setting-row input[type="number"] { 
+            width: 70px; background: rgba(0,0,0,0.4); border: 1px solid var(--border-panel); 
+            color: white; padding: 6px 10px; border-radius: 6px; text-align: center; font-size: 14px;
+        }
+        .setting-row input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary); }
+
+        textarea { 
+            flex-grow: 1; width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border-panel); 
+            border-radius: 10px; color: white; font-family: 'Poppins', sans-serif; padding: 14px; 
+            font-size: 13px; line-height: 1.6; resize: none; 
+        }
+
+        #winner-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(9, 13, 22, 0.85); backdrop-filter: blur(10px);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 50; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        #winner-overlay.show { opacity: 1; pointer-events: auto; }
+
+        #winner-title { 
+            font-size: 32px; font-weight: 800; color: #94a3b8; margin-bottom: 30px; 
+            text-transform: uppercase; letter-spacing: 2px;
+        }
+
+        #giant-ball {
+            width: 320px; height: 320px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            transform: scale(0.2); opacity: 0;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        #winner-overlay.show #giant-ball { transform: scale(1); opacity: 1; }
+
+        /* Classroom friendly font with crisp black outline on winner popup */
+		#giant-name {
+			font-family: 'Poppins', sans-serif; /* Clean font */
+			font-size: 52px; 
+			font-weight: 800; 
+			color: white; 
+			text-align: center;
+			padding: 24px; 
+			word-wrap: break-word; 
+			line-height: 1.1;
+			text-shadow: 0 4px 10px rgba(0, 0, 0, 0.9); /* Sharp shadow instead of thick outline */
+		}
+
+        #winner-overlay button { margin-top: 50px; font-size: 18px; padding: 14px 40px; border-radius: 50px; }
+        #confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 40; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <h1>🏆 Bingo Blower</h1>
+            <span class="status-badge" id="status-tag">Ready</span>
+        </div>
+        <div class="controls">
+            <button id="btn-draw" onclick="startDraw()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                Draw Name
+            </button>
+            <button class="btn-secondary" id="btn-settings" onclick="toggleSettings()">⚙️ Settings</button>
+        </div>
+    </header>
+
+    <div id="machine-container">
+        <canvas id="machine"></canvas>
+    </div>
+
+    <div id="settings-panel">
+        <h2>Settings <button class="close-btn" onclick="toggleSettings()">✖</button></h2>
+        <div class="setting-group">
+            <div class="setting-row">
+                <label>Min Delay (sec):</label>
+                <input type="number" id="delay-min" value="3" min="1" max="10">
+            </div>
+            <div class="setting-row">
+                <label>Max Delay (sec):</label>
+                <input type="number" id="delay-max" value="6" min="1" max="20">
+            </div>
+            <div class="setting-row" style="margin-top: 15px;">
+                <label for="remove-winners">Remove Winners:</label>
+                <input type="checkbox" id="remove-winners" checked>
+            </div>
+        </div>
+        <div style="display: flex; flex-direction: column; flex-grow: 1;">
+            <label style="font-size: 14px; margin-bottom: 8px; color: #cbd5e1; font-weight: 500;">Classroom Roster (one per line):</label>
+            <textarea id="names-input">Alice
+Bob
+Charlie
+David
+Eve
+Frank
+Grace
+Hannah
+Ian
+Jack
+Katie
+Liam</textarea>
+        </div>
+        <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+            <button onclick="applySettings()" style="width: 100%;">Apply & Reset</button>
+        </div>
+    </div>
+
+    <div id="winner-overlay">
+        <h2 id="winner-title">Winner Selected!</h2>
+        <div id="giant-ball">
+            <span id="giant-name">Name</span>
+        </div>
+        <button onclick="resetMachine()">Continue / Draw Next</button>
+    </div>
+
+    <canvas id="confetti"></canvas>
+
+<script>
+    // Audio Engine Optimization
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let noiseSource, noiseGain;
+    let lastBounceTime = 0;
+
+    const SoundFX = {
+        init: () => { if (audioCtx.state === 'suspended') audioCtx.resume(); },
+        playBounce: (velocity) => {
+            const now = Date.now();
+            if (velocity < 1.2 || now - lastBounceTime < 35) return; 
+            lastBounceTime = now;
+
+            const t = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'sine';
+            const baseFreq = 280 + Math.random() * 200;
+            osc.frequency.setValueAtTime(baseFreq, t);
+            osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.3, t + 0.03);
+            
+            const vol = Math.min(velocity * 0.012, 0.06);
+            gain.gain.setValueAtTime(vol, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.03);
+            
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(t); osc.stop(t + 0.03);
+        },
+        startBlower: () => {
+            if (noiseSource) return;
+            const bufferSize = audioCtx.sampleRate * 1.5;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const output = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+            
+            noiseSource = audioCtx.createBufferSource();
+            noiseSource.buffer = buffer;
+            noiseSource.loop = true;
+            
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass'; filter.frequency.value = 220;
+
+            noiseGain = audioCtx.createGain();
+            noiseGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            noiseGain.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + 0.5);
+
+            noiseSource.connect(filter); filter.connect(noiseGain); noiseGain.connect(audioCtx.destination);
+            noiseSource.start();
+        },
+        stopBlower: () => {
+            if (noiseGain) {
+                noiseGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+                setTimeout(() => { 
+                    if (noiseSource) { noiseSource.stop(); noiseSource = null; }
+                }, 300);
+            }
+        },
+        playPicked: () => {
+            try {
+                const pickedAudio = new Audio('bingo-blower_picked.mp3');
+                pickedAudio.play().catch(err => console.log(err));
+            } catch(e) {}
+        }
+    };
+
+    // Canvas Setup - Capped DPR to 1.25 for laptop performance
+    const canvas = document.getElementById('machine');
+    const ctx = canvas.getContext('2d');
+    let dpr = Math.min(window.devicePixelRatio || 1, 1.25);
+
+    function resizeCanvas() {
+        canvas.width = 800 * dpr;
+        canvas.height = 800 * dpr;
+    }
+
+    const V_WIDTH = 800;
+    const V_HEIGHT = 800;
+    const cx = V_WIDTH / 2;
+    const cy = V_HEIGHT / 2 + 10; 
+    const tankRadius = 310;
+    const pipeWidth = 120; 
+    const pipeHeight = 220;
+    const pipeTop = cy - tankRadius - pipeHeight + 35;
+
+    let machineState = 'idle'; 
+    let balls = [];
+    let windParticles = [];
+    let suctionStartTime = 0;
+    let minDelay = 3;
+    let maxDelay = 6;
+    let names = [];
+    let removeWinners = true;
+
+    // Ball Class with Classroom-Friendly Font & Black Stroke Outline
+    class Ball {
+        constructor(x, y, radius, text, hue) {
+            this.x = x; this.y = y;
+            this.vx = 0; this.vy = 0;
+            this.radius = radius; this.mass = radius * radius;
+            this.text = text; this.hue = hue;
+            this.color = `hsl(${hue}, 85%, 60%)`;
+            this.darkColor = `hsl(${hue}, 90%, 28%)`;
+            this.state = 'bouncing'; 
+            this.angle = Math.random() * Math.PI * 2;
+            this.vRot = 0; 
+            
+            this.cacheCanvas();
+        }
+
+        cacheCanvas() {
+            const pad = 6;
+            const size = Math.ceil((this.radius + pad) * 2);
+            this.offscreen = document.createElement('canvas');
+            this.offscreen.width = size * dpr;
+            this.offscreen.height = size * dpr;
+            const oCtx = this.offscreen.getContext('2d');
+            oCtx.scale(dpr, dpr);
+
+            const center = size / 2;
+
+            // Ball 3D Gradient
+            let grad = oCtx.createRadialGradient(center - this.radius * 0.35, center - this.radius * 0.35, this.radius * 0.05, center, center, this.radius);
+            grad.addColorStop(0, '#ffffff'); 
+            grad.addColorStop(0.3, this.color); 
+            grad.addColorStop(1, this.darkColor);
+
+            oCtx.beginPath(); oCtx.arc(center, center, this.radius, 0, Math.PI * 2);
+            oCtx.fillStyle = grad; oCtx.fill();
+            oCtx.lineWidth = 1.2; oCtx.strokeStyle = 'rgba(0,0,0,0.35)'; oCtx.stroke();
+
+            // Font: Fredoka (Classroom friendly rounded font)
+            oCtx.textAlign = 'center'; 
+            oCtx.textBaseline = 'middle';
+            oCtx.font = `800 ${this.radius * 0.50}px 'Poppins', sans-serif`;
+
+            let textMetrics = oCtx.measureText(this.text);
+            let maxWidth = this.radius * 1.65;
+            
+            oCtx.save();
+            oCtx.translate(center, center);
+            if (textMetrics.width > maxWidth) {
+                let scale = maxWidth / textMetrics.width;
+                oCtx.scale(scale, scale);
+            }
+
+            // High contrast Black Stroke Outline
+			oCtx.strokeStyle = '#000000';
+			oCtx.lineWidth = 1.5;
+			oCtx.lineJoin = 'round';
+			oCtx.strokeText(this.text, 0, 0);
+
+            // White Center Text
+            oCtx.fillStyle = '#ffffff';
+            oCtx.fillText(this.text, 0, 0);
+            
+            oCtx.restore();
+        }
+
+        draw(ctx) {
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            ctx.rotate(this.angle);
+            const size = this.offscreen.width / dpr;
+            ctx.drawImage(this.offscreen, -size / 2, -size / 2, size, size);
+            ctx.restore();
+        }
+    }
+
+    class WindParticle {
+        constructor() { this.reset(); }
+        reset() {
+            this.x = cx + (Math.random() - 0.5) * (pipeWidth * 1.5);
+            this.y = cy + tankRadius * 0.85;
+            this.vy = -(Math.random() * 6 + 4);
+            this.vx = (Math.random() - 0.5) * 2;
+            this.life = Math.random() * 0.5 + 0.3;
+            this.maxLife = this.life;
+            this.size = Math.random() * 2.5 + 1;
+        }
+        update() {
+            this.y += this.vy;
+            this.x += this.vx;
+            if (this.y < cy - tankRadius * 0.3) this.vx += Math.sign(this.x - cx) * 0.4; 
+            this.life -= 0.015;
+            if (this.life <= 0 || (this.x - cx)*(this.x - cx) + (this.y - cy)*(this.y - cy) > (tankRadius - 10)*(tankRadius - 10)) {
+                this.reset();
+            }
+        }
+        draw(ctx) {
+            ctx.fillStyle = `rgba(255, 255, 255, ${(this.life / this.maxLife) * 0.2})`;
+            ctx.fillRect(this.x, this.y, this.size, this.size);
+        }
+    }
+
+    function setStatus(text) { document.getElementById('status-tag').innerText = text; }
+    function toggleSettings() { SoundFX.init(); document.getElementById('settings-panel').classList.toggle('open'); }
+
+    function applySettings() {
+        SoundFX.init();
+        minDelay = parseFloat(document.getElementById('delay-min').value) || 2;
+        maxDelay = parseFloat(document.getElementById('delay-max').value) || 6;
+        if (minDelay > maxDelay) [minDelay, maxDelay] = [maxDelay, minDelay];
+
+        removeWinners = document.getElementById('remove-winners').checked;
+        const text = document.getElementById('names-input').value;
+        names = text.split('\n').map(n => n.trim()).filter(n => n.length > 0);
+        
+        if (names.length === 0) { alert("Please enter at least one name."); return; }
+        if (document.getElementById('settings-panel').classList.contains('open')) toggleSettings();
+        
+        initBalls(); resetMachine(true);
+    }
+
+    function initBalls() {
+        balls = [];
+        let radius = Math.max(20, Math.min(42, 230 / Math.sqrt(names.length)));
+        
+        names.forEach((name, index) => {
+            let hue = (index * (360 / names.length)) % 360;
+            let ball = new Ball(cx, cy, radius, name, hue);
+            
+            let placed = false, attempts = 0;
+            while (!placed && attempts < 400) {
+                attempts++;
+                let angle = Math.random() * Math.PI * 2; 
+                let r = Math.random() * (tankRadius - radius - 25);
+                ball.x = cx + Math.cos(angle) * r; ball.y = cy + Math.sin(angle) * r;
+                let overlap = balls.some(b => {
+                    let dx = b.x - ball.x, dy = b.y - ball.y;
+                    return (dx * dx + dy * dy) < (b.radius + ball.radius + 3) * (b.radius + ball.radius + 3);
+                });
+                if (!overlap) placed = true;
+            }
+            balls.push(ball);
+        });
+        windParticles = Array.from({ length: 15 }, () => new WindParticle());
+    }
+
+    function startDraw() {
+        if (balls.length === 0) return;
+        SoundFX.init(); machineState = 'mixing'; 
+        setStatus("Blowing & Mixing"); SoundFX.startBlower();
+        
+        balls.forEach(b => { 
+            b.vy -= (Math.random() * 4 + 3); 
+            b.vx += (Math.random() - 0.5) * 4; 
+            b.vRot = 0; 
+        });
+        let delay = minDelay + Math.random() * (maxDelay - minDelay);
+        suctionStartTime = Date.now() + (delay * 1000);
+        
+        const btn = document.getElementById('btn-draw');
+        btn.disabled = true; btn.innerText = "Mixing...";
+    }
+
+    function showWinner(ball) {
+        SoundFX.stopBlower();
+        setStatus("Winner Chosen");
+        
+        const giantBall = document.getElementById('giant-ball');
+        const giantName = document.getElementById('giant-name');
+        
+        giantName.innerText = ball.text;
+        giantName.style.fontSize = ball.text.length > 12 ? '36px' : (ball.text.length > 8 ? '44px' : '56px');
+        giantBall.style.background = `radial-gradient(circle at 35% 35%, #ffffff 0%, ${ball.color} 35%, ${ball.darkColor} 100%)`;
+
+        document.getElementById('winner-overlay').classList.add('show');
+        
+        setTimeout(() => {
+            SoundFX.playPicked(); 
+            fireConfetti();       
+        }, 0); 
+    }
+
+    function resetMachine(fullReset = false) {
+        SoundFX.init(); 
+        document.getElementById('winner-overlay').classList.remove('show');
+        machineState = 'idle'; 
+        setStatus("Ready");
+        
+        const btn = document.getElementById('btn-draw');
+        btn.disabled = false; 
+        btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Draw Name`;
+        
+        if (removeWinners) {
+            balls = balls.filter(b => b.state !== 'won');
+            names = balls.map(b => b.text);
+            document.getElementById('names-input').value = names.join('\n');
+            
+            if (balls.length === 0) {
+                setStatus("All names drawn!");
+                btn.disabled = true;
+                return;
+            }
+        }
+
+        if (!fullReset) {
+            balls.forEach(b => {
+                if (b.state !== 'bouncing') {
+                    b.state = 'bouncing';
+                    b.x = cx + (Math.random() - 0.5) * 30; 
+                    b.y = cy - tankRadius + b.radius + 30;
+                    b.vy = 1.5; b.vx = (Math.random() - 0.5) * 2; b.vRot = 0;
+                }
+            });
+        }
+        stopConfetti();
+    }
+
+    function updatePhysics() {
+        if (machineState === 'mixing' && Date.now() >= suctionStartTime) {
+            machineState = 'suction';
+            setStatus("Extracting Winner");
+            document.getElementById('btn-draw').innerText = "Selecting...";
+        }
+
+        const SUB_STEPS = 2;
+        for (let step = 0; step < SUB_STEPS; step++) {
+            subStepPhysics(1 / SUB_STEPS);
+        }
+
+        if (machineState === 'mixing' || machineState === 'suction') {
+            windParticles.forEach(p => p.update());
+        }
+    }
+
+    function subStepPhysics(dt) {
+        const gravity = 0.28 * dt; 
+        const damping = Math.pow(0.994, dt); 
+
+        balls.forEach((ball) => {
+            if (ball.state === 'won') return;
+            ball.vy += gravity;
+
+            if (ball.state === 'bouncing') {
+                if (machineState === 'mixing' || machineState === 'suction') {
+                    let dxToCenter = ball.x - cx;
+                    
+                    if (Math.abs(dxToCenter) < tankRadius * 0.55) {
+                        let centerAlignment = 1 - (Math.abs(dxToCenter) / (tankRadius * 0.55));
+                        ball.vy -= (Math.random() * 3.5 + 1.2) * centerAlignment * dt;
+                    }
+
+                    if (ball.y < cy - tankRadius * 0.35) {
+                        ball.vx += Math.sign(dxToCenter) * (Math.random() * 2.0 + 0.5) * dt;
+                    }
+
+                    ball.vx += (Math.random() - 0.5) * 1.5 * dt;
+                    ball.vy += (Math.random() - 0.5) * 1.5 * dt;
+                } 
+
+                if (machineState === 'suction') {
+                    let dxToPipe = cx - ball.x;
+                    let distToTop = ball.y - (cy - tankRadius);
+                    
+                    if (distToTop < tankRadius * 1.2 && Math.abs(dxToPipe) < pipeWidth * 1.2) {
+                        ball.vx += Math.sign(dxToPipe) * 1.2 * dt; 
+                        ball.vy -= 2.0 * dt; 
+                    }
+
+                    if (Math.abs(dxToPipe) < (pipeWidth / 2 - ball.radius * 0.8) && ball.y < cy - tankRadius + ball.radius * 2) {
+                        ball.state = 'sucked';
+                        machineState = 'presenting'; 
+                    }
+                }
+            } 
+            else if (ball.state === 'sucked') {
+                ball.x += (cx - ball.x) * 0.2 * dt; 
+                ball.vx = 0; ball.vy = -6.5 * dt; 
+                ball.vRot = 0;
+                
+                if (ball.y < pipeTop + ball.radius) {
+                    ball.y = pipeTop + ball.radius;
+                    ball.vy = 0; ball.state = 'won';
+                    showWinner(ball);
+                }
+            }
+
+            let speed = Math.hypot(ball.vx, ball.vy);
+            let maxSpeed = 7.5; 
+            if (speed > maxSpeed) {
+                ball.vx = (ball.vx / speed) * maxSpeed;
+                ball.vy = (ball.vy / speed) * maxSpeed;
+                speed = maxSpeed;
+            }
+
+            ball.x += ball.vx * dt;
+            ball.y += ball.vy * dt;
+            ball.angle += ball.vRot * dt;
+
+            ball.vx *= damping;
+            ball.vy *= damping;
+            
+            if (speed < 0.3) {
+                ball.vRot *= 0.75; 
+                if (Math.abs(ball.vRot) < 0.001) ball.vRot = 0;
+            } else {
+                ball.vRot *= 0.95;
+            }
+
+            if (ball.state === 'bouncing') {
+                let dx = ball.x - cx;
+                let dy = ball.y - cy;
+                let distSq = dx * dx + dy * dy;
+                let maxDist = tankRadius - ball.radius;
+
+                if (distSq > maxDist * maxDist) {
+                    let isHittingTopGap = dy < 0 && Math.abs(dx) < (pipeWidth / 2 - ball.radius * 0.8);
+                    let gapIsOpen = (machineState === 'suction' && isHittingTopGap);
+
+                    if (!gapIsOpen) {
+                        let dist = Math.sqrt(distSq);
+                        let nx = dx / dist;
+                        let ny = dy / dist;
+                        let overlap = dist - maxDist;
+                        
+                        ball.x -= nx * overlap; ball.y -= ny * overlap;
+
+                        let dot = ball.vx * nx + ball.vy * ny;
+                        ball.vx -= 1.8 * dot * nx;
+                        ball.vy -= 1.8 * dot * ny;
+                        
+                        if (speed > 0.8) {
+                            let tanVel = -ball.vx * ny + ball.vy * nx;
+                            ball.vRot += tanVel * 0.003;
+                        }
+
+                        SoundFX.playBounce(Math.abs(dot));
+                    }
+                }
+            }
+        });
+
+        for (let i = 0; i < balls.length; i++) {
+            for (let j = i + 1; j < balls.length; j++) {
+                let b1 = balls[i]; let b2 = balls[j];
+                if (b1.state === 'won' || b2.state === 'won') continue;
+
+                let dx = b2.x - b1.x; let dy = b2.y - b1.y;
+                let distSq = dx * dx + dy * dy; 
+                let minDist = b1.radius + b2.radius;
+
+                if (distSq < minDist * minDist && distSq > 0) {
+                    let dist = Math.sqrt(distSq);
+                    let penetration = minDist - dist;
+                    let nx = dx / dist; let ny = dy / dist;
+
+                    b1.x -= nx * penetration * 0.5; b1.y -= ny * penetration * 0.5;
+                    b2.x += nx * penetration * 0.5; b2.y += ny * penetration * 0.5;
+
+                    let kx = b1.vx - b2.vx; let ky = b1.vy - b2.vy;
+                    let p = 2 * (nx * kx + ny * ky) / (b1.mass + b2.mass);
+
+                    if (p > 0) {
+                        let restitution = 0.85;
+                        b1.vx -= p * b2.mass * nx * restitution;
+                        b1.vy -= p * b2.mass * ny * restitution;
+                        b2.vx += p * b1.mass * nx * restitution;
+                        b2.vy += p * b1.mass * ny * restitution;
+
+                        SoundFX.playBounce(Math.abs(p * b2.mass));
+                    }
+                }
+            }
+        }
+    }
+
+    function drawMachine() {
+        ctx.save();
+        ctx.scale(dpr, dpr);
+        ctx.clearRect(0, 0, V_WIDTH, V_HEIGHT);
+
+        if (machineState === 'suction' || machineState === 'presenting') {
+            let grad = ctx.createLinearGradient(0, cy - tankRadius, 0, cy - tankRadius - pipeHeight);
+            grad.addColorStop(0, 'rgba(74, 222, 128, 0.05)'); grad.addColorStop(1, 'rgba(74, 222, 128, 0.35)');
+            ctx.fillStyle = grad; ctx.fillRect(cx - pipeWidth/2, cy - tankRadius - pipeHeight, pipeWidth, pipeHeight);
+        } else {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
+            ctx.fillRect(cx - pipeWidth/2, cy - tankRadius - pipeHeight, pipeWidth, pipeHeight);
+        }
+
+        if (machineState === 'mixing' || machineState === 'suction') {
+            windParticles.forEach(p => p.draw(ctx));
+        }
+
+        balls.forEach(ball => ball.draw(ctx));
+
+        ctx.beginPath(); ctx.arc(cx, cy, tankRadius, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.04)'; ctx.fill();
+
+        ctx.lineWidth = 10; ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+        let holeAngle = Math.asin((pipeWidth / 2) / tankRadius);
+        ctx.beginPath(); ctx.arc(cx, cy, tankRadius, -Math.PI/2 + holeAngle, -Math.PI/2 - holeAngle); ctx.stroke();
+
+        if (machineState !== 'suction' && machineState !== 'presenting') {
+            ctx.beginPath(); ctx.arc(cx, cy, tankRadius, -Math.PI/2 - holeAngle, -Math.PI/2 + holeAngle);
+            ctx.strokeStyle = 'rgba(239, 68, 68, 0.5)'; ctx.stroke();
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(cx - pipeWidth/2, cy - tankRadius + 10); ctx.lineTo(cx - pipeWidth/2, cy - tankRadius - pipeHeight);
+        ctx.moveTo(cx + pipeWidth/2, cy - tankRadius + 10); ctx.lineTo(cx + pipeWidth/2, cy - tankRadius - pipeHeight);
+        ctx.lineWidth = 6; ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)'; ctx.stroke();
+
+        ctx.restore();
+    }
+
+    function loop() { updatePhysics(); drawMachine(); requestAnimationFrame(loop); }
+
+    // Lightweight Confetti
+    const confettiCanvas = document.getElementById('confetti'); const cCtx = confettiCanvas.getContext('2d');
+    let confettis = []; let confettiActive = false;
+
+    function resizeConfetti() { confettiCanvas.width = window.innerWidth; confettiCanvas.height = window.innerHeight; }
+    window.addEventListener('resize', () => { dpr = Math.min(window.devicePixelRatio || 1, 1.25); resizeCanvas(); resizeConfetti(); });
+    resizeConfetti(); resizeCanvas();
+
+    function fireConfetti() {
+        confettiActive = true; confettis = [];
+        const colors = ['#fce18a', '#ff726d', '#b48def', '#f4306d', '#4ade80', '#3b82f6'];
+        for (let i = 0; i < 90; i++) {
+            confettis.push({
+                x: window.innerWidth / 2, y: window.innerHeight / 2 - 50,
+                vx: (Math.random() - 0.5) * 26, vy: (Math.random() - 1) * 18 - 4,
+                size: Math.random() * 8 + 5, color: colors[Math.floor(Math.random() * colors.length)]
+            });
+        }
+        updateConfetti();
+    }
+
+    function updateConfetti() {
+        if (!confettiActive) return;
+        cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+        let activeCount = 0;
+        confettis.forEach(c => {
+            c.x += c.vx; c.y += c.vy; c.vy += 0.4; c.vx *= 0.98;
+            if (c.y < confettiCanvas.height) activeCount++;
+            cCtx.fillStyle = c.color; cCtx.fillRect(c.x, c.y, c.size, c.size);
+        });
+        if (activeCount > 0) requestAnimationFrame(updateConfetti); else confettiActive = false;
+    }
+
+    function stopConfetti() { confettiActive = false; cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height); }
+
+    window.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'CLASSROOM_ROSTER_UPDATE') {
+            const studentNames = event.data.roster;
+            if (Array.isArray(studentNames) && studentNames.length > 0) {
+                const textarea = document.getElementById('names-input');
+                textarea.value = studentNames.join('\n'); applySettings();
+            }
+        }
+    });
+
+    // Re-cache ball text after Google Fonts arrive asynchronously
+    document.fonts.ready.then(() => {
+        balls.forEach(b => b.cacheCanvas());
+    });
+
+    applySettings(); loop();
+</script>
+</body>
+</html>

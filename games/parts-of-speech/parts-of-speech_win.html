@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Cloud Categorization Challenge</title>
+    <style>
+        :root {
+            --bg: #1e1e2e;
+            --text: #cdd6f4;
+            --panel: #313244;
+            --accent: #89b4fa;
+            --correct: #a6e3a1;
+            --wrong: #f38ba8;
+            --untyped: #6c7086;
+            --used: #45475a;
+            --cat1-color: #89dceb;
+            --cat2-color: #f9e2af;
+            --cat3-color: #f5c2e7;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        /* Settings Button */
+        #settingsBtn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-size: 32px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            z-index: 100;
+            color: white;
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+            transition: transform 0.3s;
+        }
+
+        #settingsBtn:hover {
+            transform: rotate(90deg);
+        }
+
+        /* Settings Panel */
+        #settingsPanel {
+            position: fixed;
+            top: 0;
+            right: -420px;
+            width: 380px;
+            max-width: 100%;
+            height: 100%;
+            background: var(--panel);
+            box-shadow: -5px 0 25px rgba(0,0,0,0.7);
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 99;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        #settingsPanel.open {
+            right: 0;
+        }
+
+        #settingsPanel h2 {
+            margin-top: 40px;
+            margin-bottom: 5px;
+        }
+
+        #settingsPanel p {
+            font-size: 0.85rem;
+            color: #a6adc8;
+            margin-bottom: 15px;
+        }
+
+        .setting-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+            background: rgba(0,0,0,0.15);
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #45475a;
+        }
+
+        .setting-group label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+            color: #a6adc8;
+        }
+
+        .cat-title-input {
+            background: #181825;
+            color: var(--accent);
+            border: 1px solid #45475a;
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            outline: none;
+        }
+
+        .cat-title-input:focus {
+            border-color: var(--accent);
+        }
+
+        textarea {
+            height: 80px;
+            background: #181825;
+            color: #a6adc8;
+            border: 1px solid #45475a;
+            border-radius: 6px;
+            padding: 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: var(--accent);
+        }
+
+        /* Word Cloud View */
+        #wordCloud {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            align-content: center;
+            width: 100%;
+            height: 100%;
+            padding: 40px;
+            box-sizing: border-box;
+            gap: 15px;
+        }
+
+        .cloud-word {
+            cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+                        opacity 0.5s ease, 
+                        filter 0.3s ease;
+            font-weight: 800;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.4);
+            user-select: none;
+            display: inline-block;
+            opacity: 1;
+            transform-origin: center center;
+        }
+
+        .cloud-word:not(.solved):hover {
+            transform: scale(1.3) !important;
+            z-index: 10;
+            filter: brightness(1.2);
+            text-shadow: 0 0 15px currentColor;
+        }
+
+        /* Solved/Removed Words */
+        .cloud-word.solved {
+            opacity: 0;
+            transform: scale(0) !important;
+            pointer-events: none;
+        }
+
+        /* Completion Screen */
+        #completionMessage {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            z-index: 40;
+        }
+
+        #completionMessage h1 {
+            font-size: 3.5rem;
+            color: var(--correct);
+            margin-bottom: 10px;
+        }
+
+        /* Challenge Screen Modal */
+        #challengeScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(30, 30, 46, 0.98);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        #challengeScreen.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #backBtn {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            background: #45475a;
+            color: #cdd6f4;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        #backBtn:hover {
+            background: #585b70;
+        }
+
+        .prompt-subtitle {
+            font-size: 1.4rem;
+            color: var(--untyped);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .challenge-title {
+            font-size: 4.5rem;
+            margin-bottom: 50px;
+            color: var(--accent);
+            text-align: center;
+            font-weight: 800;
+            text-shadow: 0 0 25px rgba(137, 180, 250, 0.4);
+        }
+
+        /* Large Category Choice Buttons */
+        .category-container {
+            display: flex;
+            gap: 25px;
+            justify-content: center;
+            width: 100%;
+            max-width: 950px;
+        }
+
+        .cat-btn {
+            flex: 1;
+            min-height: 120px;
+            padding: 25px 30px;
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #11111b;
+            background: var(--text);
+            border: 3px solid transparent;
+            border-radius: 24px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s, box-shadow 0.2s, border-color 0.2s, opacity 0.3s;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            outline: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        .cat-btn:hover {
+            transform: translateY(-6px) scale(1.03);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .cat-btn:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        .cat-btn[data-index="0"] {
+            background: var(--cat1-color);
+        }
+
+        .cat-btn[data-index="1"] {
+            background: var(--cat2-color);
+        }
+
+        .cat-btn[data-index="2"] {
+            background: var(--cat3-color);
+        }
+
+        /* Animation States */
+        .btn-correct {
+            animation: pulse-correct 0.5s ease-in-out forwards;
+            background-color: var(--correct) !important;
+            border-color: #ffffff !important;
+            color: #11111b !important;
+        }
+
+        .btn-dimmed {
+            opacity: 0.5 !important;
+        }
+
+        .btn-wrong {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+            background-color: var(--wrong) !important;
+            color: white !important;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-6px, 0, 0); }
+            20%, 80% { transform: translate3d(8px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-10px, 0, 0); }
+            40%, 60% { transform: translate3d(10px, 0, 0); }
+        }
+
+        @keyframes pulse-correct {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); filter: brightness(1.25); }
+            100% { transform: scale(1); }
+        }
+
+        #message {
+            margin-top: 40px;
+            font-size: 2rem;
+            height: 45px;
+            font-weight: bold;
+            color: var(--correct);
+            opacity: 0;
+            transition: opacity 0.3s;
+            text-align: center;
+        }
+
+        @media (max-width: 800px) {
+            .challenge-title { font-size: 3.2rem; margin-bottom: 30px; }
+            .category-container { flex-direction: column; align-items: stretch; gap: 15px; }
+            .cat-btn { min-height: 80px; font-size: 1.8rem; padding: 15px; }
+            #settingsPanel { width: 320px; right: -320px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Settings Button -->
+    <button id="settingsBtn" title="Settings">⚙️</button>
+
+    <!-- Settings Panel -->
+    <div id="settingsPanel">
+        <h2>Settings</h2>
+        <p>Live-editable categories & words (one per line):</p>
+
+        <div class="setting-group">
+            <label for="cat1Title">Category 1 Name</label>
+            <input type="text" id="cat1Title" class="cat-title-input" value="Verb" />
+            <label for="cat1Words">Words</label>
+            <textarea id="cat1Words"></textarea>
+        </div>
+
+        <div class="setting-group">
+            <label for="cat2Title">Category 2 Name</label>
+            <input type="text" id="cat2Title" class="cat-title-input" value="Noun" />
+            <label for="cat2Words">Words</label>
+            <textarea id="cat2Words"></textarea>
+        </div>
+
+        <div class="setting-group">
+            <label for="cat3Title">Category 3 Name</label>
+            <input type="text" id="cat3Title" class="cat-title-input" value="Adjective" />
+            <label for="cat3Words">Words</label>
+            <textarea id="cat3Words"></textarea>
+        </div>
+    </div>
+
+    <!-- Word Cloud View -->
+    <div id="wordCloud"></div>
+
+    <!-- Completion Screen -->
+    <div id="completionMessage">
+        <h1>Cloud Cleared! 🎉</h1>
+        <p style="font-size: 1.4rem; color: #a6adc8;">You categorized all the words correctly!</p>
+        <button id="restartBtn" class="primary" style="margin-top: 25px; padding: 15px 30px; font-size: 1.2rem; background: var(--accent); border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">Shuffle Again</button>
+    </div>
+
+    <!-- Challenge Screen -->
+    <div id="challengeScreen">
+        <button id="backBtn">⬅ Back to Cloud</button>
+        <div class="prompt-subtitle">Category for this word:</div>
+        <div class="challenge-title" id="challengeWord"></div>
+
+        <div class="category-container">
+            <button class="cat-btn" data-index="0"></button>
+            <button class="cat-btn" data-index="1"></button>
+            <button class="cat-btn" data-index="2"></button>
+        </div>
+
+        <div id="message">Correct! 🎉</div>
+    </div>
+
+    <script>
+        // Web Audio API Synth for Wrong Answer Dud
+        let audioCtx;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playWrongSound() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.type = 'sawtooth';
+            osc.frequency.value = 160;
+
+            const now = audioCtx.currentTime;
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+            osc.start(now);
+            osc.stop(now + 0.25);
+        }
+
+        // Requested Defaults
+        const defaultVerbs = ["Climb", "Dance", "Laugh", "Sleep", "Smile", "Wash"];
+        const defaultNouns = ["Beach", "Doctor", "Garden", "Kitchen", "Pencil", "Street"];
+        const defaultAdjectives = ["Cold", "Happy", "Heavy", "Hungry", "Fast", "Sweet"];
+
+        let wordList = [];
+        let currentChallengeItem = null;
+        let currentChallengeSpan = null;
+
+        // DOM Elements
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsPanel = document.getElementById('settingsPanel');
+        const cat1Title = document.getElementById('cat1Title');
+        const cat1Words = document.getElementById('cat1Words');
+        const cat2Title = document.getElementById('cat2Title');
+        const cat2Words = document.getElementById('cat2Words');
+        const cat3Title = document.getElementById('cat3Title');
+        const cat3Words = document.getElementById('cat3Words');
+        const wordCloud = document.getElementById('wordCloud');
+        const challengeScreen = document.getElementById('challengeScreen');
+        const backBtn = document.getElementById('backBtn');
+        const challengeWord = document.getElementById('challengeWord');
+        const message = document.getElementById('message');
+        const completionMessage = document.getElementById('completionMessage');
+        const restartBtn = document.getElementById('restartBtn');
+        const catButtons = document.querySelectorAll('.cat-btn');
+
+        // Initialize App
+        function init() {
+            cat1Title.value = "Verb";
+            cat1Words.value = defaultVerbs.join('\n');
+
+            cat2Title.value = "Noun";
+            cat2Words.value = defaultNouns.join('\n');
+
+            cat3Title.value = "Adjective";
+            cat3Words.value = defaultAdjectives.join('\n');
+
+            parseSettings(true);
+        }
+
+        // Toggle Settings Panel
+        settingsBtn.addEventListener('click', () => {
+            settingsPanel.classList.toggle('open');
+        });
+
+        // Parse Settings
+        function parseSettings(shuffle = false) {
+            updateCategoryButtonLabels();
+
+            const c1Name = cat1Title.value.trim() || "Category 1";
+            const c2Name = cat2Title.value.trim() || "Category 2";
+            const c3Name = cat3Title.value.trim() || "Category 3";
+
+            const newWordList = [];
+
+            const parseBucket = (text, categoryName) => {
+                text.split('\n').forEach(line => {
+                    const cleaned = line.trim();
+                    if (cleaned) {
+                        const existing = wordList.find(w => w.word.toLowerCase() === cleaned.toLowerCase() && w.category === categoryName);
+                        newWordList.push({ 
+                            word: cleaned, 
+                            category: categoryName, 
+                            solved: existing ? existing.solved : false 
+                        });
+                    }
+                });
+            };
+
+            parseBucket(cat1Words.value, c1Name);
+            parseBucket(cat2Words.value, c2Name);
+            parseBucket(cat3Words.value, c3Name);
+
+            if (shuffle || wordList.length === 0 || wordList.length !== newWordList.length) {
+                newWordList.sort(() => Math.random() - 0.5);
+                wordList = newWordList;
+                generateCloud();
+            } else {
+                wordList = newWordList;
+                updateCloudTextInPlace();
+            }
+        }
+
+        function updateCategoryButtonLabels() {
+            const c1Name = cat1Title.value.trim() || "Category 1";
+            const c2Name = cat2Title.value.trim() || "Category 2";
+            const c3Name = cat3Title.value.trim() || "Category 3";
+
+            catButtons[0].textContent = c1Name;
+            catButtons[0].setAttribute('data-category', c1Name);
+
+            catButtons[1].textContent = c2Name;
+            catButtons[1].setAttribute('data-category', c2Name);
+
+            catButtons[2].textContent = c3Name;
+            catButtons[2].setAttribute('data-category', c3Name);
+        }
+
+        // Render Word Cloud
+        function generateCloud() {
+            wordCloud.innerHTML = '';
+            completionMessage.style.display = 'none';
+            wordCloud.style.display = 'flex';
+
+            if (wordList.length === 0) return;
+
+            wordList.forEach(item => {
+                const span = document.createElement('span');
+                span.textContent = item.word;
+                span.className = 'cloud-word';
+
+                if (item.solved) {
+                    span.classList.add('solved');
+                }
+
+                const fontSize = Math.random() * 2.5 + 2; 
+                span.style.fontSize = `${fontSize}rem`;
+
+                const hue = Math.floor(Math.random() * 360);
+                span.style.color = `hsl(${hue}, 80%, 70%)`;
+
+                const rotation = Math.random() * 30 - 15;
+                span.style.transform = `rotate(${rotation}deg)`;
+
+                span.style.margin = `${Math.random() * 12 + 10}px ${Math.random() * 20 + 10}px`;
+
+                span.addEventListener('click', () => {
+                    if (!item.solved) openChallenge(item, span);
+                });
+
+                wordCloud.appendChild(span);
+            });
+        }
+
+        // Smooth live text update
+        function updateCloudTextInPlace() {
+            const spans = wordCloud.querySelectorAll('.cloud-word');
+            wordList.forEach((item, index) => {
+                if (spans[index]) {
+                    spans[index].textContent = item.word;
+                }
+            });
+        }
+
+        // Check Victory Condition
+        function checkVictoryCondition() {
+            const remaining = wordList.filter(item => !item.solved);
+            if (remaining.length === 0 && wordList.length > 0) {
+                setTimeout(() => {
+                    wordCloud.style.display = 'none';
+                    completionMessage.style.display = 'flex';
+                    const winAudio = new Audio('parts-of-speech_win.mp3');
+                    winAudio.play().catch(e => console.log("Audio play prevented:", e));
+                }, 500);
+            }
+        }
+
+        // Open Challenge View
+        function openChallenge(item, spanElement) {
+            initAudio();
+            currentChallengeItem = item;
+            currentChallengeSpan = spanElement;
+
+            challengeWord.textContent = item.word;
+            message.style.opacity = '0';
+
+            catButtons.forEach(btn => {
+                btn.classList.remove('btn-correct', 'btn-wrong', 'btn-dimmed');
+                btn.disabled = false;
+            });
+
+            challengeScreen.classList.add('active');
+        }
+
+        // Close Challenge View
+        function closeChallenge() {
+            challengeScreen.classList.remove('active');
+            currentChallengeItem = null;
+            currentChallengeSpan = null;
+        }
+
+        backBtn.addEventListener('click', closeChallenge);
+
+        // Handle Category Choice
+        catButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                if (!currentChallengeItem) return;
+
+                const chosenCategory = e.currentTarget.getAttribute('data-category');
+                
+                if (chosenCategory === currentChallengeItem.category) {
+                    // Correct Choice
+                    const winAudio = new Audio('parts-of-speech_win.mp3');
+                    winAudio.play().catch(e => console.log("Audio play prevented:", e));
+
+                    btn.classList.add('btn-correct');
+                    
+                    // Dim all other buttons
+                    catButtons.forEach(b => {
+                        if (b !== btn) b.classList.add('btn-dimmed');
+                    });
+                    
+                    message.textContent = `Correct! "${currentChallengeItem.word}" is a ${chosenCategory}! 🎉`;
+                    message.style.opacity = '1';
+
+                    catButtons.forEach(b => b.disabled = true);
+
+                    currentChallengeItem.solved = true;
+                    if (currentChallengeSpan) {
+                        currentChallengeSpan.classList.add('solved');
+                    }
+
+                    setTimeout(() => {
+                        closeChallenge();
+                        checkVictoryCondition();
+                    }, 2400);
+
+                } else {
+                    // Wrong Choice
+                    playWrongSound();
+                    btn.classList.add('btn-wrong');
+                    setTimeout(() => {
+                        btn.classList.remove('btn-wrong');
+                    }, 500);
+                }
+            });
+        });
+
+        // Event Listeners for Live Updates
+        [cat1Title, cat2Title, cat3Title].forEach(input => {
+            input.addEventListener('input', () => updateCategoryButtonLabels());
+        });
+
+        [cat1Words, cat2Words, cat3Words].forEach(textarea => {
+            textarea.addEventListener('input', () => parseSettings(false));
+        });
+
+        restartBtn.addEventListener('click', () => parseSettings(true));
+
+        // Run on start
+        init();
+
+    </script>
+</body>
+</html>

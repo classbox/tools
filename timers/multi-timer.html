@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classroom Timers</title>
+    <style>
+        :root {
+            --bg-base: #090d16;
+            --bg-surface: #111726;
+            --bg-surface-elevated: #182032;
+            --bg-glass: rgba(17, 23, 38, 0.75);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(99, 102, 241, 0.25);
+            
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dark: #64748b;
+            
+            --accent-blue: #6366f1;
+            --accent-blue-hover: #4f46e5;
+            --accent-green: #10b981;
+            --accent-green-hover: #059669;
+            --accent-red: #f43f5e;
+            --accent-red-hover: #e11d48;
+            
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            
+            --shadow-card: 0 12px 32px -4px rgba(0, 0, 0, 0.4), 0 4px 12px -2px rgba(0, 0, 0, 0.3);
+            --shadow-glow: 0 0 25px rgba(99, 102, 241, 0.2);
+            --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-stack);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.05) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* --- Header & Control Panel --- */
+        header {
+            background: var(--bg-glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 20px 24px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .creator-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: flex-end;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-group label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        /* Time Inputs */
+        .time-inputs {
+            display: inline-flex;
+            align-items: center;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 4px 10px;
+            transition: all 0.2s ease;
+        }
+
+        .time-inputs:focus-within {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .time-inputs input {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-size: 1.1rem;
+            font-weight: 700;
+            width: 48px;
+            text-align: center;
+            outline: none;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .time-inputs input::-webkit-inner-spin-button,
+        .time-inputs input::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .time-inputs span {
+            font-weight: 800;
+            color: var(--text-dark);
+            user-select: none;
+        }
+
+        /* Presets Pills */
+        .presets {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .presets button {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-muted);
+            padding: 8px 14px;
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .presets button:hover {
+            background: var(--bg-surface-elevated);
+            color: var(--text-main);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
+        }
+
+        /* Custom Dropdown Select */
+        .select-wrapper {
+            position: relative;
+        }
+
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-main);
+            padding: 10px 38px 10px 14px;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        select:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .select-wrapper::after {
+            content: "";
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid var(--text-muted);
+            pointer-events: none;
+        }
+
+        /* Modern Buttons */
+        button {
+            background: var(--bg-surface-elevated);
+            color: var(--text-main);
+            border: 1px solid var(--border-subtle);
+            padding: 10px 18px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            user-select: none;
+        }
+
+        button:hover {
+            background: #202a40;
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.btn-primary {
+            background: var(--accent-blue);
+            border-color: transparent;
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+        }
+
+        button.btn-primary:hover {
+            background: var(--accent-blue-hover);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+        }
+
+        button.btn-success {
+            background: var(--accent-green);
+            border-color: transparent;
+            color: #042f22;
+            font-weight: 700;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+        }
+
+        button.btn-success:hover {
+            background: var(--accent-green-hover);
+            color: #ffffff;
+        }
+
+        button.btn-danger {
+            background: var(--accent-red);
+            border-color: transparent;
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(244, 63, 94, 0.25);
+        }
+
+        button.btn-danger:hover {
+            background: var(--accent-red-hover);
+        }
+
+        .btn-icon {
+            padding: 8px;
+            border-radius: var(--radius-sm);
+        }
+
+        /* --- Timers Grid --- */
+        .timers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .timer-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            box-shadow: var(--shadow-card);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: cardAppear 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes cardAppear {
+            from { opacity: 0; transform: translateY(12px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .timer-card:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .timer-card.running {
+            border-color: var(--border-glow);
+            box-shadow: var(--shadow-card), var(--shadow-glow);
+        }
+
+        .timer-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .theme-badge {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 3px 8px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-close {
+            background: transparent;
+            border: none;
+            color: var(--text-dark);
+            padding: 2px 6px;
+            font-size: 1.1rem;
+            border-radius: var(--radius-sm);
+            line-height: 1;
+        }
+
+        .btn-close:hover {
+            background: rgba(244, 63, 94, 0.12);
+            color: var(--accent-red);
+        }
+
+        .canvas-container {
+            width: 100%;
+            height: 200px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 2px 0;
+        }
+
+        canvas {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .time-display {
+            font-size: 2.2rem;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.5px;
+            margin: 4px 0 12px 0;
+            color: var(--text-main);
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .timer-controls button {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="creator-panel">
+            <div class="input-group">
+                <label>Duration</label>
+                <div class="time-inputs">
+                    <input type="number" id="inputMin" min="0" max="180" value="5" placeholder="MM">
+                    <span>:</span>
+                    <input type="number" id="inputSec" min="0" max="59" value="0" placeholder="SS">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Presets</label>
+                <div class="presets">
+                    <button type="button" onclick="setPreset(1, 0)">1m</button>
+                    <button type="button" onclick="setPreset(3, 0)">3m</button>
+                    <button type="button" onclick="setPreset(5, 0)">5m</button>
+                    <button type="button" onclick="setPreset(10, 0)">10m</button>
+                    <button type="button" onclick="setPreset(15, 0)">15m</button>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Visual Theme</label>
+                <div class="select-wrapper">
+                    <select id="timerTheme">
+                        <option value="pie">🟢 Pie Chart (Green → Red)</option>
+                        <option value="grid">🟩 10x10 Grid (Top-Left → Down)</option>
+                        <option value="hourglass">⏳ Hourglass (Falling Sand)</option>
+                        <option value="pacman">🟡 Pac-Man (Gobbles 100 Morsels)</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="createTimerFromInputs()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Add Timer
+            </button>
+        </div>
+    </header>
+
+    <main class="timers-grid" id="timersGrid">
+    </main>
+
+    <script>
+        const timers = [];
+        let audioCtx = null;
+
+        // --- Web Worker Setup for Precision Background Processing ---
+        const workerCode = `
+            let interval = null;
+            self.onmessage = function(e) {
+                if (e.data === 'start') {
+                    if (!interval) {
+                        interval = setInterval(() => self.postMessage('tick'), 50);
+                    }
+                } else if (e.data === 'stop') {
+                    if (interval) {
+                        clearInterval(interval);
+                        interval = null;
+                    }
+                }
+            };
+        `;
+        const blob = new Blob([workerCode], { type: 'application/javascript' });
+        const bgWorker = new Worker(URL.createObjectURL(blob));
+
+        bgWorker.onmessage = function(e) {
+            if (e.data === 'tick') {
+                updateAllTimers();
+            }
+        };
+        bgWorker.postMessage('start');
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playAlarmSound() {
+            try {
+                initAudio();
+                const now = audioCtx.currentTime;
+                [523.25, 659.25, 783.99].forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.3, now + idx * 0.15);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.15 + 0.4);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + idx * 0.15);
+                    osc.stop(now + idx * 0.15 + 0.4);
+                });
+            } catch (e) {
+                console.error("Audio error:", e);
+            }
+        }
+
+        function setPreset(min, sec) {
+            document.getElementById('inputMin').value = min;
+            document.getElementById('inputSec').value = sec;
+        }
+
+        function getTimerColor(ratio) {
+            const hue = Math.max(0, Math.min(120, ratio * 120));
+            return `hsl(${hue}, 85%, 50%)`;
+        }
+
+        class ClassroomTimer {
+            constructor(id, totalSeconds, theme) {
+                this.id = id;
+                this.totalSeconds = Math.max(1, totalSeconds);
+                this.remainingMs = this.totalSeconds * 1000;
+                this.theme = theme;
+                this.isRunning = false;
+                this.endTime = null;
+                this.popoutWindow = null;
+                this.hasFinished = false;
+
+                this.createDOM();
+            }
+
+            createDOM() {
+                const card = document.createElement('div');
+                card.className = 'timer-card';
+                card.id = `timer-card-${this.id}`;
+
+                const themeName = this.theme === 'pie' ? 'Pie Chart' 
+                                : (this.theme === 'grid' ? '10x10 Grid' 
+                                : (this.theme === 'hourglass' ? 'Hourglass' : 'Pac-Man'));
+
+                card.innerHTML = `
+                    <div class="timer-header">
+                        <span class="theme-badge">${themeName}</span>
+                        <button class="btn-close" onclick="removeTimer('${this.id}')" title="Delete Timer">&times;</button>
+                    </div>
+                    <div class="canvas-container">
+                        <canvas id="canvas-${this.id}"></canvas>
+                    </div>
+                    <div class="time-display" id="display-${this.id}">${formatTime(this.remainingMs)}</div>
+                    <div class="timer-controls">
+                        <button id="btn-start-${this.id}" class="btn-success" onclick="toggleTimer('${this.id}')">Start</button>
+                        <button onclick="resetTimer('${this.id}')">Reset</button>
+                        <button class="btn-icon" onclick="popoutTimer('${this.id}')" title="Open Pop-out Window">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                        </button>
+                    </div>
+                `;
+
+                document.getElementById('timersGrid').appendChild(card);
+                this.canvas = document.getElementById(`canvas-${this.id}`);
+                this.ctx = this.canvas.getContext('2d');
+            }
+
+            start() {
+                initAudio();
+                if (this.remainingMs <= 0) return;
+                this.isRunning = true;
+                this.hasFinished = false;
+                this.endTime = Date.now() + this.remainingMs;
+                this.updateUI();
+            }
+
+            pause() {
+                this.isRunning = false;
+                this.updateUI();
+            }
+
+            toggle() {
+                if (this.isRunning) this.pause();
+                else this.start();
+            }
+
+            reset() {
+                this.isRunning = false;
+                this.hasFinished = false;
+                this.remainingMs = this.totalSeconds * 1000;
+                this.updateUI();
+            }
+
+            tick() {
+                if (this.isRunning) {
+                    this.remainingMs = Math.max(0, this.endTime - Date.now());
+                    if (this.remainingMs <= 0) {
+                        this.isRunning = false;
+                        if (!this.hasFinished) {
+                            this.hasFinished = true;
+                            playAlarmSound();
+                        }
+                        this.updateUI();
+                    }
+                }
+            }
+
+            updateUI() {
+                const card = document.getElementById(`timer-card-${this.id}`);
+                if (card) {
+                    card.classList.toggle('running', this.isRunning);
+                }
+
+                const btn = document.getElementById(`btn-start-${this.id}`);
+                if (btn) {
+                    btn.textContent = this.isRunning ? 'Pause' : 'Start';
+                    btn.className = this.isRunning ? 'btn-danger' : 'btn-success';
+                }
+
+                if (this.popoutWindow && !this.popoutWindow.closed) {
+                    const pBtn = this.popoutWindow.document.getElementById('pStartBtn');
+                    if (pBtn) {
+                        pBtn.textContent = this.isRunning ? 'Pause' : 'Start';
+                        pBtn.style.background = this.isRunning ? '#f43f5e' : '#10b981';
+                        pBtn.style.color = this.isRunning ? '#ffffff' : '#042f22';
+                    }
+                }
+            }
+
+            renderMain() {
+                const ratio = Math.max(0, Math.min(1, this.remainingMs / (this.totalSeconds * 1000)));
+                const timeStr = formatTime(this.remainingMs);
+
+                const disp = document.getElementById(`display-${this.id}`);
+                if (disp) disp.textContent = timeStr;
+
+                if (!this.canvas) return;
+
+                // Retina HiDPI Canvas Scaling + Max Size Fitting
+                const dpr = window.devicePixelRatio || 1;
+                const container = this.canvas.parentElement;
+                const size = Math.min(container.clientWidth, container.clientHeight);
+
+                if (this.canvas.width !== size * dpr || this.canvas.height !== size * dpr) {
+                    this.canvas.width = size * dpr;
+                    this.canvas.height = size * dpr;
+                }
+
+                this.ctx.save();
+                this.ctx.scale(dpr, dpr);
+                this.drawTheme(this.ctx, size, size, ratio);
+                this.ctx.restore();
+            }
+
+            drawTheme(ctx, w, h, ratio) {
+                if (this.theme === 'pie') {
+                    this.drawPieChart(ctx, w, h, ratio);
+                } else if (this.theme === 'grid') {
+                    this.drawGrid(ctx, w, h, ratio);
+                } else if (this.theme === 'hourglass') {
+                    this.drawHourglass(ctx, w, h, ratio);
+                } else if (this.theme === 'pacman') {
+                    this.drawPacman(ctx, w, h, ratio);
+                }
+            }
+
+            // --- Theme 1: Pie Chart ---
+            drawPieChart(ctx, w, h, ratio) {
+                ctx.clearRect(0, 0, w, h);
+                const cx = w / 2;
+                const cy = h / 2;
+                const radius = Math.min(w, h) * 0.46;
+
+                // Base Background Track
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                ctx.fillStyle = '#182032';
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                if (ratio > 0) {
+                    ctx.beginPath();
+                    ctx.moveTo(cx, cy);
+                    const startAngle = -Math.PI / 2;
+                    const endAngle = startAngle + (ratio * Math.PI * 2);
+                    ctx.arc(cx, cy, radius, startAngle, endAngle, false);
+                    ctx.closePath();
+
+                    const color = getTimerColor(ratio);
+                    ctx.fillStyle = color;
+                    ctx.fill();
+
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, radius * 0.95, startAngle, endAngle, false);
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            }
+
+            // --- Theme 2: 10x10 Grid ---
+            drawGrid(ctx, w, h, ratio) {
+                ctx.clearRect(0, 0, w, h);
+                const padding = 12; // Added padding to prevent edge clipping
+                const size = Math.min(w, h) - padding * 2;
+                const startX = (w - size) / 2;
+                const startY = (h - size) / 2;
+                const gap = size * 0.025;
+                const cellSize = (size - 9 * gap) / 10;
+
+                const vanishedCount = Math.floor((1 - ratio) * 100);
+                const currentColor = getTimerColor(ratio);
+
+                for (let i = 0; i < 100; i++) {
+                    const row = Math.floor(i / 10);
+                    const col = i % 10;
+                    const x = startX + col * (cellSize + gap);
+                    const y = startY + row * (cellSize + gap);
+
+                    ctx.beginPath();
+                    if (ctx.roundRect) {
+                        ctx.roundRect(x, y, cellSize, cellSize, 4);
+                    } else {
+                        ctx.rect(x, y, cellSize, cellSize);
+                    }
+
+                    if (i < vanishedCount) {
+                        ctx.fillStyle = '#182032';
+                    } else {
+                        ctx.fillStyle = currentColor;
+                    }
+                    ctx.fill();
+                }
+            }
+
+            // --- Theme 3: Modern Hourglass (Purple Theme) ---
+            drawHourglass(ctx, w, h, ratio) {
+                ctx.clearRect(0, 0, w, h);
+                const cx = w / 2;
+                const topY = h * 0.08;
+                const bottomY = h * 0.92;
+                const height = bottomY - topY;
+                const midY = topY + height / 2;
+                const bulbWidth = w * 0.70;
+                const neckWidth = w * 0.08;
+
+                const currentColor = getTimerColor(ratio);
+
+                const glassPath = new Path2D();
+                glassPath.moveTo(cx - bulbWidth / 2, topY);
+                glassPath.quadraticCurveTo(cx - bulbWidth / 2, midY - height * 0.12, cx - neckWidth / 2, midY);
+                glassPath.quadraticCurveTo(cx - bulbWidth / 2, midY + height * 0.12, cx - bulbWidth / 2, bottomY);
+                glassPath.lineTo(cx + bulbWidth / 2, bottomY);
+                glassPath.quadraticCurveTo(cx + bulbWidth / 2, midY + height * 0.12, cx + neckWidth / 2, midY);
+                glassPath.quadraticCurveTo(cx + bulbWidth / 2, midY - height * 0.12, cx + bulbWidth / 2, topY);
+                glassPath.closePath();
+
+                ctx.fillStyle = 'rgba(24, 32, 50, 0.7)';
+                ctx.fill(glassPath);
+
+                ctx.save();
+                ctx.clip(glassPath);
+
+                // Top Sand Level
+                if (ratio > 0) {
+                    const topSandH = (midY - topY) * ratio;
+                    const sandTopY = midY - topSandH;
+
+                    ctx.fillStyle = currentColor;
+                    ctx.beginPath();
+                    ctx.moveTo(0, sandTopY);
+                    ctx.lineTo(w, sandTopY);
+                    ctx.lineTo(w, midY);
+                    if (this.isRunning && ratio < 0.99) {
+                        ctx.lineTo(cx + neckWidth * 0.8, midY);
+                        ctx.quadraticCurveTo(cx, midY + 4, cx - neckWidth * 0.8, midY);
+                    }
+                    ctx.lineTo(0, midY);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+
+                // Bottom Sand Mound
+                const botRatio = 1 - ratio;
+                let moundPeakY = bottomY;
+                if (botRatio > 0) {
+                    const botMaxH = bottomY - midY;
+                    const sandBotH = botMaxH * botRatio;
+                    moundPeakY = bottomY - sandBotH;
+
+                    ctx.fillStyle = currentColor;
+                    ctx.beginPath();
+                    ctx.moveTo(0, bottomY);
+                    ctx.lineTo(w, bottomY);
+                    ctx.lineTo(w, bottomY - sandBotH * 0.65);
+                    
+                    const peakHeight = Math.min(10, sandBotH * 0.35);
+                    ctx.quadraticCurveTo(cx, moundPeakY - (this.isRunning ? peakHeight : peakHeight * 0.4), 0, bottomY - sandBotH * 0.65);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+
+                // Falling Stream & Particles
+                if (this.isRunning && ratio > 0 && ratio < 1) {
+                    const streamBottom = Math.min(bottomY, moundPeakY + 2);
+                    const streamLength = streamBottom - midY;
+
+                    if (streamLength > 0) {
+                        ctx.strokeStyle = currentColor;
+                        ctx.lineWidth = 2.5;
+                        ctx.globalAlpha = 0.85;
+                        ctx.beginPath();
+                        ctx.moveTo(cx, midY);
+                        ctx.lineTo(cx, streamBottom);
+                        ctx.stroke();
+
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(cx, midY);
+                        ctx.lineTo(cx, streamBottom);
+                        ctx.stroke();
+
+                        ctx.globalAlpha = 0.7;
+                        ctx.fillStyle = '#ffffff';
+                        const slowTime = Date.now() * 0.0015;
+                        const numParticles = 4;
+                        for (let i = 0; i < numParticles; i++) {
+                            const progress = ((slowTime + i / numParticles) % 1);
+                            const particleY = midY + progress * streamLength;
+                            const particleX = cx + Math.sin(progress * Math.PI * 4 + i) * 0.5;
+                            ctx.fillRect(particleX - 0.75, particleY, 1.5, 2);
+                        }
+                    }
+                }
+
+                ctx.restore();
+
+                // Purple End Cap Frames
+                ctx.fillStyle = '#7c3aed';
+                ctx.fillRect(cx - bulbWidth / 1.7, topY - 5, bulbWidth * 1.18, 5);
+                ctx.fillRect(cx - bulbWidth / 1.7, bottomY, bulbWidth * 1.18, 5);
+
+                ctx.strokeStyle = '#a78bfa';
+                ctx.lineWidth = 2.5;
+                ctx.stroke(glassPath);
+            }
+
+            // --- Theme 4: Pac-Man (Eats 100 Morsels) ---
+            drawPacman(ctx, w, h, ratio) {
+                ctx.clearRect(0, 0, w, h);
+
+                const padding = 16; // Increased padding to prevent Pac-Man from clipping edges
+                const size = Math.min(w, h) - (padding * 2);
+                const spacing = size / 9;
+                const startX = (w - size) / 2;
+                const startY = (h - size) / 2;
+
+                const dotPositions = [];
+                for (let i = 0; i < 100; i++) {
+                    const row = Math.floor(i / 10);
+                    const colInRow = i % 10;
+                    const col = (row % 2 === 0) ? colInRow : (9 - colInRow);
+                    dotPositions.push({
+                        x: startX + col * spacing,
+                        y: startY + row * spacing
+                    });
+                }
+
+                const totalProgress = (1 - ratio) * 99;
+                const eatenIndex = Math.floor(totalProgress);
+
+                for (let i = 0; i < 100; i++) {
+                    if (i > eatenIndex) {
+                        ctx.beginPath();
+                        ctx.arc(dotPositions[i].x, dotPositions[i].y, 2.5, 0, Math.PI * 2);
+                        ctx.fillStyle = '#f59e0b';
+                        ctx.fill();
+                    }
+                }
+
+                let pacX, pacY, angle = 0;
+                if (totalProgress >= 99) {
+                    pacX = dotPositions[99].x;
+                    pacY = dotPositions[99].y;
+                    angle = 0;
+                } else {
+                    const currIdx = Math.floor(totalProgress);
+                    const nextIdx = Math.min(99, currIdx + 1);
+                    const frac = totalProgress - currIdx;
+
+                    const p1 = dotPositions[currIdx];
+                    const p2 = dotPositions[nextIdx];
+
+                    pacX = p1.x + (p2.x - p1.x) * frac;
+                    pacY = p1.y + (p2.y - p1.y) * frac;
+
+                    angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+                }
+
+                const mouthAngle = this.isRunning 
+                    ? (Math.abs(Math.sin(Date.now() * 0.012)) * 0.25 + 0.05) * Math.PI 
+                    : 0.15 * Math.PI;
+
+                const radius = spacing * 0.55;
+
+                ctx.save();
+                ctx.translate(pacX, pacY);
+                ctx.rotate(angle);
+
+                ctx.beginPath();
+                ctx.arc(0, 0, radius, mouthAngle / 2, Math.PI * 2 - mouthAngle / 2);
+                ctx.lineTo(0, 0);
+                ctx.closePath();
+                ctx.fillStyle = '#facc15';
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(radius * 0.15, -radius * 0.5, radius * 0.15, 0, Math.PI * 2);
+                ctx.fillStyle = '#090d16';
+                ctx.fill();
+
+                ctx.restore();
+            }
+
+            openPopout() {
+                if (this.popoutWindow && !this.popoutWindow.closed) {
+                    this.popoutWindow.focus();
+                    return;
+                }
+
+                const win = window.open('', `timer_pop_${this.id}`, 'width=340,height=380,resizable=yes');
+                if (!win) {
+                    alert('Pop-up window blocked! Please allow popups for this page.');
+                    return;
+                }
+
+                this.popoutWindow = win;
+
+                win.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Timer</title>
+                        <style>
+                            html, body {
+                                width: 100%; height: 100%; margin: 0; padding: 12px;
+                                box-sizing: border-box; background: #090d16; color: #f8fafc;
+                                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                                display: flex; flex-direction: column;
+                                align-items: center; justify-content: space-between;
+                                overflow: hidden;
+                            }
+                            .canvas-container {
+                                flex: 1; width: 100%; min-height: 0;
+                                display: flex; justify-content: center; align-items: center;
+                            }
+                            canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
+                            .time-display {
+                                font-size: clamp(2.2rem, 12vw, 3.6rem);
+                                font-weight: 800; font-variant-numeric: tabular-nums;
+                                line-height: 1; margin: 4px 0 10px 0; letter-spacing: -1px;
+                            }
+                            .controls { display: flex; gap: 8px; width: 100%; max-width: 300px; }
+                            button {
+                                flex: 1; padding: 10px; border: none; border-radius: 10px;
+                                font-weight: 700; cursor: pointer; color: white;
+                                font-size: 0.95rem; transition: all 0.2s;
+                            }
+                            button:hover { opacity: 0.9; transform: translateY(-1px); }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="canvas-container" id="pCanvasContainer">
+                            <canvas id="pCanvas"></canvas>
+                        </div>
+                        <div class="time-display" id="pTime">${formatTime(this.remainingMs)}</div>
+                        <div class="controls">
+                            <button id="pStartBtn" style="background:${this.isRunning ? '#f43f5e' : '#10b981'}; color:${this.isRunning ? '#ffffff' : '#042f22'};">
+                                ${this.isRunning ? 'Pause' : 'Start'}
+                            </button>
+                            <button id="pResetBtn" style="background:#182032; color:#f8fafc;">Reset</button>
+                        </div>
+                    </body>
+                    </html>
+                `);
+                win.document.close();
+
+                win.document.getElementById('pStartBtn').onclick = () => this.toggle();
+                win.document.getElementById('pResetBtn').onclick = () => this.reset();
+
+                win.onbeforeunload = () => {
+                    this.popoutWindow = null;
+                };
+
+                const runPopoutRender = () => {
+                    if (this.popoutWindow && !this.popoutWindow.closed) {
+                        const pCanvas = this.popoutWindow.document.getElementById('pCanvas');
+                        const pContainer = this.popoutWindow.document.getElementById('pCanvasContainer');
+                        if (pCanvas && pContainer) {
+                            const dpr = this.popoutWindow.devicePixelRatio || 1;
+                            const size = Math.min(pContainer.clientWidth, pContainer.clientHeight);
+                            
+                            if (pCanvas.width !== size * dpr || pCanvas.height !== size * dpr) {
+                                pCanvas.width = size * dpr;
+                                pCanvas.height = size * dpr;
+                            }
+                            
+                            const ratio = Math.max(0, Math.min(1, this.remainingMs / (this.totalSeconds * 1000)));
+                            const pCtx = pCanvas.getContext('2d');
+                            pCtx.save();
+                            pCtx.scale(dpr, dpr);
+                            this.drawTheme(pCtx, size, size, ratio);
+                            pCtx.restore();
+                        }
+
+                        const pDisp = this.popoutWindow.document.getElementById('pTime');
+                        if (pDisp) pDisp.textContent = formatTime(this.remainingMs);
+
+                        this.popoutWindow.requestAnimationFrame(runPopoutRender);
+                    }
+                };
+                this.popoutWindow.requestAnimationFrame(runPopoutRender);
+            }
+        }
+
+        function formatTime(ms) {
+            const totalSec = Math.ceil(ms / 1000);
+            const m = Math.floor(totalSec / 60);
+            const s = totalSec % 60;
+            return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        function createTimerFromInputs() {
+            const min = parseInt(document.getElementById('inputMin').value) || 0;
+            const sec = parseInt(document.getElementById('inputSec').value) || 0;
+            const theme = document.getElementById('timerTheme').value;
+
+            const totalSec = min * 60 + sec;
+            if (totalSec <= 0) {
+                alert('Please enter a duration greater than 0.');
+                return;
+            }
+
+            const id = 't_' + Date.now();
+            const timer = new ClassroomTimer(id, totalSec, theme);
+            timers.push(timer);
+        }
+
+        function toggleTimer(id) {
+            const timer = timers.find(t => t.id === id);
+            if (timer) timer.toggle();
+        }
+
+        function resetTimer(id) {
+            const timer = timers.find(t => t.id === id);
+            if (timer) timer.reset();
+        }
+
+        function popoutTimer(id) {
+            const timer = timers.find(t => t.id === id);
+            if (timer) timer.openPopout();
+        }
+
+        function removeTimer(id) {
+            const idx = timers.findIndex(t => t.id === id);
+            if (idx !== -1) {
+                const timer = timers[idx];
+                if (timer.popoutWindow && !timer.popoutWindow.closed) {
+                    timer.popoutWindow.close();
+                }
+                const card = document.getElementById(`timer-card-${id}`);
+                if (card) card.remove();
+                timers.splice(idx, 1);
+            }
+        }
+
+        function updateAllTimers() {
+            timers.forEach(timer => timer.tick());
+        }
+
+        function mainAnimationLoop() {
+            timers.forEach(timer => timer.renderMain());
+            requestAnimationFrame(mainAnimationLoop);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            requestAnimationFrame(mainAnimationLoop);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classroom Seat & Desk Lottery</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --desk-w: 200px;
+            --desk-h: 95px;
+            --font-sz: 1.6rem;
+            --grid-gap: 25px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7fb;
+            color: #333;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* TOP CONTROL BAR */
+        .controls-bar {
+            background-color: #ffffff;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            z-index: 100;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .mode-toggle-group {
+            display: flex;
+            background-color: #eef2f7;
+            padding: 4px;
+            border-radius: 8px;
+            gap: 4px;
+        }
+
+        .mode-btn {
+            padding: 8px 16px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border: none;
+            background: transparent;
+            color: #666;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mode-btn.active {
+            background-color: #a65ea5;
+            color: white;
+            box-shadow: 0 2px 6px rgba(166, 94, 165, 0.3);
+        }
+
+        .action-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        /* SLIDER CONTROL */
+        .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #eef2f7;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #555;
+        }
+        .slider-group input[type="range"] {
+            cursor: pointer;
+            accent-color: #a65ea5;
+            width: 110px;
+        }
+
+        button.btn {
+            padding: 9px 18px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        button#pick-btn {
+            background-color: #a65ea5;
+            color: white;
+            font-size: 1.05rem;
+            padding: 9px 24px;
+        }
+        button#pick-btn:hover { background-color: #8a4b89; }
+        button#pick-btn:disabled { background-color: #ccc; cursor: not-allowed; }
+
+        button.btn-secondary { background-color: #e2e8f0; color: #333; }
+        button.btn-secondary:hover { background-color: #cbd5e1; }
+
+        button.btn-edit { background-color: #ff9800; color: white; }
+        button.btn-edit.editing { background-color: #4caf50; }
+
+        /* EDIT BANNER INSTRUCTION */
+        .edit-banner {
+            display: none;
+            background-color: #fff3cd;
+            color: #856404;
+            text-align: center;
+            padding: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border-bottom: 1px solid #ffeeba;
+        }
+        .edit-mode .edit-banner { display: block; }
+
+        /* CLASSROOM SCROLL WRAPPER */
+        .classroom-scroll-wrapper {
+            flex: 1;
+            overflow: auto;
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        /* STRICT CSS GRID */
+        .classroom-grid {
+            display: grid;
+            gap: var(--grid-gap);
+        }
+
+        /* DESK CONTAINER BOUND TO CSS VARIABLES */
+        .desk-container {
+            width: var(--desk-w);
+            height: var(--desk-h);
+            background-color: #ffffff;
+            border: calc(var(--desk-w) * 0.02) solid #333;
+            border-radius: calc(var(--desk-w) * 0.04);
+            display: flex;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        /* SEAT / DESK LABEL BOUND TO CSS VARIABLES */
+        .seat {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-sz);
+            color: #a65ea5;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.1s ease;
+        }
+
+        /* SPLIT DESK (SEAT MODE) */
+        .selection-mode-seat .seat:first-child:not(:only-child) {
+            border-right: calc(var(--desk-w) * 0.015) solid #333;
+        }
+
+        /* WHOLE DESK (DESK MODE) */
+        .selection-mode-desk .seat:first-child:not(:only-child) {
+            border-right: none;
+        }
+
+        /* TEACHER BLOCK */
+        .desk-container.teacher-area {
+            background-color: #a65ea5;
+            color: white;
+            border-color: #8a4b89;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-sz);
+            font-weight: bold;
+            cursor: default;
+        }
+
+        /* EMPTY SPACE */
+        .desk-container.empty-space {
+            visibility: hidden;
+            border: none;
+            background: transparent;
+            box-shadow: none;
+        }
+        .edit-mode .desk-container.empty-space {
+            visibility: visible;
+            border: 3px dashed #bbb;
+            background-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .edit-mode .desk-container { cursor: pointer !important; }
+        .edit-mode .desk-container:hover { transform: scale(1.03); border-color: #ff9800; }
+
+        /* ROW EDIT HEADERS */
+        .row-header {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            background: #e2e8f0;
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+            width: var(--desk-w);
+        }
+        .edit-mode .row-header { display: flex; }
+
+        .row-title { font-weight: bold; font-size: 0.85rem; color: #555; }
+        .btn-mini {
+            width: 100%;
+            padding: 4px;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: none;
+            background: #333;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-mini:hover { background: #555; }
+        .btn-mini.danger { background: #e53935; }
+        .btn-mini.danger:hover { background: #c62828; }
+
+        /* ADD ROW STRIP */
+        .add-row-wrapper {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: var(--desk-w);
+        }
+        .edit-mode .add-row-wrapper { display: flex; }
+
+        /* STATES */
+        .seat.disabled, .desk-container.disabled {
+            background-color: #e0e0e0 !important;
+            color: #aaa !important;
+            cursor: not-allowed;
+            background-image: linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 50%, #ccc 50%, #ccc 75%, transparent 75%, transparent) !important;
+            background-size: 10px 10px !important;
+        }
+
+        .seat.active, .desk-container.active { background-color: #ffeb3b !important; color: #000 !important; }
+        .seat.active.color-2, .desk-container.active.color-2 { background-color: #4fc3f7 !important; color: #000 !important; }
+        .seat.active.color-3, .desk-container.active.color-3 { background-color: #ff8a65 !important; color: #000 !important; }
+
+        .seat.winner, .desk-container.winner {
+            background-color: #66bb6a !important;
+            color: white !important;
+            font-weight: 800;
+        }
+
+        .desk-container:has(.winner),
+        .desk-container.winner {
+            transform: scale(1.12);
+            transition: transform 0.2s;
+            box-shadow: 0 0 25px rgba(102, 187, 106, 0.8);
+            z-index: 10;
+            border-color: #2e7d32;
+        }
+    </style>
+</head>
+<body class="selection-mode-seat">
+
+    <div class="controls-bar">
+        <div class="mode-toggle-group">
+            <button id="mode-seat-btn" class="mode-btn active" onclick="setSelectionMode('seat')">🪑 Split Desks</button>
+            <button id="mode-desk-btn" class="mode-btn" onclick="setSelectionMode('desk')">🏫 Whole Desks</button>
+        </div>
+
+        <div class="slider-group">
+            <span>Zoom:</span>
+            <input type="range" id="size-slider" min="130" max="320" value="200" oninput="updateDeskSize(this.value)">
+        </div>
+
+        <div class="action-group">
+            <button id="pick-btn" class="btn" onclick="startLottery()">Pick Student</button>
+            <button class="btn btn-secondary" onclick="resetBoard()">Reset</button>
+            <button id="edit-btn" class="btn btn-edit" onclick="toggleEditMode()">⚙️ Edit Layout</button>
+        </div>
+    </div>
+
+    <div class="edit-banner">
+        💡 EDIT MODE: Click a desk to change it (Desk ➔ Empty ➔ Teacher). Use the headers above each row to add/remove desks.
+    </div>
+
+    <div class="classroom-scroll-wrapper">
+        <div class="classroom-grid" id="classroom-grid"></div>
+    </div>
+
+    <script>
+        const defaultLayout = [
+            [ {type: 'teacher'}, {type: 'desk'}, {type: 'desk'} ],
+            [ {type: 'desk'}, {type: 'desk'}, {type: 'desk'} ],
+            [ {type: 'desk'}, {type: 'desk'}, {type: 'desk'} ]
+        ];
+
+        let layout = [];
+        let selectionMode = 'seat';
+        let isEditMode = false;
+        let isAnimating = false;
+        let animationTimer = null;
+        let currentSize = 200;
+        let savedUserSize = 200;
+        const disabledItems = new Set();
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function init() {
+            loadStorage();
+            updateDeskSize(currentSize, false);
+            renderClassroom();
+        }
+
+        function loadStorage() {
+            const savedLayout = localStorage.getItem('classroom_grid_layout_v10');
+            const savedSize = localStorage.getItem('classroom_grid_size_v10');
+
+            if (savedLayout) {
+                try { layout = JSON.parse(savedLayout); } 
+                catch(e) { layout = defaultLayout; }
+            } else {
+                layout = defaultLayout;
+            }
+
+            if (savedSize) {
+                savedUserSize = parseInt(savedSize, 10);
+                currentSize = savedUserSize;
+                document.getElementById('size-slider').value = currentSize;
+            }
+        }
+
+        function saveStorage() {
+            localStorage.setItem('classroom_grid_layout_v10', JSON.stringify(layout));
+            localStorage.setItem('classroom_grid_size_v10', savedUserSize);
+        }
+
+        function updateDeskSize(size, save = true) {
+            currentSize = parseInt(size, 10);
+            const root = document.documentElement;
+            
+            root.style.setProperty('--desk-w', currentSize + 'px');
+            root.style.setProperty('--desk-h', (currentSize * 0.475) + 'px');
+            root.style.setProperty('--font-sz', Math.max(1, currentSize * 0.0085) + 'rem');
+            root.style.setProperty('--grid-gap', Math.max(15, currentSize * 0.125) + 'px');
+
+            if (save && !isEditMode) {
+                savedUserSize = currentSize;
+                saveStorage();
+            }
+            renderClassroom();
+        }
+
+        function setSelectionMode(mode) {
+            if (isAnimating) return;
+            selectionMode = mode;
+            document.body.className = mode === 'seat' ? 'selection-mode-seat' : 'selection-mode-desk';
+            if (isEditMode) document.body.classList.add('edit-mode');
+
+            document.getElementById('mode-seat-btn').classList.toggle('active', mode === 'seat');
+            document.getElementById('mode-desk-btn').classList.toggle('active', mode === 'desk');
+
+            clearHighlights();
+            renderClassroom();
+        }
+
+        function toggleEditMode() {
+            if (isAnimating) return;
+            isEditMode = !isEditMode;
+            document.body.classList.toggle('edit-mode', isEditMode);
+            
+            const editBtn = document.getElementById('edit-btn');
+            const slider = document.getElementById('size-slider');
+            editBtn.classList.toggle('editing', isEditMode);
+            editBtn.innerHTML = isEditMode ? '✅ Done Editing' : '⚙️ Edit Layout';
+
+            if (isEditMode) {
+                savedUserSize = currentSize;
+                const minZoom = parseInt(slider.min, 10) || 130;
+                slider.value = minZoom;
+                updateDeskSize(minZoom, false);
+            } else {
+                slider.value = savedUserSize;
+                updateDeskSize(savedUserSize, true);
+                saveStorage();
+            }
+        }
+
+        function renderClassroom() {
+            const grid = document.getElementById('classroom-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            const maxDesks = Math.max(...layout.map(strip => strip.length), 1);
+            const totalGridCols = layout.length + (isEditMode ? 1 : 0);
+            
+            grid.style.gridTemplateColumns = 'repeat(' + totalGridCols + ', var(--desk-w))';
+            
+            let seatCounter = 1;
+            let deskCounter = 1;
+
+            layout.forEach((strip, colIndex) => {
+                if (isEditMode) {
+                    const header = document.createElement('div');
+                    header.className = 'row-header';
+                    header.style.gridColumn = colIndex + 1;
+                    header.style.gridRow = 1;
+                    header.innerHTML = `
+                        <div class="row-title">Row ${colIndex + 1}</div>
+                        <button class="btn-mini" onclick="addDeskToStrip(${colIndex})">➕ Desk</button>
+                        <button class="btn-mini" onclick="removeDeskFromStrip(${colIndex})">− Desk</button>
+                        <button class="btn-mini danger" onclick="removeStrip(${colIndex})">🗑️ Delete</button>
+                    `;
+                    grid.appendChild(header);
+                }
+
+                strip.forEach((item, rowIndex) => {
+                    const domItem = document.createElement('div');
+                    domItem.className = 'desk-container';
+                    
+                    domItem.style.gridColumn = colIndex + 1;
+                    const rowOffset = isEditMode ? 1 : 0;
+                    domItem.style.gridRow = (maxDesks - rowIndex) + rowOffset;
+
+                    if (item.type === 'teacher') {
+                        domItem.classList.add('teacher-area');
+                        domItem.innerText = 'Teacher';
+                    } else if (item.type === 'empty') {
+                        domItem.classList.add('empty-space');
+                    } else {
+                        if (selectionMode === 'seat') {
+                            const numA = seatCounter++;
+                            const numB = seatCounter++;
+                            
+                            const seatAId = 'seat_' + numA;
+                            const seatBId = 'seat_' + numB;
+
+                            const seatA = document.createElement('div');
+                            seatA.className = 'seat ' + (disabledItems.has(seatAId) ? 'disabled' : '');
+                            seatA.innerText = numA;
+                            seatA.onclick = function(e) { handleSeatClick(seatA, seatAId, e); };
+
+                            const seatB = document.createElement('div');
+                            seatB.className = 'seat ' + (disabledItems.has(seatBId) ? 'disabled' : '');
+                            seatB.innerText = numB;
+                            seatB.onclick = function(e) { handleSeatClick(seatB, seatBId, e); };
+
+                            domItem.appendChild(seatA);
+                            domItem.appendChild(seatB);
+                        } else {
+                            const deskNum = deskCounter++;
+                            const deskId = 'desk_' + deskNum;
+
+                            domItem.id = deskId;
+                            domItem.classList.toggle('disabled', disabledItems.has(deskId));
+                            
+                            const label = document.createElement('div');
+                            label.className = 'seat';
+                            label.innerText = deskNum;
+                            domItem.appendChild(label);
+                            domItem.onclick = function(e) { handleDeskClick(domItem, deskId, e); };
+                        }
+                    }
+
+                    if (isEditMode) {
+                        domItem.onclick = function(e) {
+                            e.stopPropagation();
+                            cycleDeskType(colIndex, rowIndex);
+                        };
+                    }
+
+                    grid.appendChild(domItem);
+                });
+            });
+
+            if (isEditMode) {
+                const addWrapper = document.createElement('div');
+                addWrapper.className = 'add-row-wrapper';
+                addWrapper.style.gridColumn = layout.length + 1;
+                addWrapper.style.gridRow = 1;
+                addWrapper.innerHTML = '<button class="btn btn-secondary" onclick="addStrip()">➕ Add Row</button>';
+                grid.appendChild(addWrapper);
+            }
+        }
+
+        function addStrip() {
+            layout.push([{ type: 'desk' }, { type: 'desk' }, { type: 'desk' }]);
+            renderClassroom();
+        }
+
+        function removeStrip(colIndex) {
+            if (layout.length > 1) {
+                layout.splice(colIndex, 1);
+                renderClassroom();
+            }
+        }
+
+        function addDeskToStrip(colIndex) {
+            layout[colIndex].push({ type: 'desk' });
+            renderClassroom();
+        }
+
+        function removeDeskFromStrip(colIndex) {
+            if (layout[colIndex].length > 1) {
+                layout[colIndex].pop();
+                renderClassroom();
+            }
+        }
+
+        function cycleDeskType(colIndex, rowIndex) {
+            const current = layout[colIndex][rowIndex].type;
+            const next = current === 'desk' ? 'empty' : (current === 'empty' ? 'teacher' : 'desk');
+            layout[colIndex][rowIndex].type = next;
+            renderClassroom();
+        }
+
+        function handleSeatClick(seatEl, id, event) {
+            if (isEditMode) return;
+            event.stopPropagation();
+            toggleDisable(seatEl, id);
+        }
+
+        function handleDeskClick(deskEl, id, event) {
+            if (isEditMode) return;
+            event.stopPropagation();
+            toggleDisable(deskEl, id);
+        }
+
+        function toggleDisable(element, id) {
+            if (disabledItems.has(id)) {
+                disabledItems.delete(id);
+                element.classList.remove('disabled');
+            } else {
+                disabledItems.add(id);
+                element.classList.add('disabled');
+                element.classList.remove('winner');
+            }
+        }
+
+        function clearHighlights() {
+            document.querySelectorAll('.winner, .active, .color-2, .color-3').forEach(function(el) {
+                el.classList.remove('winner', 'active', 'color-2', 'color-3');
+            });
+        }
+
+        function resetBoard() {
+            if (animationTimer) { clearTimeout(animationTimer); animationTimer = null; }
+            isAnimating = false;
+            document.getElementById('pick-btn').disabled = false;
+            disabledItems.clear();
+            clearHighlights();
+            renderClassroom();
+        }
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+
+                if (type === 'tick') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+                } else if (type === 'win') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+                }
+            } catch (e) { console.error("Audio error", e); }
+        }
+
+        function startLottery() {
+            if (isAnimating || isEditMode) return;
+
+            let eligibleTargets = [];
+            if (selectionMode === 'seat') {
+                const seats = Array.from(document.querySelectorAll('.seat'));
+                eligibleTargets = seats.filter(function(s) { return !s.classList.contains('disabled'); });
+            } else {
+                const desks = Array.from(document.querySelectorAll('.desk-container:not(.teacher-area):not(.empty-space)'));
+                eligibleTargets = desks.filter(function(d) { return !d.classList.contains('disabled'); });
+            }
+
+            if (eligibleTargets.length === 0) {
+                alert("No students available! Make sure desks are placed and not greyed out.");
+                return;
+            }
+
+            clearHighlights();
+            isAnimating = true;
+            document.getElementById('pick-btn').disabled = true;
+
+            let iterations = 0;
+            const maxIterations = 30;
+            let speed = 90;
+
+            function animateLoop() {
+                eligibleTargets.forEach(function(t) { t.classList.remove('active', 'color-2', 'color-3'); });
+                
+                const randomIndex = Math.floor(Math.random() * eligibleTargets.length);
+                const randomTarget = eligibleTargets[randomIndex];
+                
+                randomTarget.classList.add('active');
+                playSound('tick');
+
+                const variant = Math.floor(Math.random() * 3) + 1;
+                if (variant === 2) randomTarget.classList.add('color-2');
+                if (variant === 3) randomTarget.classList.add('color-3');
+
+                iterations++;
+                if (iterations < maxIterations) {
+                    if (iterations > maxIterations - 10) speed += 25;
+                    animationTimer = setTimeout(animateLoop, speed);
+                } else {
+                    finalizeSelection(randomTarget);
+                }
+            }
+            animateLoop();
+        }
+
+        function finalizeSelection(winningTarget) {
+            document.querySelectorAll('.active, .color-2, .color-3').forEach(function(el) {
+                el.classList.remove('active', 'color-2', 'color-3');
+            });
+            winningTarget.classList.add('winner');
+            playSound('win');
+            isAnimating = false;
+            document.getElementById('pick-btn').disabled = false;
+        }
+
+        init();
+    </script>
+</body>
+</html>

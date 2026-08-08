@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeopardy</title>
+    <style>
+        /* --- CORE CSS VARIABLES --- */
+        :root {
+            --bg-top: #1a110a; 
+            --bg-bottom: #2c1e16;
+            --text-color: #f4e4bc;
+            
+            --c1: rgba(212, 175, 55, 0.15);
+            --c2: rgba(38, 97, 156, 0.25);
+            --c3: rgba(179, 90, 56, 0.2);
+            --c4: rgba(46, 139, 87, 0.2);
+            --c5: rgba(218, 165, 32, 0.15);
+            
+            --card-border: rgba(212, 175, 55, 0.5);
+            --card-glow: rgba(255, 215, 0, 0.8);
+            --header-bg: rgba(15, 8, 5, 0.85);
+            --modal-bg: rgba(10, 5, 2, 0.95);
+            
+            --score-bg: rgba(212, 175, 55, 0.05);
+            --score-border: rgba(212, 175, 55, 0.4);
+            --score-active: #ffd700;
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            background: linear-gradient(135deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+            color: var(--text-color);
+            transition: background 0.5s ease, color 0.3s ease;
+        }
+
+        /* --- THEMES --- */
+        body[data-theme="egypt"] { font-family: 'Georgia', 'Times New Roman', serif; }
+        body[data-theme="egypt"] .board-cell {
+            border-radius: 4px;
+            border: 1px solid var(--card-border);
+            box-shadow: 4px 6px 15px rgba(0,0,0,0.6), inset 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        body[data-theme="classic"] { font-family: 'Trebuchet MS', 'Segoe UI', sans-serif; }
+        body[data-theme="classic"] .category-header,
+        body[data-theme="classic"] .card,
+        body[data-theme="classic"] .score-val {
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            letter-spacing: 1px;
+        }
+        body[data-theme="classic"] .board-cell {
+            border-radius: 8px;
+            border: 3px solid #ffd700;
+            box-shadow: 0 6px 0 #040d2a, 0 12px 20px rgba(0,0,0,0.7), inset 0 2px 5px rgba(255,255,255,0.4);
+            text-transform: uppercase;
+        }
+        body[data-theme="classic"] .card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 10px 0 #040d2a, 0 15px 25px rgba(255,215,0,0.5);
+        }
+
+        body[data-theme="cyber"] { font-family: 'Courier New', 'Consolas', monospace; }
+        body[data-theme="cyber"] .category-header,
+        body[data-theme="cyber"] .card,
+        body[data-theme="cyber"] .score-val {
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px var(--score-active), 0 0 20px var(--card-glow);
+        }
+        body[data-theme="cyber"] .board-cell {
+            border-radius: 0;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            border: 1px solid var(--card-border);
+            box-shadow: 0 0 15px var(--card-glow), inset 0 0 10px var(--score-bg);
+            background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.15), rgba(0,0,0,0.15) 1px, transparent 1px, transparent 2px);
+        }
+        body[data-theme="cyber"] .card:hover {
+            clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+            background-color: var(--score-active) !important;
+            color: #000 !important;
+            text-shadow: none;
+        }
+
+        body[data-theme="space"] { font-family: 'Segoe UI', -apple-system, sans-serif; }
+        body[data-theme="space"] .board-cell {
+            border-radius: 18px;
+            border: 1px solid rgba(128, 222, 234, 0.4);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(128, 222, 234, 0.2);
+        }
+        body[data-theme="space"] .card:hover {
+            border-color: #80deea;
+            box-shadow: 0 0 30px #80deea, inset 0 0 20px rgba(255,255,255,0.4);
+            transform: scale(1.04);
+        }
+
+        body[data-theme="forest"] { font-family: 'Palatino Linotype', 'Book Antiqua', 'Georgia', serif; }
+        body[data-theme="forest"] .board-cell {
+            border-radius: 12px;
+            border: 2px solid rgba(212, 163, 89, 0.5);
+            box-shadow: 2px 6px 15px rgba(0,0,0,0.6), inset 0 0 12px rgba(45, 106, 79, 0.4);
+        }
+        body[data-theme="forest"] .card:hover {
+            border-color: #dda15e;
+            box-shadow: 0 8px 25px rgba(221, 161, 94, 0.5), inset 0 0 15px rgba(183, 228, 199, 0.3);
+        }
+
+        /* --- AMBIENT PARTICLES --- */
+        #ambient-container {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .ambient-particle {
+            position: absolute;
+            color: var(--score-active);
+            opacity: 0.8;
+            font-size: 1.5rem;
+            animation: drift linear infinite;
+            text-shadow: 0 0 8px var(--card-glow);
+        }
+
+        @keyframes drift {
+            0% { transform: translateY(-10vh) translateX(0); opacity: 0; }
+            10% { opacity: 0.5; }
+            90% { opacity: 0.5; }
+            100% { transform: translateY(110vh) translateX(25px); opacity: 0; }
+        }
+
+        /* --- FLOATING SETTINGS BUTTON --- */
+        .btn-settings-floating {
+            position: fixed;
+            top: 15px;
+            right: 20px;
+            z-index: 50;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: var(--header-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-color);
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+            padding: 0;
+        }
+        
+        .btn-settings-floating:hover {
+            transform: scale(1.1) rotate(30deg);
+            box-shadow: 0 0 15px var(--card-glow);
+            background: var(--card-border);
+            color: #fff;
+        }
+
+        /* --- GAME BOARD GRID --- */
+        #game-board {
+            flex-grow: 1;
+            display: grid;
+            grid-template-rows: 75px repeat(5, 1fr);
+            gap: 12px;
+            padding: 15px;
+            z-index: 10;
+        }
+
+        .board-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            user-select: none;
+        }
+
+        .board-cell:nth-child(5n+1) { background-color: var(--c1); }
+        .board-cell:nth-child(5n+2) { background-color: var(--c2); }
+        .board-cell:nth-child(5n+3) { background-color: var(--c3); }
+        .board-cell:nth-child(5n+4) { background-color: var(--c4); }
+        .board-cell:nth-child(5n+5) { background-color: var(--c5); }
+
+        .category-header {
+            background: var(--header-bg) !important;
+            color: var(--score-active);
+            font-weight: 900;
+            text-transform: uppercase;
+            font-size: 1.8vw;
+            padding: 5px;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.9);
+            border-bottom: 3px solid var(--card-border);
+        }
+
+        .card {
+            color: var(--text-color);
+            font-size: 3.5vw;
+            font-weight: 900;
+            cursor: pointer;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 10px var(--card-glow);
+        }
+        
+        .card.disabled { 
+            background: rgba(0,0,0,0.4) !important; 
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8) !important;
+            backdrop-filter: none;
+            opacity: 0.35;
+            pointer-events: none;
+            color: var(--score-active);
+            clip-path: none !important;
+        }
+
+        /* --- SCOREBOARD --- */
+        #scoreboard {
+            background: var(--header-bg);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            border-top: 2px solid var(--card-border);
+            backdrop-filter: blur(10px);
+            z-index: 10;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.6);
+        }
+
+        .team-score {
+            text-align: center;
+            padding: 10px 25px;
+            border-radius: 6px;
+            background: var(--score-bg);
+            border: 2px solid var(--score-border);
+            min-width: 140px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+        }
+
+        .team-score.active {
+            border-color: var(--score-active);
+            transform: scale(1.08);
+            box-shadow: 0 0 20px var(--card-glow), inset 0 0 15px var(--score-border);
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .score-val { 
+            font-size: 2.5rem;
+            font-weight: 900; 
+            color: #fff; 
+            line-height: 1;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.8), 0 0 15px var(--card-glow);
+        }
+
+        .team-name { 
+            font-size: 0.9rem; 
+            color: var(--text-color); 
+            margin-bottom: 4px; 
+            font-weight: bold; 
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .team-score.active .team-name { color: var(--score-active); text-shadow: 0 0 8px var(--score-active); }
+
+        .score-controls {
+            display: flex;
+            gap: 8px;
+            margin: 4px 0;
+            justify-content: center;
+        }
+
+        .btn-adjust {
+            width: 26px;
+            height: 26px;
+            border-radius: 4px;
+            border: 1px solid var(--score-border);
+            background: rgba(0, 0, 0, 0.4);
+            color: var(--text-color);
+            font-size: 1.1rem;
+            line-height: 1;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .btn-adjust:hover {
+            background: var(--card-border);
+            transform: scale(1.1);
+            color: #fff;
+        }
+
+        /* --- QUESTION MODAL --- */
+        #modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--modal-bg);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            background-image: radial-gradient(circle at center, var(--c1) 0%, transparent 70%);
+        }
+
+        #q-text {
+            font-size: 3.8vw;
+            font-weight: 800;
+            text-align: center;
+            color: #fff;
+            padding: 40px;
+            max-width: 90%;
+            margin-bottom: 40px;
+            line-height: 1.3;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.9), 0 0 25px var(--card-glow);
+        }
+
+        .modal-controls { display: flex; gap: 30px; }
+
+        .btn-correct { 
+            background: linear-gradient(135deg, #1b5e20, #2e7d32);
+            color: white; 
+            font-size: 1.8rem; 
+            padding: 18px 50px; 
+            border: 2px solid var(--card-border);
+            border-radius: 6px;
+            box-shadow: 0 10px 30px rgba(46, 125, 50, 0.4);
+            cursor: pointer;
+        }
+        
+        .btn-dismiss { 
+            background: linear-gradient(135deg, #7f0000, #b71c1c);
+            color: white; 
+            font-size: 1.8rem; 
+            padding: 18px 50px;
+            border: 2px solid var(--card-border);
+            border-radius: 6px;
+            box-shadow: 0 10px 30px rgba(183, 28, 28, 0.4);
+            cursor: pointer;
+        }
+
+        .btn-correct:hover, .btn-dismiss:hover {
+            filter: brightness(1.2);
+            box-shadow: 0 15px 40px var(--card-glow);
+            transform: scale(1.05);
+        }
+
+        .modal-controls-secondary {
+            margin-top: 25px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .btn-pass {
+            background: var(--score-bg);
+            color: var(--text-color);
+            font-size: 1.1rem;
+            padding: 12px 30px;
+            border: 1px solid var(--card-border);
+            border-radius: 4px;
+            backdrop-filter: blur(5px);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-pass:hover {
+            background: var(--card-border);
+            color: #ffffff;
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px var(--card-glow);
+        }
+
+        /* --- FIXED SETTINGS MODAL --- */
+        #settings-modal {
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--header-bg);
+            backdrop-filter: blur(20px);
+            color: var(--text-color);
+            padding: 25px 30px;
+            border-radius: 8px;
+            border: 2px solid var(--card-border);
+            width: 440px;
+            box-sizing: border-box;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9), 0 0 40px var(--card-glow);
+            display: none;
+            z-index: 200;
+        }
+
+        .btn-close-modal {
+            position: absolute;
+            top: 15px;
+            right: 18px;
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.3rem;
+            cursor: pointer;
+            opacity: 0.7;
+            padding: 0;
+            line-height: 1;
+            transition: all 0.2s;
+        }
+
+        .btn-close-modal:hover {
+            opacity: 1;
+            transform: scale(1.2);
+            color: var(--score-active);
+        }
+        
+        #settings-modal h2 { 
+            margin-top: 0; 
+            color: var(--score-active); 
+            text-align: center; 
+            border-bottom: 1px solid var(--score-border); 
+            padding-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .setting-group { margin-bottom: 16px; }
+        .setting-group label { display: block; margin-bottom: 6px; font-weight: bold; color: var(--score-active); }
+        .setting-group input, .setting-group select { 
+            width: 100%; 
+            padding: 8px 10px; 
+            background: rgba(0,0,0,0.6);
+            color: white;
+            border: 1px solid var(--score-border); 
+            border-radius: 4px; 
+            font-size: 0.95rem;
+            box-sizing: border-box; 
+            font-family: inherit;
+        }
+
+        /* Fixed-height scrollable containers prevent modal layout shift */
+        .scroll-inputs-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            height: 110px;
+            overflow-y: auto;
+            padding-right: 5px;
+            margin-top: 6px;
+        }
+
+        .edit-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .edit-row input[type="text"] { flex: 2; }
+        .edit-row input[type="number"] { flex: 1; }
+
+        .btn-action { 
+            width: 100%; 
+            background: linear-gradient(135deg, var(--score-active), var(--card-border)); 
+            color: #000; 
+            padding: 10px; 
+            border: none; 
+            border-radius: 4px; 
+            font-size: 1rem; 
+            font-weight: 900;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        .btn-action:hover { filter: brightness(1.2); }
+
+        .btn-secondary {
+            width: 100%;
+            background: var(--score-bg);
+            color: var(--text-color);
+            border: 1px solid var(--card-border);
+            padding: 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-top: 8px;
+            cursor: pointer;
+        }
+        .btn-secondary:hover {
+            background: var(--card-border);
+            color: #fff;
+        }
+
+    </style>
+</head>
+<body data-theme="classic"> 
+
+<!-- Floating Settings Cog Button -->
+<button class="btn-settings-floating" onclick="openSettings()" title="Settings">⚙</button>
+
+<!-- Ambient Background Particles -->
+<div id="ambient-container"></div>
+
+<div id="game-board"></div>
+
+<div id="scoreboard"></div>
+
+<div id="modal-overlay">
+    <div id="q-text">Loading Question...</div>
+    <div class="modal-controls">
+        <button class="btn-correct" onclick="handleAnswer(true)">✔ CORRECT</button>
+        <button class="btn-dismiss" onclick="handleAnswer(false)">✖ DISMISS</button>
+    </div>
+    <div class="modal-controls-secondary">
+        <button class="btn-pass" onclick="handleGiveToNextTeam()">⏭ Give to Next Team (Half Points)</button>
+    </div>
+</div>
+
+<div id="settings-modal">
+    <button class="btn-close-modal" onclick="closeSettings()" title="Close">✖</button>
+    <h2>Settings</h2>
+    
+    <div class="setting-group">
+        <label>Visual Theme</label>
+        <select id="theme-select" onchange="applyTheme(this.value)">
+            <option value="classic">Classic Studio (Multicolor)</option>
+            <option value="egypt">Sandstone & Gold</option>
+            <option value="cyber">Neon Cyberpunk</option>
+            <option value="space">Deep Space Nebula</option>
+            <option value="forest">Emerald Grove</option>
+        </select>
+    </div>
+
+    <div class="setting-group">
+        <label>Categories</label>
+        <input type="number" id="category-count" value="5" min="1" max="6" onchange="renderCategoryInputs()">
+        <div id="category-inputs-container" class="scroll-inputs-container"></div>
+    </div>
+
+    <div class="setting-group">
+        <label>Teams & Scores</label>
+        <input type="number" id="team-count" value="2" min="1" max="6" onchange="renderTeamInputs()">
+        <div id="team-inputs-container" class="scroll-inputs-container"></div>
+    </div>
+
+    <div class="setting-group">
+        <label>Load Questions (.txt)</label>
+        <input type="file" id="file-input" accept=".txt">
+        <small style="display:block; margin-top:4px; color:#aaa; line-height: 1.2;">
+            Note: Loading a file overrides category names & questions above.
+        </small>
+    </div>
+
+    <button class="btn-action" onclick="saveSettings()">Save & Update</button>
+    <button class="btn-secondary" onclick="downloadTxtTemplate()">Download Template (.TXT)</button>
+</div>
+
+<script>
+    // --- THEME CONFIGURATIONS ---
+    const themes = {
+        classic: {
+            name: "Classic Studio",
+            synthWave: 'triangle',
+            vars: {
+                '--bg-top': '#040b2e',
+                '--bg-bottom': '#091c52',
+                '--text-color': '#ffffff',
+                /* 5 Distinct, Vibrant Game Show Palette Colors for Columns 1-5 */
+                '--c1': 'rgba(12, 65, 175, 0.85)',   /* Deep Electric Blue */
+                '--c2': 'rgba(165, 20, 95, 0.85)',   /* Vibrant Magenta / Red-Pink */
+                '--c3': 'rgba(15, 130, 95, 0.85)',   /* Rich Emerald / Teal */
+                '--c4': 'rgba(195, 105, 15, 0.85)',  /* Warm Amber / Burnt Orange */
+                '--c5': 'rgba(95, 20, 165, 0.85)',   /* Deep Royal Purple */
+                '--card-border': '#ffd700',
+                '--card-glow': 'rgba(255, 215, 0, 0.9)',
+                '--header-bg': 'rgba(3, 10, 36, 0.92)',
+                '--modal-bg': 'rgba(2, 6, 22, 0.96)',
+                '--score-bg': 'rgba(255, 215, 0, 0.1)',
+                '--score-border': '#ffd700',
+                '--score-active': '#ffea00'
+            },
+            particles: ['★', '✦', '✧', '✨', '•'],
+            disabledIcon: "★"
+        },
+        egypt: {
+            name: "Sandstone & Gold",
+            synthWave: 'triangle',
+            vars: {
+                '--bg-top': '#1a110a',
+                '--bg-bottom': '#2c1e16',
+                '--text-color': '#f4e4bc',
+                '--c1': 'rgba(212, 175, 55, 0.15)',
+                '--c2': 'rgba(38, 97, 156, 0.25)',
+                '--c3': 'rgba(179, 90, 56, 0.2)',
+                '--c4': 'rgba(46, 139, 87, 0.2)',
+                '--c5': 'rgba(218, 165, 32, 0.15)',
+                '--card-border': 'rgba(212, 175, 55, 0.5)',
+                '--card-glow': 'rgba(255, 215, 0, 0.8)',
+                '--header-bg': 'rgba(15, 8, 5, 0.85)',
+                '--modal-bg': 'rgba(10, 5, 2, 0.95)',
+                '--score-bg': 'rgba(212, 175, 55, 0.05)',
+                '--score-border': 'rgba(212, 175, 55, 0.4)',
+                '--score-active': '#ffd700'
+            },
+            particles: ['𓀀', '𓆣', '𓃭', '𓅓', '𓆙', '𓉐', '𓋹', '𓂀', '𓍹', '𓎛', '𓏤'],
+            disabledIcon: "𓆣"
+        },
+        cyber: {
+            name: "Neon Cyberpunk",
+            synthWave: 'square',
+            vars: {
+                '--bg-top': '#05030a',
+                '--bg-bottom': '#140826',
+                '--text-color': '#00f0ff',
+                '--c1': 'rgba(255, 0, 128, 0.25)',
+                '--c2': 'rgba(0, 240, 255, 0.25)',
+                '--c3': 'rgba(112, 0, 255, 0.25)',
+                '--c4': 'rgba(255, 230, 0, 0.2)',
+                '--c5': 'rgba(0, 255, 157, 0.25)',
+                '--card-border': '#00f0ff',
+                '--card-glow': '#ff007f',
+                '--header-bg': 'rgba(5, 3, 10, 0.95)',
+                '--modal-bg': 'rgba(3, 1, 8, 0.97)',
+                '--score-bg': 'rgba(0, 240, 255, 0.08)',
+                '--score-border': '#ff007f',
+                '--score-active': '#ff007f'
+            },
+            particles: ['0', '1', '⚡', '⬡', '▲', '◆'],
+            disabledIcon: "⬡"
+        },
+        space: {
+            name: "Deep Space Nebula",
+            synthWave: 'sine',
+            vars: {
+                '--bg-top': '#060514',
+                '--bg-bottom': '#181136',
+                '--text-color': '#e2e0ff',
+                '--c1': 'rgba(106, 27, 154, 0.25)',
+                '--c2': 'rgba(13, 71, 161, 0.25)',
+                '--c3': 'rgba(0, 150, 136, 0.25)',
+                '--c4': 'rgba(156, 39, 176, 0.25)',
+                '--c5': 'rgba(233, 30, 99, 0.22)',
+                '--card-border': 'rgba(128, 222, 234, 0.5)',
+                '--card-glow': 'rgba(128, 222, 234, 0.9)',
+                '--header-bg': 'rgba(6, 5, 20, 0.9)',
+                '--modal-bg': 'rgba(4, 3, 12, 0.97)',
+                '--score-bg': 'rgba(128, 222, 234, 0.08)',
+                '--score-border': 'rgba(128, 222, 234, 0.5)',
+                '--score-active': '#80deea'
+            },
+            particles: ['✦', '★', '✧', '✶', '✵', '🌌'],
+            disabledIcon: "✦"
+        },
+        forest: {
+            name: "Emerald Grove",
+            synthWave: 'triangle',
+            vars: {
+                '--bg-top': '#06140e',
+                '--bg-bottom': '#133324',
+                '--text-color': '#d8f3dc',
+                '--c1': 'rgba(45, 106, 79, 0.35)',
+                '--c2': 'rgba(82, 183, 136, 0.25)',
+                '--c3': 'rgba(212, 163, 89, 0.25)',
+                '--c4': 'rgba(116, 198, 157, 0.3)',
+                '--c5': 'rgba(45, 106, 79, 0.35)',
+                '--card-border': 'rgba(212, 163, 89, 0.6)',
+                '--card-glow': 'rgba(221, 161, 94, 0.8)',
+                '--header-bg': 'rgba(6, 20, 14, 0.9)',
+                '--modal-bg': 'rgba(3, 12, 8, 0.96)',
+                '--score-bg': 'rgba(183, 228, 199, 0.08)',
+                '--score-border': 'rgba(212, 163, 89, 0.5)',
+                '--score-active': '#b7e4c7'
+            },
+            particles: ['✨', '🍃', '🌱', '•', '✦'],
+            disabledIcon: "🍃"
+        }
+    };
+
+    let currentThemeKey = 'classic';
+
+    function applyTheme(themeKey) {
+        if (!themes[themeKey]) themeKey = 'classic';
+        currentThemeKey = themeKey;
+        const theme = themes[themeKey];
+
+        document.body.setAttribute('data-theme', themeKey);
+
+        for (let [prop, val] of Object.entries(theme.vars)) {
+            document.documentElement.style.setProperty(prop, val);
+        }
+
+        createAmbientEffect();
+    }
+
+    // --- Game Data ---
+    const defaultData = {
+        categories: ["Category 1", "Category 2", "Category 3", "Category 4", "Category 5"],
+        questions: []
+    };
+
+    let gameData = JSON.parse(JSON.stringify(defaultData));
+    let teams = [
+        { name: "Team 1", score: 0 },
+        { name: "Team 2", score: 0 }
+    ];
+    let currentTeamIndex = 0;
+    let currentCardValue = 0;
+    let currentCardElement = null;
+
+    const activeScoreAnimations = {};
+
+    // --- Ambient Particle Generator ---
+    function createAmbientEffect() {
+        const container = document.getElementById('ambient-container');
+        container.innerHTML = '';
+        const symbols = themes[currentThemeKey].particles;
+        
+        for(let i=0; i<30; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'ambient-particle';
+            particle.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+            
+            particle.style.left = Math.random() * 100 + 'vw';
+            particle.style.fontSize = (Math.random() * 1.5 + 1) + 'rem';
+            particle.style.animationDuration = (Math.random() * 15 + 12) + 's';
+            particle.style.animationDelay = (Math.random() * 12) + 's';
+            particle.style.opacity = Math.random() * 0.4 + 0.15;
+            
+            container.appendChild(particle);
+        }
+    }
+
+    // --- Sound Engine ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playSound(type) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        const now = audioCtx.currentTime;
+
+        const wave = themes[currentThemeKey].synthWave || 'triangle';
+
+        if (type === 'click') {
+            osc.type = wave;
+            osc.frequency.setValueAtTime(800, now);
+            osc.frequency.exponentialRampToValueAtTime(250, now + 0.05);
+            gainNode.gain.setValueAtTime(0.08, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+            osc.start(now);
+            osc.stop(now + 0.05);
+        } else if (type === 'correct') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(523.25, now); 
+            osc.frequency.setValueAtTime(659.25, now + 0.1); 
+            gainNode.gain.setValueAtTime(0, now);
+            gainNode.gain.linearRampToValueAtTime(0.2, now + 0.05);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+            osc.start(now);
+            osc.stop(now + 0.6);
+        } else if (type === 'dismiss') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(100, now);
+            osc.frequency.linearRampToValueAtTime(45, now + 0.3);
+            gainNode.gain.setValueAtTime(0.1, now);
+            gainNode.gain.linearRampToValueAtTime(0.001, now + 0.3);
+            osc.start(now);
+            osc.stop(now + 0.3);
+        }
+    }
+
+    function playScoreTickerSound(progress, isPositive) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        const now = audioCtx.currentTime;
+
+        osc.type = themes[currentThemeKey].synthWave || 'sine';
+        const baseFreq = isPositive ? 380 + (progress * 480) : 480 - (progress * 220);
+        osc.frequency.setValueAtTime(baseFreq, now);
+
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+        osc.start(now);
+        osc.stop(now + 0.05);
+    }
+
+    // --- Initialization ---
+    function initGame(resetBoard = true) {
+        applyTheme(currentThemeKey);
+        if (resetBoard) {
+            renderBoard();
+        }
+        renderScoreboard();
+        document.getElementById('settings-modal').style.display = 'none';
+    }
+
+    function renderBoard() {
+        const board = document.getElementById('game-board');
+        board.innerHTML = '';
+
+        const catCount = gameData.categories.length;
+        board.style.gridTemplateColumns = `repeat(${catCount}, 1fr)`;
+
+        // Render Headers
+        gameData.categories.forEach(cat => {
+            const div = document.createElement('div');
+            div.className = 'board-cell category-header';
+            div.innerText = cat;
+            board.appendChild(div);
+        });
+
+        // Render Grid
+        for(let r=1; r<=5; r++) {
+            for(let c=1; c<=catCount; c++) {
+                const qData = gameData.questions.find(q => q.col === c && q.row === r);
+                const div = document.createElement('div');
+                div.className = 'board-cell card';
+                div.innerText = `$${r*100}`;
+                div.dataset.value = r * 100;
+                
+                // Modular Fallback Question Prompt
+                const currentCatName = gameData.categories[c - 1] || `Category ${c}`;
+                div.dataset.question = (qData && qData.q) ? qData.q : `${currentCatName}: Question for $${r*100}`;
+
+                div.onclick = function() {
+                    if(!div.classList.contains('disabled')) {
+                        activateCard(div);
+                    }
+                };
+                board.appendChild(div);
+            }
+        }
+    }
+
+    // --- Scoreboard & Animated Ticker ---
+    function renderScoreboard() {
+        const board = document.getElementById('scoreboard');
+        board.innerHTML = '';
+
+        if (currentTeamIndex >= teams.length) {
+            currentTeamIndex = 0;
+        }
+
+        teams.forEach((t, i) => {
+            const div = document.createElement('div');
+            div.className = `team-score ${i === currentTeamIndex ? 'active' : ''}`;
+            div.innerHTML = `
+                <div class="team-name">${t.name}</div>
+                <div class="score-controls">
+                    <button class="btn-adjust" onclick="adjustScore(${i}, 100)">+</button>
+                    <button class="btn-adjust" onclick="adjustScore(${i}, -100)">−</button>
+                </div>
+                <div class="score-val" id="score-val-${i}">$${t.score}</div>
+            `;
+            board.appendChild(div);
+        });
+    }
+
+    function animateScore(teamIndex, amount) {
+        const team = teams[teamIndex];
+        const startScore = team.score;
+        const targetScore = startScore + amount;
+        team.score = targetScore;
+
+        const scoreValElement = document.getElementById(`score-val-${teamIndex}`);
+        if (!scoreValElement) {
+            renderScoreboard();
+            return;
+        }
+
+        const isPositive = amount >= 0;
+        const duration = 2200;
+        const startTime = performance.now();
+        let lastSoundTime = 0;
+
+        if (activeScoreAnimations[teamIndex]) {
+            cancelAnimationFrame(activeScoreAnimations[teamIndex]);
+        }
+
+        function update(now) {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            const easeProgress = 1 - Math.pow(1 - progress, 3);
+            const currentScore = Math.round(startScore + (amount * easeProgress));
+
+            scoreValElement.innerText = `$${currentScore}`;
+
+            if (elapsed - lastSoundTime > 65 && progress < 0.98) {
+                playScoreTickerSound(progress, isPositive);
+                lastSoundTime = elapsed;
+            }
+
+            if (progress < 1) {
+                activeScoreAnimations[teamIndex] = requestAnimationFrame(update);
+            } else {
+                scoreValElement.innerText = `$${targetScore}`;
+                delete activeScoreAnimations[teamIndex];
+                if (isPositive && amount > 0) playSound('correct');
+            }
+        }
+
+        activeScoreAnimations[teamIndex] = requestAnimationFrame(update);
+    }
+
+    function adjustScore(teamIndex, amount) {
+        animateScore(teamIndex, amount);
+    }
+
+    // --- Gameplay ---
+    function activateCard(cardElement) {
+        playSound('click');
+        currentCardElement = cardElement;
+        currentCardValue = parseInt(cardElement.dataset.value);
+        
+        document.getElementById('q-text').innerText = cardElement.dataset.question;
+        document.getElementById('modal-overlay').style.display = 'flex';
+    }
+
+    function handleAnswer(isCorrect) {
+        document.getElementById('modal-overlay').style.display = 'none';
+
+        const teamToAward = currentTeamIndex;
+
+        currentCardElement.classList.add('disabled');
+        currentCardElement.innerHTML = themes[currentThemeKey].disabledIcon;
+        
+        currentTeamIndex = (currentTeamIndex + 1) % teams.length;
+        renderScoreboard();
+
+        if (isCorrect) {
+            animateScore(teamToAward, currentCardValue);
+        } else {
+            playSound('dismiss');
+        }
+    }
+
+    function handleGiveToNextTeam() {
+        document.getElementById('modal-overlay').style.display = 'none';
+
+        const nextTeamIndex = (currentTeamIndex + 1) % teams.length;
+        const halfValue = Math.floor(currentCardValue / 2);
+
+        currentCardElement.classList.add('disabled');
+        currentCardElement.innerHTML = themes[currentThemeKey].disabledIcon;
+
+        currentTeamIndex = nextTeamIndex;
+        renderScoreboard();
+
+        animateScore(nextTeamIndex, halfValue);
+    }
+
+    // --- Settings Modal Logic ---
+    function openSettings() {
+        document.getElementById('theme-select').value = currentThemeKey;
+        document.getElementById('category-count').value = gameData.categories.length;
+        document.getElementById('team-count').value = teams.length;
+        
+        renderCategoryInputs();
+        renderTeamInputs();
+        document.getElementById('settings-modal').style.display = 'block';
+    }
+
+    function closeSettings() {
+        document.getElementById('settings-modal').style.display = 'none';
+    }
+
+    function renderCategoryInputs() {
+        const container = document.getElementById('category-inputs-container');
+        const count = parseInt(document.getElementById('category-count').value) || 5;
+        container.innerHTML = '';
+
+        for (let i = 0; i < count; i++) {
+            const defaultPlaceholder = `Category ${i + 1}`;
+            const existingCat = gameData.categories[i];
+            
+            // Displays empty input if it matches default placeholder so user can type freely
+            const displayVal = (existingCat && existingCat !== defaultPlaceholder) ? existingCat : '';
+
+            const row = document.createElement('div');
+            row.className = 'edit-row';
+            row.innerHTML = `
+                <input type="text" id="cat-name-${i}" value="${displayVal}" placeholder="${defaultPlaceholder}">
+            `;
+            container.appendChild(row);
+        }
+    }
+
+    function renderTeamInputs() {
+        const container = document.getElementById('team-inputs-container');
+        const count = parseInt(document.getElementById('team-count').value) || 2;
+        container.innerHTML = '';
+
+        for (let i = 0; i < count; i++) {
+            const currentName = teams[i] ? teams[i].name : `Team ${i + 1}`;
+            const currentScore = teams[i] ? teams[i].score : 0;
+
+            const row = document.createElement('div');
+            row.className = 'edit-row';
+            row.innerHTML = `
+                <input type="text" id="team-name-${i}" value="${currentName}" placeholder="Team ${i + 1}">
+                <input type="number" id="team-score-${i}" value="${currentScore}" placeholder="Score">
+            `;
+            container.appendChild(row);
+        }
+    }
+
+    function saveSettings() {
+        // 1. Save Selected Visual Theme
+        const selectedTheme = document.getElementById('theme-select').value;
+        applyTheme(selectedTheme);
+
+        // 2. Save Categories
+        const catCount = parseInt(document.getElementById('category-count').value) || 5;
+        const newCats = [];
+        for (let i = 0; i < catCount; i++) {
+            const input = document.getElementById(`cat-name-${i}`);
+            const val = input ? input.value.trim() : '';
+            newCats.push(val !== '' ? val : `Category ${i + 1}`);
+        }
+        gameData.categories = newCats;
+
+        // 3. Save Teams & Scores
+        const teamCount = parseInt(document.getElementById('team-count').value) || 2;
+        const newTeams = [];
+        for (let i = 0; i < teamCount; i++) {
+            const nameInput = document.getElementById(`team-name-${i}`);
+            const scoreInput = document.getElementById(`team-score-${i}`);
+            
+            const name = nameInput && nameInput.value.trim() ? nameInput.value.trim() : `Team ${i + 1}`;
+            const score = scoreInput && scoreInput.value !== '' ? parseInt(scoreInput.value) : 0;
+            
+            newTeams.push({ name, score });
+        }
+        teams = newTeams;
+
+        // 4. Handle Question File Ingestion (.txt)
+        const fileInput = document.getElementById('file-input');
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const content = e.target.result;
+                const parsedData = parseTxtQuestions(content);
+
+                if (parsedData && parsedData.categories && parsedData.questions) {
+                    gameData = parsedData;
+                    fileInput.value = '';
+                    initGame(true); // File uploaded: Reset board completely
+                } else {
+                    alert("Unable to parse question file. Please check formatting.");
+                }
+            };
+            reader.readAsText(file);
+        } else {
+            initGame(false); // No file uploaded: update settings, keep board progress
+            renderBoard();
+        }
+    }
+
+    // --- Content-Agnostic TXT Parser ---
+    function parseTxtQuestions(text) {
+        const lines = text.split(/\r?\n/);
+        const categories = [];
+        const questions = [];
+        
+        let currentCol = 0;
+        let currentRow = 0;
+
+        for (let line of lines) {
+            line = line.trim();
+            if (!line) continue;
+
+            const catMatch = line.match(/^(?:category\s*\d*\s*:?|#|\[)\s*(.+?)(?:\])?$/i);
+            
+            if (catMatch && !line.match(/^\$?\d+\s*[:\.\-]/)) {
+                if (categories.length < 6) {
+                    let cleanCatName = catMatch[1].replace(/[\[\]]/g, '').trim();
+                    categories.push(cleanCatName || `Category ${categories.length + 1}`);
+                    currentCol = categories.length;
+                    currentRow = 0;
+                }
+                continue;
+            }
+
+            if (currentCol === 0) {
+                currentCol = 1;
+                categories.push("Category 1");
+                currentRow = 0;
+            }
+
+            let qText = line;
+            const valMatch = line.match(/^(?:\$)?(\d+)\s*[:\.\-]\s*(.+)$/);
+            
+            if (valMatch) {
+                const val = parseInt(valMatch[1]);
+                if (val >= 100 && val <= 500) {
+                    currentRow = Math.round(val / 100);
+                } else {
+                    currentRow++;
+                }
+                qText = valMatch[2].trim();
+            } else {
+                currentRow++;
+            }
+
+            if (currentCol <= 6 && currentRow >= 1 && currentRow <= 5) {
+                const existingIdx = questions.findIndex(q => q.col === currentCol && q.row === currentRow);
+                if (existingIdx >= 0) {
+                    questions[existingIdx].q = qText;
+                } else {
+                    questions.push({ col: currentCol, row: currentRow, q: qText });
+                }
+            }
+        }
+
+        if (categories.length === 0) {
+            categories.push("Category 1", "Category 2", "Category 3", "Category 4", "Category 5");
+        }
+
+        return { categories, questions };
+    }
+
+    // --- Template Downloader ---
+    function downloadTxtTemplate() {
+        const txtTemplate = 
+`Category: Category 1 Name
+100: Type your $100 question here...
+200: Type your $200 question here...
+300: Type your $300 question here...
+400: Type your $400 question here...
+500: Type your $500 question here...
+
+Category: Category 2 Name
+100: Type your $100 question here...
+200: Type your $200 question here...
+300: Type your $300 question here...
+400: Type your $400 question here...
+500: Type your $500 question here...
+
+Category: Category 3 Name
+100: Type your $100 question here...
+200: Type your $200 question here...
+300: Type your $300 question here...
+400: Type your $400 question here...
+500: Type your $500 question here...
+
+Category: Category 4 Name
+100: Type your $100 question here...
+200: Type your $200 question here...
+300: Type your $300 question here...
+400: Type your $400 question here...
+500: Type your $500 question here...
+
+Category: Category 5 Name
+100: Type your $100 question here...
+200: Type your $200 question here...
+300: Type your $300 question here...
+400: Type your $400 question here...
+500: Type your $500 question here...`;
+
+        const a = document.createElement('a');
+        const file = new Blob([txtTemplate], { type: "text/plain" });
+        a.href = URL.createObjectURL(file);
+        a.download = "game_questions.txt";
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
+
+    // Start Game
+    initGame();
+</script>
+</body>
+</html>

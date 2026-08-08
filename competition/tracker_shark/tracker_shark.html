@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Classroom Points Tracker - Shark Edition</title>
+<style>
+    /* CSS Variables & Global Reset */
+    :root {
+        --sky-top: #bde0fe;
+        --sky-bottom: #e0f2fe;
+        --water-front: #0096c7;
+        --water-back: #0077b6;
+        --water-deep: #03045e;
+        --rope-color: #d4a373;
+        --wood: #5d4037;
+        --danger: #ff4d4d;
+        --success: #8AC926;
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 100%);
+        overflow: hidden;
+        height: 100vh;
+        width: 100vw;
+    }
+
+    /* Background Sky Events Container (Rendered BEHIND players) */
+    #sky-events {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none;
+        z-index: 2; /* Behind pendulum (z-index 5) and controls (z-index 20) */
+    }
+
+    .seagull {
+        position: absolute;
+        left: -120px;
+        width: 90px;
+        height: 45px;
+        pointer-events: none;
+        opacity: 0.85;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+    }
+
+    /* Settings Modal (Ported from Black Hole Edition) */
+    #settings-modal {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(3, 4, 94, 0.8);
+        backdrop-filter: blur(4px);
+        display: flex; justify-content: center; align-items: center;
+        z-index: 100;
+        transition: opacity 0.3s ease;
+    }
+    .modal-content {
+        background: #0f172a;
+        color: #e2e8f0;
+        padding: 30px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 400px;
+        border: 1px solid #00b4d8;
+        box-shadow: 0 10px 40px rgba(0, 180, 216, 0.4);
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+    }
+    .modal-content h2 { margin-bottom: 20px; text-align: center; color: #fff; flex-shrink: 0; }
+    .form-group { margin-bottom: 15px; flex-shrink: 0; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #94a3b8; }
+    .form-group input { 
+        width: 100%; padding: 8px; border: 1px solid #334155; border-radius: 6px; font-size: 16px; 
+        background: #1e293b; color: #fff;
+    }
+    
+    /* Scrollable team name list */
+    .team-names-scroll {
+        max-height: 150px;
+        overflow-y: auto;
+        padding-right: 5px;
+        border: 1px solid #334155;
+        border-radius: 6px;
+        padding: 8px;
+        background: rgba(0,0,0,0.2);
+    }
+    .team-name-input { margin-bottom: 8px; width: 100%; padding: 6px; border: 1px solid #334155; border-radius: 4px; background: #1e293b; color: #fff;}
+    .team-name-input:last-child { margin-bottom: 0; }
+    
+    .start-btn {
+        width: 100%; padding: 12px; background: #00b4d8; color: white;
+        border: none; border-radius: 6px; font-size: 18px; font-weight: bold;
+        cursor: pointer; margin-top: 15px; transition: background 0.2s; flex-shrink: 0;
+    }
+    .start-btn:hover { background: #0096c7; }
+
+    /* Settings Gear Button */
+    #gear-btn {
+        position: absolute; top: 15px; right: 15px; z-index: 50;
+        background: rgba(255, 255, 255, 0.9); border: 1px solid #00b4d8; border-radius: 50%;
+        color: #03045e;
+        width: 45px; height: 45px; font-size: 24px; cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        transition: all 0.2s ease;
+    }
+    #gear-btn:hover {
+        background: #00b4d8; color: #fff;
+        box-shadow: 0 0 15px #00b4d8;
+    }
+
+    /* Sound Toggle Button */
+    #sound-btn {
+        position: absolute; top: 15px; right: 70px; z-index: 50;
+        background: rgba(255, 255, 255, 0.9); border: 1px solid #00b4d8; border-radius: 50%;
+        color: #03045e;
+        width: 45px; height: 45px; font-size: 20px; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        transition: all 0.2s ease;
+    }
+    #sound-btn:hover {
+        background: #00b4d8; color: #fff;
+        box-shadow: 0 0 15px #00b4d8;
+    }
+
+    /* Main Game Board */
+    #board {
+        display: flex;
+        width: 100%;
+        height: 100%;
+        position: relative;
+        z-index: 4;
+    }
+
+    /* Top Wooden Dock Line */
+    #top-bar {
+        position: absolute;
+        top: 130px; 
+        left: 0; width: 100%; height: 16px;
+        background-color: var(--wood);
+        background-image: linear-gradient(90deg, rgba(255,255,255,0.05) 50%, transparent 50%);
+        background-size: 40px 100%;
+        border-top: 2px solid #8d6e63;
+        border-bottom: 3px solid #3e2723;
+        z-index: 10;
+        box-shadow: 0 8px 15px rgba(0,0,0,0.25);
+    }
+
+    /* Team Columns */
+    .team-col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        height: 100%;
+    }
+
+    /* Controls (Name + Status Bar) */
+    .controls {
+        height: 130px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 20;
+        padding: 5px;
+    }
+    .team-name {
+        font-weight: bold; font-size: clamp(12px, 1.5vw, 18px);
+        color: #03045e; margin-bottom: 8px; text-align: center;
+        width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+    }
+    
+    /* Inline Status Bar */
+    .status-bar {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn {
+        width: 24px; height: 24px; border: none; border-radius: 4px; cursor: pointer;
+        font-weight: bold; font-size: 14px; color: white; display: flex; 
+        align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    }
+    .btn-plus { background: var(--success); }
+    .btn-minus { background: var(--danger); }
+    .btn:active { transform: translateY(2px); box-shadow: 0 0 2px rgba(0,0,0,0.4); }
+    .btn:disabled { filter: grayscale(1); cursor: not-allowed; opacity: 0.5; }
+
+    /* Life Container & Font */
+    .life-container {
+        position: relative; width: 50px; height: 50px;
+    }
+    .life-svg { 
+        width: 100%; height: 100%; 
+        filter: drop-shadow(0 0 5px rgba(255, 77, 109, 0.8)); 
+    }
+    .lives-text {
+        position: absolute; top: 52%; left: 50%; transform: translate(-50%, -50%);
+        color: #fff; font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 22px; 
+        text-shadow: 0 0 4px #000, 0 0 8px #ff4d6d;
+    }
+
+    /* Animation Containers */
+    .pendulum-container {
+        position: absolute;
+        top: 138px;
+        left: 0;
+        width: 100%;
+        height: calc(100vh - 138px);
+        transform-origin: top center;
+        z-index: 5;
+    }
+    .jerk-container {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        transform-origin: top center;
+    }
+
+    /* Ropes and Stick Figures */
+    .rope {
+        position: absolute;
+        top: 0px; 
+        left: 50%; transform: translateX(-50%);
+        width: 4px;
+        background: repeating-linear-gradient(0deg, var(--rope-color), var(--rope-color) 10px, #a87b51 10px, #a87b51 20px);
+        height: 0px; 
+        transition: height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    
+    /* Dead / Bitten Rope hanging in the wind */
+    .rope.bitten {
+        background: repeating-linear-gradient(0deg, var(--rope-color), var(--rope-color) 10px, #a87b51 10px, #a87b51 20px);
+        border-bottom: 4px dashed #8d6e63; /* Jagged bite end */
+        animation: ropeSway 2.5s ease-in-out infinite alternate;
+        transform-origin: top center;
+    }
+
+    .stick-figure-wrapper {
+        position: absolute;
+        left: 50%; transform: translateX(-50%);
+        width: 100px; height: 200px;
+        transition: top 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease;
+    }
+    
+    .stick-figure-wrapper.dead-state {
+        opacity: 0; /* Fully sunk underwater & invisible */
+        pointer-events: none;
+    }
+
+    /* SVG Stick Figure Styling */
+    .stick-figure { width: 100%; height: 100%; }
+
+    /* --- NATURAL ORGANIC OCEAN & WATERLINE --- */
+    #sea-container {
+        position: absolute;
+        bottom: 0; left: 0;
+        width: 100%;
+        height: 18vh;
+        z-index: 15;
+        pointer-events: none;
+    }
+
+    .ocean-body {
+        position: absolute;
+        bottom: 0; left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(to bottom, transparent 0px, var(--water-front) 30px, var(--water-deep) 100%);
+    }
+
+    /* Organic Layered Wave Animations */
+    .wave-svg {
+        position: absolute;
+        top: -30px; left: 0;
+        width: 200%;
+        height: 60px;
+    }
+
+    .wave-back-path {
+        fill: var(--water-back);
+        opacity: 0.7;
+        animation: waveSlide 10s linear infinite reverse;
+    }
+
+    .wave-front-path {
+        fill: var(--water-front);
+        animation: waveSlide 6s linear infinite;
+    }
+
+    .wave-crest-line {
+        fill: none;
+        stroke: rgba(255, 255, 255, 0.7);
+        stroke-width: 3;
+        animation: waveSlide 6s linear infinite;
+    }
+
+    /* Patrolling Shark Fin */
+    #shark {
+        position: absolute;
+        bottom: calc(18vh - 45px);
+        width: 120px;
+        height: 120px;
+        z-index: 16;
+        pointer-events: none;
+        animation: swim 18s linear infinite;
+    }
+
+    .fin-wake {
+        position: absolute;
+        bottom: 12px; left: -10px;
+        width: 140px; height: 16px;
+        background: radial-gradient(ellipse at center, rgba(255,255,255,0.7) 0%, transparent 70%);
+        animation: wakePulse 1.2s ease-in-out infinite alternate;
+    }
+
+    /* Event Elements */
+    .leaping-fish {
+        position: absolute;
+        width: 50px; height: 50px;
+        z-index: 17;
+        pointer-events: none;
+    }
+
+    .water-splash {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.85);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 18;
+    }
+
+    /* Keyframe Animations */
+    @keyframes swim {
+        0% { left: -140px; transform: scaleX(-1); } 
+        45% { left: 100vw; transform: scaleX(-1); }
+        50% { left: 100vw; transform: scaleX(1); } 
+        95% { left: -140px; transform: scaleX(1); }
+        100% { left: -140px; transform: scaleX(-1); }
+    }
+    @keyframes waveSlide {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+    @keyframes wakePulse {
+        0% { transform: scaleX(0.85); opacity: 0.4; }
+        100% { transform: scaleX(1.15); opacity: 0.8; }
+    }
+    @keyframes sway {
+        0% { transform: rotate(-3.5deg); }
+        100% { transform: rotate(3.5deg); }
+    }
+    @keyframes ropeSway {
+        0% { transform: translateX(-50%) rotate(-6deg); }
+        100% { transform: translateX(-50%) rotate(6deg); }
+    }
+    @keyframes jerk-anim {
+        0% { transform: scaleY(1) rotate(0deg); }
+        25% { transform: scaleY(1.03) rotate(4deg); }
+        50% { transform: scaleY(0.98) rotate(-3deg); }
+        75% { transform: scaleY(1.01) rotate(1.5deg); }
+        100% { transform: scaleY(1) rotate(0deg); }
+    }
+    .jerk-active {
+        animation: jerk-anim 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+</style>
+</head>
+<body>
+
+<!-- Background Audio Element -->
+<audio id="bg-audio" loop>
+    <source src="tracker_shark_sound.mp3" type="audio/mpeg">
+</audio>
+
+<!-- Sky Background Events Layer (Behind Players) -->
+<div id="sky-events"></div>
+
+<!-- Settings Modal -->
+<div id="settings-modal">
+    <div class="modal-content">
+        <h2>Game Settings</h2>
+        <div class="form-group">
+            <label for="lives-input">Lives:</label>
+            <input type="number" id="lives-input" value="5" min="1" max="50">
+        </div>
+        <div class="form-group">
+            <label for="teams-input">Number of Teams:</label>
+            <input type="number" id="teams-input" value="4" min="1" max="15">
+        </div>
+        <div class="form-group">
+            <label>Team Names:</label>
+            <div class="team-names-scroll" id="team-names-list"></div>
+        </div>
+        <button class="start-btn" onclick="startGame()">Start / Apply</button>
+    </div>
+</div>
+
+<button id="gear-btn" onclick="openSettings()" title="Settings">⚙️</button>
+<button id="sound-btn" onclick="toggleSound()" title="Toggle Sound">🔇</button>
+
+<div id="board">
+    <div id="top-bar"></div>
+    <!-- Team columns injected here via JS -->
+</div>
+
+<!-- Scaled Up Patrolling Shark Fin -->
+<div id="shark">
+    <svg viewBox="0 0 100 100" style="width: 100%; height: 100%;">
+        <path d="M 10 90 C 32 55 58 10 92 4 Q 72 48 80 90 Z" fill="#1e293b"/>
+        <path d="M 22 82 C 40 52 58 22 84 10 Q 72 44 76 82 Z" fill="#334155"/>
+        <path d="M 5 88 Q 45 78 95 88 Z" fill="rgba(255,255,255,0.6)"/>
+    </svg>
+    <div class="fin-wake"></div>
+</div>
+
+<!-- Organic Living Ocean Container -->
+<div id="sea-container">
+    <div class="ocean-body"></div>
+    
+    <svg class="wave-svg" viewBox="0 0 1200 60" preserveAspectRatio="none">
+        <path class="wave-back-path" d="M 0,25 Q 150,45 300,25 T 600,25 T 900,25 T 1200,25 T 1500,25 T 1800,25 T 2100,25 T 2400,25 L 2400,60 L 0,60 Z" />
+        <path class="wave-front-path" d="M 0,30 Q 150,10 300,30 T 600,30 T 900,30 T 1200,30 T 1500,30 T 1800,30 T 2100,30 T 2400,30 L 2400,60 L 0,60 Z" />
+        <path class="wave-crest-line" d="M 0,30 Q 150,10 300,30 T 600,30 T 900,30 T 1200,30 T 1500,30 T 1800,30 T 2100,30 T 2400,30" />
+    </svg>
+</div>
+
+<script>
+    let maxLives = 5;
+    let numTeams = 4;
+    let teams = [];
+
+    const palette = [
+        '#FF595E', '#FFCA3A', '#8AC926', '#1982C4', '#6A4C93', 
+        '#F15BB5', '#00BBF9', '#00F5D4', '#FEE440', '#9B5DE5',
+        '#E07A5F', '#3D405B', '#81B29A', '#F2CC8F', '#D90429'
+    ];
+
+    const modal = document.getElementById('settings-modal');
+    const teamsInput = document.getElementById('teams-input');
+    const livesInput = document.getElementById('lives-input');
+    const teamNamesList = document.getElementById('team-names-list');
+    const board = document.getElementById('board');
+    const skyEvents = document.getElementById('sky-events');
+    const bgAudio = document.getElementById('bg-audio');
+    const soundBtn = document.getElementById('sound-btn');
+    let isPlaying = false;
+
+    function toggleSound() {
+        if (isPlaying) {
+            bgAudio.pause();
+            soundBtn.innerText = '🔇';
+            isPlaying = false;
+        } else {
+            bgAudio.play().then(() => {
+                soundBtn.innerText = '🔊';
+                isPlaying = true;
+            }).catch(error => {
+                console.log("Audio playback blocked or file not found:", error);
+            });
+        }
+    }
+
+    document.body.addEventListener('click', function initAudio() {
+        if (!isPlaying) {
+            bgAudio.play().then(() => {
+                soundBtn.innerText = '🔊';
+                isPlaying = true;
+            }).catch(() => {});
+        }
+    }, { once: true });
+
+    teamsInput.addEventListener('input', updateTeamNameInputs);
+
+    function updateTeamNameInputs() {
+        const count = parseInt(teamsInput.value) || 1;
+        teamNamesList.innerHTML = '';
+        for(let i = 0; i < count; i++) {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'team-name-input';
+            input.value = (teams[i] && teams[i].name) ? teams[i].name : `Team ${i + 1}`;
+            teamNamesList.appendChild(input);
+        }
+    }
+
+    function openSettings() {
+        modal.style.display = 'flex';
+        teamsInput.value = teams.length || 4;
+        livesInput.value = maxLives;
+        updateTeamNameInputs();
+    }
+
+    function startGame() {
+        maxLives = parseInt(livesInput.value) || 5;
+        numTeams = parseInt(teamsInput.value) || 4;
+        
+        const nameInputs = document.querySelectorAll('.team-name-input');
+        
+        teams = [];
+        for(let i = 0; i < numTeams; i++) {
+            teams.push({
+                name: nameInputs[i].value || `Team ${i + 1}`,
+                lives: maxLives,
+                color: palette[i % palette.length]
+            });
+        }
+        
+        modal.style.display = 'none';
+        renderBoard();
+    }
+
+    function changeLives(index, delta) {
+        teams[index].lives += delta;
+        if (teams[index].lives > maxLives) teams[index].lives = maxLives;
+        if (teams[index].lives < 0) teams[index].lives = 0;
+        
+        updateTeamUI(index);
+
+        const jerkContainer = document.getElementById(`jerk-${index}`);
+        jerkContainer.classList.remove('jerk-active');
+        void jerkContainer.offsetWidth;
+        jerkContainer.classList.add('jerk-active');
+    }
+
+    function renderBoard() {
+        board.innerHTML = '<div id="top-bar"></div>';
+        
+        teams.forEach((team, index) => {
+            const col = document.createElement('div');
+            col.className = 'team-col';
+            
+            const swayDuration = 3 + (index % 4) * 0.4;
+            const swayDelay = -index * 0.9;
+            
+            col.innerHTML = `
+                <div class="controls">
+                    <div class="team-name" title="${team.name}">${team.name}</div>
+                    <div class="status-bar">
+                        <button class="btn btn-minus" id="btn-minus-${index}" onclick="changeLives(${index}, -1)">-</button>
+                        <div class="life-container">
+                            <svg class="life-svg" viewBox="0 0 24 24" fill="#ff4d6d" stroke="#c9184a" stroke-width="1.5">
+                               <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                            </svg>
+                            <span class="lives-text" id="lives-text-${index}">${team.lives}</span>
+                        </div>
+                        <button class="btn btn-plus" id="btn-plus-${index}" onclick="changeLives(${index}, 1)">+</button>
+                    </div>
+                </div>
+                
+                <div class="pendulum-container" id="pendulum-${index}" style="animation: sway ${swayDuration}s ease-in-out ${swayDelay}s infinite alternate;">
+                    <div class="jerk-container" id="jerk-${index}">
+                        <div class="rope" id="rope-${index}"></div>
+                        <div class="stick-figure-wrapper" id="figure-wrapper-${index}">
+                            <svg class="stick-figure" viewBox="0 0 100 200">
+                                <line x1="50" y1="0" x2="50" y2="40" stroke="var(--rope-color)" stroke-width="4"/>
+                                <line x1="50" y1="40" x2="50" y2="90" stroke="${team.color}" stroke-width="6" stroke-linecap="round"/>
+                                <polyline points="50,90 75,60 85,75" fill="none" stroke="${team.color}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+                                <line x1="50" y1="90" x2="50" y2="140" stroke="${team.color}" stroke-width="6" stroke-linecap="round"/>
+                                
+                                <polyline points="50,140 25,160 20,190" fill="none" stroke="${team.color}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+                                <polyline points="50,140 75,160 80,190" fill="none" stroke="${team.color}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+                                
+                                <circle cx="50" cy="170" r="18" fill="var(--sky-bottom)" stroke="${team.color}" stroke-width="6"/>
+                                <circle cx="43" cy="170" r="2.5" fill="${team.color}"/>
+                                <circle cx="57" cy="170" r="2.5" fill="${team.color}"/>
+                                <path d="M 42 182 Q 50 188 58 182" stroke="${team.color}" stroke-width="2.5" fill="none"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            board.appendChild(col);
+            updateTeamUI(index); 
+        });
+    }
+
+    function updateTeamUI(index) {
+        const team = teams[index];
+        
+        document.getElementById(`lives-text-${index}`).innerText = team.lives;
+        document.getElementById(`btn-minus-${index}`).disabled = (team.lives === 0);
+        document.getElementById(`btn-plus-${index}`).disabled = (team.lives === maxLives);
+
+        const wrapper = document.getElementById(`figure-wrapper-${index}`);
+        const rope = document.getElementById(`rope-${index}`);
+        const pendulum = document.getElementById(`pendulum-${index}`);
+        
+        const lossRatio = (maxLives - team.lives) / maxLives;
+        
+        const maxTravelStr = `100vh - 18vh - 191px - 130px`; 
+        const dropFormula = `calc(${lossRatio} * (${maxTravelStr}))`;
+        
+        wrapper.style.top = dropFormula;
+        rope.style.height = dropFormula;
+
+        if (team.lives === 0) {
+            // Character sinks completely underwater (hidden)
+            wrapper.classList.add('dead-state');
+            // Rope is cut/bitten and left hanging shorter, swaying in the wind
+            rope.classList.add('bitten');
+            rope.style.height = '150px'; 
+            pendulum.style.animation = 'none'; // Stop normal sway, rope handles its own wind sway
+        } else {
+            wrapper.classList.remove('dead-state');
+            rope.classList.remove('bitten');
+            const swayDuration = 3 + (index % 4) * 0.4;
+            const swayDelay = -index * 0.9;
+            pendulum.style.animation = `sway ${swayDuration}s ease-in-out ${swayDelay}s infinite alternate`;
+        }
+    }
+
+    // --- RANDOM OCEAN & SKY EVENTS ---
+    function triggerRandomEvent() {
+        if (Math.random() > 0.4) {
+            triggerLeapingFish();
+        } else {
+            triggerSeagulls();
+        }
+
+        const nextDelay = 8000 + Math.random() * 12000;
+        setTimeout(triggerRandomEvent, nextDelay);
+    }
+
+    function triggerLeapingFish() {
+        const fish = document.createElement('div');
+        fish.className = 'leaping-fish';
+        
+        const startX = 15 + Math.random() * 70;
+        const dir = Math.random() > 0.5 ? 1 : -1;
+        
+        fish.innerHTML = `
+            <svg viewBox="0 0 60 60" style="width:100%; height:100%; transform: scaleX(${dir});">
+                <path d="M 10 30 Q 30 10 50 30 Q 30 50 10 30 Z" fill="#ff70a6"/>
+                <polygon points="10,30 0,20 0,40" fill="#ff9770"/>
+                <circle cx="42" cy="26" r="2" fill="#fff"/>
+                <circle cx="43" cy="26" r="1" fill="#000"/>
+                <path d="M 28 20 Q 22 10 18 18" fill="none" stroke="#ff70a6" stroke-width="2"/>
+            </svg>
+        `;
+
+        document.body.appendChild(fish);
+        createSplash(startX);
+
+        const duration = 1400;
+        const distanceX = 18 + Math.random() * 6;
+        const peakHeightY = 16 + Math.random() * 8;
+        const baseWaterY = 15;
+        
+        const startTime = performance.now();
+
+        function animateFrame(currentTime) {
+            const elapsed = currentTime - startTime;
+            const p = Math.min(elapsed / duration, 1.0);
+
+            const currentX = startX + (dir * distanceX * p);
+            const currentY = baseWaterY + (4 * peakHeightY * p * (1 - p));
+
+            const vx = dir * distanceX;
+            const vy = 4 * peakHeightY * (1 - 2 * p);
+            let angle = Math.atan2(vy, Math.abs(vx)) * (180 / Math.PI) * 0.75;
+            
+            fish.style.left = `${currentX}vw`;
+            fish.style.bottom = `${currentY}vh`;
+            fish.style.transform = `scaleX(${dir}) rotate(${-dir * angle}deg)`;
+
+            if (p < 1.0) {
+                requestAnimationFrame(animateFrame);
+            } else {
+                createSplash(currentX);
+                fish.remove();
+            }
+        }
+
+        requestAnimationFrame(animateFrame);
+    }
+
+    function createSplash(xPercent) {
+        for (let i = 0; i < 8; i++) {
+            const drop = document.createElement('div');
+            drop.className = 'water-splash';
+            
+            const size = 3 + Math.random() * 5;
+            drop.style.width = `${size}px`;
+            drop.style.height = `${size}px`;
+            drop.style.left = `${xPercent}vw`;
+            drop.style.bottom = `17vh`;
+
+            document.body.appendChild(drop);
+
+            const vx = (Math.random() - 0.5) * 80;
+            const vy = 30 + Math.random() * 60;
+
+            drop.animate([
+                { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+                { transform: `translate(${vx}px, -${vy}px) scale(0.5)`, opacity: 0 }
+            ], {
+                duration: 600,
+                easing: 'ease-out'
+            });
+
+            setTimeout(() => drop.remove(), 600);
+        }
+    }
+
+    function triggerSeagulls() {
+        const count = 2 + Math.floor(Math.random() * 2);
+        for(let i = 0; i < count; i++) {
+            const bird = document.createElement('div');
+            bird.className = 'seagull';
+            bird.style.left = '-120px';
+            bird.innerHTML = `
+                <svg viewBox="0 0 80 40" fill="none" stroke="#334155" stroke-width="3.5" stroke-linecap="round">
+                    <path d="M 8 28 Q 24 8 40 22 Q 56 8 72 28"/>
+                </svg>
+            `;
+            
+            const startY = 8 + Math.random() * 25;
+            bird.style.top = `${startY}vh`;
+            skyEvents.appendChild(bird);
+
+            const flyDuration = 10000 + Math.random() * 4000;
+            const delay = i * 1000;
+
+            bird.animate([
+                { left: `-120px`, transform: 'translateY(0px)' },
+                { left: `105vw`, transform: `translateY(${Math.sin(i + 1) * 35}px)` }
+            ], {
+                duration: flyDuration,
+                delay: delay,
+                fill: 'both',
+                easing: 'linear'
+            });
+
+            setTimeout(() => bird.remove(), flyDuration + delay + 100);
+        }
+    }
+
+    setTimeout(triggerRandomEvent, 3000);
+    updateTeamNameInputs();
+
+</script>
+</body>
+</html>

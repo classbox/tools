@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Tournament Bracket Maker</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --panel-bg: rgba(30, 41, 59, 0.85);
+            --tile-bg: #1e293b;
+            --tile-hover: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-loser: #64748b;
+            --accent: #3b82f6;
+            --gold: #fbbf24;
+            --gold-glow: rgba(251, 191, 36, 0.6);
+            --line-color: #334155;
+            --neon-pink: #ff007f;
+            --neon-glow: rgba(255, 0, 127, 0.8);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Settings Panel Toggle Button */
+        #settings-toggle {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            transition: 0.2s;
+        }
+
+        #settings-toggle:hover {
+            background: #2563eb;
+        }
+
+        #settings-panel {
+            position: fixed;
+            top: 65px;
+            left: 15px;
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 99;
+            width: 320px;
+            transform: translateX(-150%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: calc(100vh - 80px);
+            overflow-y: auto;
+        }
+
+        #settings-panel.visible {
+            transform: translateX(0);
+        }
+
+        .setting-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .setting-group label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        select, button {
+            background: var(--tile-bg);
+            color: var(--text-main);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 8px 12px;
+            border-radius: 6px;
+            outline: none;
+        }
+
+        .mode-toggle {
+            display: flex;
+            background: var(--tile-bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 8px 15px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .mode-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Classroom Roster Checklist */
+        .roster-checklist {
+            max-height: 180px;
+            overflow-y: auto;
+            background: #0f172a;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .roster-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            user-select: none;
+            padding: 3px 5px;
+            border-radius: 4px;
+            transition: background 0.15s;
+        }
+
+        .roster-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .roster-item input[type="checkbox"] {
+            accent-color: var(--accent);
+            cursor: pointer;
+            width: 15px;
+            height: 15px;
+        }
+
+        .roster-empty-msg {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-style: italic;
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        .mini-btn {
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-muted);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .mini-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        .shuffle-btn {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 10px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+            transition: all 0.2s;
+            margin-top: 4px;
+        }
+
+        .shuffle-btn:hover {
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            box-shadow: 0 6px 14px rgba(59, 130, 246, 0.5);
+            transform: translateY(-1px);
+        }
+
+        /* Bracket Outer Wrapper */
+        #bracket-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Overlay SVG for Dynamic Connecting Lines */
+        #bracket-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* SVG Line Styles & Neon Animation */
+        .connector-line {
+            fill: none;
+            stroke: var(--line-color);
+            stroke-width: 2px;
+            transition: stroke 0.3s ease, stroke-width 0.3s ease;
+        }
+
+        .connector-line.active {
+            stroke: var(--neon-pink);
+            stroke-width: 3px;
+            filter: drop-shadow(0 0 5px var(--neon-pink)) drop-shadow(0 0 10px var(--neon-pink));
+            stroke-dasharray: 8 4;
+            animation: neon-flow 0.8s linear infinite;
+        }
+
+        @keyframes neon-flow {
+            0% { stroke-dashoffset: 24; }
+            100% { stroke-dashoffset: 0; }
+        }
+
+        /* Bracket Layout Container */
+        #bracket-container {
+            position: relative;
+            display: flex;
+            padding: 60px 40px 30px 40px;
+            width: 100%;
+            height: 100%;
+            align-items: stretch;
+            justify-content: center;
+            gap: 45px;
+            z-index: 2;
+        }
+
+        .round {
+            display: flex;
+            flex-direction: column;
+            flex: 0 1 150px;
+            min-width: 110px;
+            max-width: 150px;
+        }
+
+        .match {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            position: relative;
+        }
+
+        .slot {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            padding: 2px 0;
+            width: 100%;
+        }
+
+        /* Tiles */
+        .tile {
+            background: var(--tile-bg);
+            padding: 0 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.08);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            user-select: none;
+            height: clamp(38px, 5.5vh, 50px);
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            z-index: 2;
+        }
+
+        .tile:hover {
+            background: var(--tile-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        }
+
+        .player-name-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Neon Pink Highlight on Active Path Tiles */
+        .tile.active-path {
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 10px var(--neon-glow);
+        }
+
+        .player-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            outline: none;
+            font-size: clamp(0.85rem, 1.4vh + 0.3rem, 1.1rem);
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .player-name:empty::before {
+            content: 'TBD';
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .tile-shadow {
+            color: rgba(255, 255, 255, 0.35);
+            font-weight: 600;
+            font-size: clamp(0.85rem, 1.4vh + 0.3rem, 1.1rem);
+            pointer-events: none;
+            user-select: none;
+            white-space: pre;
+        }
+
+        /* Loser Styling */
+        .tile.loser {
+            background: rgba(15, 23, 42, 0.4);
+            border-color: rgba(255,255,255,0.02);
+            box-shadow: none;
+            opacity: 0.4;
+        }
+
+        .tile.loser .player-name {
+            color: var(--text-loser);
+            text-decoration: line-through;
+        }
+
+        /* Edit Mode Styles */
+        body.edit-mode .tile {
+            cursor: text;
+            border: 1px dashed rgba(255,255,255,0.4);
+        }
+        
+        body.edit-mode .tile:focus-within {
+            border-color: var(--accent);
+            background: #1e293b;
+            border-style: solid;
+        }
+
+        /* Golden Winner Tile */
+        .tile.winner {
+            background: linear-gradient(135deg, #b48608, #fbbf24, #b48608);
+            color: #000;
+            font-weight: bold;
+            border: 2px solid var(--gold);
+            box-shadow: 0 0 20px var(--gold-glow);
+            animation: pulse-glow 2s infinite alternate;
+            justify-content: center;
+            height: clamp(45px, 6.5vh, 60px);
+            font-size: 1.1rem;
+            margin-top: 15px;
+            overflow: visible;
+        }
+
+        .tile.winner .player-name {
+            text-align: center;
+        }
+
+        .crown-svg {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 32px;
+            height: 32px;
+            fill: var(--gold);
+            filter: drop-shadow(0 0 8px var(--gold-glow));
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+
+        .tile.winner:has(.player-name:not(:empty)) .crown-svg {
+            opacity: 1;
+            animation: float-crown 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 10px var(--gold-glow); }
+            100% { box-shadow: 0 0 25px var(--gold-glow), 0 0 8px #fff; }
+        }
+
+        @keyframes float-crown {
+            0%, 100% { transform: translate(-50%, 0); }
+            50% { transform: translate(-50%, -6px); }
+        }
+
+        /* Custom In-App Reset Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 24px;
+            width: 90%;
+            max-width: 380px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.2s ease;
+        }
+
+        .modal-overlay.active .modal-card {
+            transform: scale(1);
+        }
+
+        .modal-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .modal-card p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+
+        .modal-btn-confirm {
+            background: #ef4444;
+            color: white;
+            border: none;
+        }
+
+        .modal-btn-confirm:hover {
+            background: #dc2626;
+        }
+
+        .modal-btn-cancel {
+            background: transparent;
+            color: var(--text-main);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .modal-btn-cancel:hover {
+            background: rgba(255,255,255,0.05);
+        }
+    </style>
+</head>
+<body class="live-mode">
+
+    <!-- Settings Toggle Button -->
+    <button id="settings-toggle">⚙️ Settings</button>
+
+    <!-- Hideable Settings Panel -->
+    <div id="settings-panel">
+        <div class="setting-group">
+            <label>Mode</label>
+            <div class="mode-toggle">
+                <button class="mode-btn active" id="btn-live">Live</button>
+                <button class="mode-btn" id="btn-edit">Edit</button>
+            </div>
+        </div>
+
+        <div class="setting-group">
+            <label>Starting Participants</label>
+            <select id="participant-count">
+                <option value="4">4 Players</option>
+                <option value="8" selected>8 Players</option>
+                <option value="16">16 Players</option>
+                <option value="32">32 Players</option>
+            </select>
+        </div>
+
+        <div class="setting-group">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label style="font-weight: bold; color: var(--text-main);">Classroom Roster (<span id="roster-count">0</span>)</label>
+                <div style="display: flex; gap: 6px;">
+                    <button id="btn-select-all" class="mini-btn">All</button>
+                    <button id="btn-deselect-all" class="mini-btn">None</button>
+                </div>
+            </div>
+            
+            <div id="roster-checklist" class="roster-checklist">
+                <div class="roster-empty-msg">Waiting for classroom roster update...</div>
+            </div>
+
+            <button id="btn-shuffle-pair" class="shuffle-btn">
+                🎲 Shuffle & Pair
+            </button>
+        </div>
+
+        <button id="btn-reset" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border-color: #f87171; margin-top: 5px; cursor: pointer;">
+            Reset Bracket
+        </button>
+    </div>
+
+    <!-- Bracket Wrapper -->
+    <div id="bracket-wrapper">
+        <svg id="bracket-svg"></svg>
+        <div id="bracket-container"></div>
+    </div>
+
+    <!-- Custom In-App Modal Dialog -->
+    <div id="reset-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h3>Reset Bracket?</h3>
+            <p>Are you sure you want to reset all bracket entries and progress?</p>
+            <div class="modal-actions">
+                <button id="modal-cancel-btn" class="modal-btn modal-btn-cancel">Cancel</button>
+                <button id="modal-confirm-btn" class="modal-btn modal-btn-confirm">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isEditMode = false;
+        let numParticipants = 8;
+        let bracketData = [];
+        let masterRoster = []; // Holds [{ name: 'Alex', enabled: true }, ...]
+
+        // DOM Elements
+        const wrapper = document.getElementById('bracket-wrapper');
+        const container = document.getElementById('bracket-container');
+        const svg = document.getElementById('bracket-svg');
+        const settingsToggle = document.getElementById('settings-toggle');
+        const settingsPanel = document.getElementById('settings-panel');
+        const btnLive = document.getElementById('btn-live');
+        const btnEdit = document.getElementById('btn-edit');
+        const selectCount = document.getElementById('participant-count');
+        const btnReset = document.getElementById('btn-reset');
+        
+        const rosterChecklist = document.getElementById('roster-checklist');
+        const rosterCountDisp = document.getElementById('roster-count');
+        const btnSelectAll = document.getElementById('btn-select-all');
+        const btnDeselectAll = document.getElementById('btn-deselect-all');
+        const btnShufflePair = document.getElementById('btn-shuffle-pair');
+
+        // Modal Elements
+        const resetModal = document.getElementById('reset-modal');
+        const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+        const modalCancelBtn = document.getElementById('modal-cancel-btn');
+
+        // Crown SVG Template
+        const crownSvg = `
+            <svg class="crown-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5ZM19 19C19 19.5523 18.5523 20 18 20H6C5.44772 20 5 19.5523 5 19V18H19V19Z"/>
+            </svg>
+        `;
+
+        // Listen for roster updates from parent central hosting site
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'CLASSROOM_ROSTER_UPDATE') {
+                const incomingNames = event.data.roster || [];
+                console.log("Roster received:", incomingNames);
+                
+                // Reconcile or load master roster list
+                masterRoster = incomingNames.map(name => {
+                    const existing = masterRoster.find(item => item.name.toLowerCase() === name.toLowerCase());
+                    return {
+                        name: name,
+                        enabled: existing ? existing.enabled : true
+                    };
+                });
+
+                renderRosterChecklist();
+            }
+        });
+
+        // Render Classroom Roster checklist in Settings Panel
+        function renderRosterChecklist() {
+            rosterChecklist.innerHTML = '';
+            
+            if (masterRoster.length === 0) {
+                rosterChecklist.innerHTML = `<div class="roster-empty-msg">Waiting for classroom roster update...</div>`;
+                rosterCountDisp.textContent = '0';
+                return;
+            }
+
+            const activeCount = masterRoster.filter(r => r.enabled).length;
+            rosterCountDisp.textContent = `${activeCount}/${masterRoster.length}`;
+
+            masterRoster.forEach((student, index) => {
+                const itemDiv = document.createElement('label');
+                itemDiv.className = 'roster-item';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = student.enabled;
+
+                checkbox.addEventListener('change', () => {
+                    student.enabled = checkbox.checked;
+                    const count = masterRoster.filter(r => r.enabled).length;
+                    rosterCountDisp.textContent = `${count}/${masterRoster.length}`;
+                });
+
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = student.name;
+
+                itemDiv.appendChild(checkbox);
+                itemDiv.appendChild(nameSpan);
+                rosterChecklist.appendChild(itemDiv);
+            });
+        }
+
+        btnSelectAll.addEventListener('click', () => {
+            masterRoster.forEach(s => s.enabled = true);
+            renderRosterChecklist();
+        });
+
+        btnDeselectAll.addEventListener('click', () => {
+            masterRoster.forEach(s => s.enabled = false);
+            renderRosterChecklist();
+        });
+
+        // Fisher-Yates Shuffle & Pair into Round 1
+        btnShufflePair.addEventListener('click', () => {
+            const activeStudents = masterRoster
+                .filter(s => s.enabled)
+                .map(s => s.name);
+
+            if (activeStudents.length === 0) {
+                alert("Please enable at least one student in the roster settings to shuffle.");
+                return;
+            }
+
+            // Shuffle array
+            for (let i = activeStudents.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [activeStudents[i], activeStudents[j]] = [activeStudents[j], activeStudents[i]];
+            }
+
+            // Auto-adjust bracket size to fit active students if needed
+            if (activeStudents.length > 16) {
+                numParticipants = 32;
+            } else if (activeStudents.length > 8) {
+                numParticipants = 16;
+            } else if (activeStudents.length > 4) {
+                numParticipants = 8;
+            } else {
+                numParticipants = 4;
+            }
+            selectCount.value = String(numParticipants);
+
+            // Populate Round 1 with shuffled paired students
+            bracketData = [];
+            let currentSlots = numParticipants;
+
+            while (currentSlots >= 1) {
+                let round = new Array(currentSlots).fill('');
+                if (currentSlots === numParticipants) {
+                    for (let i = 0; i < currentSlots; i++) {
+                        round[i] = activeStudents[i] || '';
+                    }
+                }
+                bracketData.push(round);
+                currentSlots = Math.floor(currentSlots / 2);
+            }
+
+            renderBracket();
+        });
+
+        // Initialize Bracket Data Structure (Empty by default)
+        function initBracketData() {
+            bracketData = [];
+            let currentSlots = numParticipants;
+
+            while (currentSlots >= 1) {
+                let round = new Array(currentSlots).fill('');
+                bracketData.push(round);
+                currentSlots = Math.floor(currentSlots / 2);
+            }
+        }
+
+        // Render the Bracket DOM Nodes
+        function renderBracket() {
+            container.innerHTML = '';
+
+            bracketData.forEach((roundData, roundIndex) => {
+                const roundDiv = document.createElement('div');
+                roundDiv.className = 'round';
+                const isFinal = roundIndex === bracketData.length - 1;
+
+                for (let i = 0; i < roundData.length; i += 2) {
+                    const matchDiv = document.createElement('div');
+                    matchDiv.className = 'match';
+
+                    let advancedName = null;
+                    if (!isFinal) {
+                        advancedName = bracketData[roundIndex + 1][Math.floor(i / 2)];
+                    }
+
+                    const p1Name = roundData[i];
+                    const p2Name = (i + 1 < roundData.length) ? roundData[i + 1] : null;
+
+                    let p1Loser = false;
+                    let p2Loser = false;
+                    let p1Active = false;
+                    let p2Active = false;
+
+                    if (advancedName && advancedName.trim() !== '') {
+                        if (p1Name === advancedName && p2Name !== advancedName) {
+                            p2Loser = true;
+                            p1Active = true;
+                        } else if (p2Name === advancedName && p1Name !== advancedName) {
+                            p1Loser = true;
+                            p2Active = true;
+                        }
+                    }
+
+                    matchDiv.appendChild(createTile(roundIndex, i, p1Name, isFinal, p1Loser, p1Active));
+                    
+                    if (!isFinal && p2Name !== null) {
+                        matchDiv.appendChild(createTile(roundIndex, i + 1, p2Name, false, p2Loser, p2Active));
+                    }
+
+                    roundDiv.appendChild(matchDiv);
+                }
+
+                container.appendChild(roundDiv);
+            });
+
+            requestAnimationFrame(drawBracketLines);
+        }
+
+        // Select all text inside editable element
+        function selectAllText(element) {
+            setTimeout(() => {
+                const range = document.createRange();
+                range.selectNodeContents(element);
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }, 0);
+        }
+
+        // Create individual tile with live shadow autocomplete during Edit Mode
+        function createTile(roundIndex, slotIndex, name, isFinal, isLoser, isActivePath) {
+            const slot = document.createElement('div');
+            slot.className = 'slot';
+
+            const tile = document.createElement('div');
+            tile.className = 'tile';
+            if (isFinal) {
+                tile.className += ' winner';
+                tile.innerHTML = crownSvg; 
+            }
+            if (isLoser) {
+                tile.className += ' loser';
+            }
+            if (isActivePath) {
+                tile.className += ' active-path';
+            }
+            
+            const wrapperSpan = document.createElement('div');
+            wrapperSpan.className = 'player-name-wrapper';
+
+            const textSpan = document.createElement('span');
+            textSpan.className = 'player-name';
+            textSpan.textContent = name;
+
+            const tileShadow = document.createElement('span');
+            tileShadow.className = 'tile-shadow';
+
+            wrapperSpan.appendChild(textSpan);
+            wrapperSpan.appendChild(tileShadow);
+            tile.appendChild(wrapperSpan);
+
+            // Click Interactions
+            tile.addEventListener('click', () => {
+                if (isEditMode) {
+                    textSpan.setAttribute('contenteditable', 'true');
+                    textSpan.focus();
+                    selectAllText(textSpan);
+                } else {
+                    advancePlayer(roundIndex, slotIndex, textSpan.textContent);
+                }
+            });
+
+            // Live Autocomplete matching while editing tile
+            textSpan.addEventListener('input', () => {
+                const val = textSpan.textContent;
+                const rosterList = masterRoster.map(r => r.name);
+
+                if (val.trim().length > 0 && rosterList.length > 0) {
+                    const match = rosterList.find(candidate => 
+                        candidate.toLowerCase().startsWith(val.toLowerCase()) && 
+                        candidate.toLowerCase() !== val.toLowerCase()
+                    );
+
+                    if (match) {
+                        tileShadow.textContent = match.slice(val.length);
+                        return;
+                    }
+                }
+                tileShadow.textContent = '';
+            });
+
+            // Keydown handling for tile autocomplete
+            textSpan.addEventListener('keydown', (e) => {
+                if (e.key === 'Tab' || e.key === 'ArrowRight') {
+                    if (tileShadow.textContent) {
+                        e.preventDefault();
+                        textSpan.textContent += tileShadow.textContent;
+                        tileShadow.textContent = '';
+                        
+                        const range = document.createRange();
+                        range.selectNodeContents(textSpan);
+                        range.collapse(false);
+                        const sel = window.getSelection();
+                        sel.removeAllRanges();
+                        sel.addRange(range);
+                    }
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    textSpan.blur();
+                }
+            });
+
+            // Handle Saving Edits
+            textSpan.addEventListener('blur', () => {
+                tileShadow.textContent = '';
+                textSpan.setAttribute('contenteditable', 'false');
+                bracketData[roundIndex][slotIndex] = textSpan.textContent.trim();
+                renderBracket();
+            });
+
+            slot.appendChild(tile);
+            return slot;
+        }
+
+        // Advance Player Logic
+        function advancePlayer(roundIndex, slotIndex, playerName) {
+            if (!playerName || playerName.trim() === '') return; 
+            if (roundIndex === bracketData.length - 1) return;
+
+            const nextRoundIndex = roundIndex + 1;
+            const nextSlotIndex = Math.floor(slotIndex / 2);
+
+            bracketData[nextRoundIndex][nextSlotIndex] = playerName;
+            renderBracket();
+        }
+
+        // --- Dynamic SVG Connecting Lines Generator ---
+        function drawBracketLines() {
+            svg.innerHTML = '';
+            const wrapperRect = wrapper.getBoundingClientRect();
+
+            svg.setAttribute('width', wrapperRect.width);
+            svg.setAttribute('height', wrapperRect.height);
+
+            const roundElems = container.querySelectorAll('.round');
+            const cornerRadius = 6;
+
+            for (let r = 0; r < roundElems.length - 1; r++) {
+                const currentRound = roundElems[r];
+                const nextRound = roundElems[r + 1];
+
+                const matches = currentRound.querySelectorAll('.match');
+                const nextSlots = nextRound.querySelectorAll('.slot');
+
+                matches.forEach((match, matchIdx) => {
+                    const slots = match.querySelectorAll('.slot');
+                    if (slots.length < 2) return;
+
+                    const topTile = slots[0].querySelector('.tile');
+                    const botTile = slots[1].querySelector('.tile');
+                    const targetSlot = nextSlots[matchIdx];
+                    const targetTile = targetSlot ? targetSlot.querySelector('.tile') : null;
+
+                    if (!topTile || !botTile || !targetTile) return;
+
+                    const topRect = topTile.getBoundingClientRect();
+                    const botRect = botTile.getBoundingClientRect();
+                    const targetRect = targetTile.getBoundingClientRect();
+
+                    const x1 = topRect.right - wrapperRect.left;
+                    const y1 = topRect.top + topRect.height / 2 - wrapperRect.top;
+
+                    const x2 = botRect.right - wrapperRect.left;
+                    const y2 = botRect.top + botRect.height / 2 - wrapperRect.top;
+
+                    const xTarget = targetRect.left - wrapperRect.left;
+                    const yTarget = targetRect.top + targetRect.height / 2 - wrapperRect.top;
+
+                    const xMid = x1 + (xTarget - x1) / 2;
+                    const yMid = (y1 + y2) / 2;
+
+                    const topPlayer = bracketData[r][matchIdx * 2];
+                    const botPlayer = bracketData[r][matchIdx * 2 + 1];
+                    const advancedPlayer = bracketData[r + 1][matchIdx];
+
+                    const isTopActive = !!(advancedPlayer && topPlayer && (advancedPlayer === topPlayer));
+                    const isBotActive = !!(advancedPlayer && botPlayer && (advancedPlayer === botPlayer));
+
+                    const topPathD = `
+                        M ${x1} ${y1} 
+                        H ${xMid - cornerRadius} 
+                        Q ${xMid} ${y1} ${xMid} ${y1 + cornerRadius} 
+                        V ${yMid}
+                    `;
+
+                    const botPathD = `
+                        M ${x2} ${y2} 
+                        H ${xMid - cornerRadius} 
+                        Q ${xMid} ${y2} ${xMid} ${y2 - cornerRadius} 
+                        V ${yMid}
+                    `;
+
+                    const trunkPathD = `
+                        M ${xMid} ${yMid} 
+                        H ${xTarget}
+                    `;
+
+                    createSvgPath(topPathD, isTopActive);
+                    createSvgPath(botPathD, isBotActive);
+                    createSvgPath(trunkPathD, isTopActive || isBotActive);
+                });
+            }
+        }
+
+        // SVG Path Factory
+        function createSvgPath(pathD, isActive) {
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', pathD);
+            path.setAttribute('class', `connector-line ${isActive ? 'active' : ''}`);
+            svg.appendChild(path);
+        }
+
+        // UI Control Listeners
+        settingsToggle.addEventListener('click', () => {
+            settingsPanel.classList.toggle('visible');
+        });
+
+        btnLive.addEventListener('click', () => {
+            isEditMode = false;
+            document.body.className = 'live-mode';
+            btnLive.classList.add('active');
+            btnEdit.classList.remove('active');
+            renderBracket(); 
+        });
+
+        btnEdit.addEventListener('click', () => {
+            isEditMode = true;
+            document.body.className = 'edit-mode';
+            btnEdit.classList.add('active');
+            btnLive.classList.remove('active');
+        });
+
+        selectCount.addEventListener('change', (e) => {
+            numParticipants = parseInt(e.target.value);
+            initBracketData();
+            renderBracket();
+        });
+
+        // Open Modal
+        btnReset.addEventListener('click', () => {
+            resetModal.classList.add('active');
+        });
+
+        // Modal Action Handlers
+        modalCancelBtn.addEventListener('click', () => {
+            resetModal.classList.remove('active');
+        });
+
+        modalConfirmBtn.addEventListener('click', () => {
+            resetModal.classList.remove('active');
+            initBracketData();
+            renderBracket();
+        });
+
+        // Recalculate lines on window resize
+        window.addEventListener('resize', drawBracketLines);
+
+        // Initialize App
+        initBracketData();
+        renderBracket();
+    </script>
+</body>
+</html>
