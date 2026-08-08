@@ -222,7 +222,10 @@
         /* --- ROSTER MODAL --- */
         #roster-modal {
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background: rgba(15, 23, 42, 0.85);
             backdrop-filter: blur(8px);
             display: none;
@@ -238,7 +241,7 @@
             padding: 24px;
             width: 600px;
             max-width: 90%;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
         }
 
         .modal-header {
@@ -295,7 +298,9 @@
             font-weight: 600;
         }
 
-        .btn-save:hover { filter: brightness(1.1); }
+        .btn-save:hover {
+            filter: brightness(1.1);
+        }
     </style>
 </head>
 <body>
@@ -314,40 +319,43 @@
 
             <nav class="nav-list" id="nav-list">
                 <div class="category-title">Competition</div>
-                <a class="tool-link" onclick="loadTool('tools/competition/Tourney.html', 'Live Tournament Bracket', this)">
+                <a class="tool-link" onclick="loadTool('competition/Tourney.html', 'Live Tournament Bracket', this)">
                     <span>🏆</span> Tournament Bracket
                 </a>
-                <a class="tool-link" onclick="loadTool('tools/competition/tracker_black-hole.html', 'Lives Tracker - Black Hole', this)">
+                <a class="tool-link" onclick="loadTool('competition/tracker_black-hole.html', 'Lives Tracker - Black Hole', this)">
                     <span>❤️</span> Lives Tracker - Black Hole 🌀
                 </a>
-                <a class="tool-link" onclick="loadTool('tools/competition/tracker_shark/tracker_shark.html', 'Lives Tracker - Shark', this)">
+                <a class="tool-link" onclick="loadTool('competition/tracker_shark/tracker_shark.html', 'Lives Tracker - Shark', this)">
                     <span>❤️</span> Lives Tracker - Shark 🦈
                 </a>
+
                 <div class="category-title">Games</div>
-                <a class="tool-link" onclick="loadTool('tools/games/jeopardy.html', 'Team Trivia Board', this)">
+                <a class="tool-link" onclick="loadTool('games/jeopardy.html', 'Team Trivia Board', this)">
                     <span>🏺</span> Team Trivia Board
                 </a>
-                <a class="tool-link" onclick="loadTool('tools/games/teamfight-rockets/teamfight_rockets.html', 'Teamfight Rockets', this)">
+                <a class="tool-link" onclick="loadTool('games/teamfight-rockets/teamfight_rockets.html', 'Teamfight Rockets', this)">
                     <span>🚀</span> Teamfight Rockets
                 </a>
-                <a class="tool-link" onclick="loadTool('tools/games/pile-sort/pile-sort.html', 'Pile Sort', this)">
+                <a class="tool-link" onclick="loadTool('games/pile-sort/pile-sort.html', 'Pile Sort', this)">
                     <span>📦</span> Pile Sort
                 </a>
-                <a class="tool-link" onclick="loadTool('tools/games/parts-of-speech/parts-of-speech_win.html', 'Parts of Speech', this)">
+                <a class="tool-link" onclick="loadTool('games/parts-of-speech/parts-of-speech_win.html', 'Parts of Speech', this)">
                     <span>✍️</span> Parts of Speech
                 </a>
+
                 <div class="category-title">Timers</div>
-                <a class="tool-link" onclick="loadTool('tools/timers/multi-timer.html', 'Multi-Timer', this)">
+                <a class="tool-link" onclick="loadTool('timers/multi-timer.html', 'Multi-Timer', this)">
                     <span>⏱️</span> Multi-Timer
                 </a>
+
                 <div class="category-title">Pickers</div>
-                <a class="tool-link" onclick="loadTool('tools/pickers/wheel/wheel.html', 'Name Wheel', this)">
+                <a class="tool-link" onclick="loadTool('pickers/wheel/wheel.html', 'Name Wheel', this)">
                     <span>🎡</span> Name Wheel
                 </a>
-                <a class="tool-link" onclick="loadTool('tools/pickers/picker.html', 'Name Picker', this)">
+                <a class="tool-link" onclick="loadTool('pickers/picker.html', 'Name Picker', this)">
                     <span>🎯</span> Desk Picker
                 </a>
-                <a class="tool-link" onclick="loadTool('tools/pickers/bingo-blower/picker_bingo-blower.html', 'Bingo Blower', this)">
+                <a class="tool-link" onclick="loadTool('pickers/bingo-blower/picker_bingo-blower.html', 'Bingo Blower', this)">
                     <span>🎱</span> Bingo Blower
                 </a>
             </nav>
@@ -371,10 +379,11 @@
                     <button class="btn-action" onclick="openRosterModal()">⚙️ Manage Students</button>
                 </div>
             </div>
-            <iframe id="tool-frame" src="tools/pickers/wheel/wheel.html" onload="broadcastRoster()"></iframe>
+            <iframe id="tool-frame" src="pickers/wheel/wheel.html" onload="broadcastRoster()"></iframe>
         </main>
 
-    </div> <!-- end #app-container -->
+    </div>
+    <!-- end #app-container -->
 
     <!-- Roster Manager Modal -->
     <div id="roster-modal">
@@ -486,24 +495,17 @@
             const mainContent = document.getElementById('main-content');
             const iframe = document.getElementById('tool-frame');
 
-            // 1. Click on the top bar or empty area of main content (outside iframe)
             mainContent.addEventListener('pointerdown', (e) => {
-                // Ignore clicks inside the iframe (they trigger blur separately)
                 if (e.target === iframe) return;
                 collapseSidebar();
             });
 
-            // 2. When the iframe gains focus (click inside), collapse sidebar
-            //    We use 'focus' on the iframe, but we need to listen on the window blur
-            //    because the iframe steals focus from the main page.
             window.addEventListener('blur', () => {
-                // Check if the active element is the iframe
                 if (document.activeElement === iframe) {
                     collapseSidebar();
                 }
             });
 
-            // Also collapse when clicking the iframe directly (pointerdown inside it)
             iframe.addEventListener('pointerdown', () => {
                 collapseSidebar();
             });
@@ -519,7 +521,6 @@
                 if (firstTool) firstTool.click();
             }
 
-            // Activate auto‑collapse
             setupAutoCollapse();
         });
     </script>
