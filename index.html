@@ -22,29 +22,24 @@
             --text-muted: #94a3b8;
             --hover-bg: #334155;
             --border-color: rgba(255, 255, 255, 0.1);
-            --container-max-width: 1400px;
         }
 
         body {
             display: flex;
-            justify-content: center;
-            align-items: stretch;
             height: 100vh;
+            width: 100vw;
             background-color: var(--bg-dark);
             color: var(--text-main);
             overflow: hidden;
         }
 
-        /* --- CENTERED CONTAINER (the universal fix) --- */
+        /* --- APP CONTAINER --- */
         #app-container {
             display: flex;
             flex-direction: row;
             width: 100%;
-            max-width: var(--container-max-width);
-            height: 100vh;
-            margin: 0 auto;
+            height: 100%;
             background-color: var(--bg-dark);
-            box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
         }
 
         /* --- SIDEBAR (collapses by width, not margin) --- */
@@ -358,6 +353,9 @@
                 <a class="tool-link" onclick="loadTool('pickers/bingo-blower/picker_bingo-blower.html', 'Bingo Blower', this)">
                     <span>🎱</span> Bingo Blower
                 </a>
+                <a class="tool-link" onclick="loadTool('pickers/class-duties/class_duties.html', 'Class Duties', this)">
+                    <span>👥</span> Class Duties
+                </a>
             </nav>
         </aside>
 
@@ -395,11 +393,11 @@
             <div class="modal-body">
                 <div class="roster-group">
                     <label for="roster-a">Class A (One name per line)</label>
-                    <textarea id="roster-a" placeholder="Alex&#10;Sam&#10;Jordan..."></textarea>
+                    <textarea id="roster-a" placeholder="Huot&#10;Wiranuth&#10;Thaneth..."></textarea>
                 </div>
                 <div class="roster-group">
                     <label for="roster-b">Class B (One name per line)</label>
-                    <textarea id="roster-b" placeholder="Taylor&#10;Morgan&#10;Riley..."></textarea>
+                    <textarea id="roster-b" placeholder="Takdhenuan&#10;Yov&#10;Kimheng..."></textarea>
                 </div>
             </div>
             <div class="modal-footer">
@@ -412,8 +410,17 @@
     <script>
         // Roster Storage
         let rosters = {
-            classA: JSON.parse(localStorage.getItem('roster_classA')) || ["Student 1", "Student 2", "Student 3", "Student 4"],
-            classB: JSON.parse(localStorage.getItem('roster_classB')) || ["Student A", "Student B", "Student C", "Student D"]
+            classA: JSON.parse(localStorage.getItem('roster_classA')) || [
+                "Huot", "Wiranuth", "Thaneth", "Chay", "Chakravuth", 
+                "Dalis", "Puthika", "Nysang", "Suly", "Ponita", 
+                "Socheata", "Leakhena", "Nima", "Marady"
+            ],
+            classB: JSON.parse(localStorage.getItem('roster_classB')) || [
+                "Takdhenuan", "Yov", "Kimheng", "Lychhay", "Lyhour", 
+                "Sreng", "Tepy", "Julie", "Vortna", "Vatei", 
+                "Vatey", "Thavy", "Ariya", "Monika", "Meyleang", 
+                "Cheng", "Kimchou"
+            ]
         };
 
         // --- Sidebar toggle (universal width‑based collapse) ---
@@ -485,7 +492,8 @@
             if (iframe && iframe.contentWindow) {
                 iframe.contentWindow.postMessage({
                     type: 'CLASSROOM_ROSTER_UPDATE',
-                    roster: activeRoster
+                    roster: activeRoster,
+                    selectedClass: selectedClass
                 }, '*');
             }
         }

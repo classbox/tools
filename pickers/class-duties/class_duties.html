@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Duties</title>
+    <!-- Google Fonts: Fredoka for bold classroom text & Quicksand / Poppins for high legibility -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-page: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            
+            /* Theme Cleaning */
+            --cleaning-primary: #10b981;
+            --cleaning-dark: #059669;
+            --cleaning-light: #ecfdf5;
+            --cleaning-shadow: rgba(16, 185, 129, 0.35);
+
+            /* Theme Books */
+            --books-primary: #f59e0b;
+            --books-dark: #d97706;
+            --books-light: #fffbeb;
+            --books-shadow: rgba(245, 158, 11, 0.35);
+
+            --active-primary: var(--cleaning-primary);
+            --active-dark: var(--cleaning-dark);
+            --active-shadow: var(--cleaning-shadow);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: var(--bg-page);
+            color: var(--text-dark);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* MAIN APP LAYOUT (Full Height 2-Column Split) */
+        #main-container {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 410px 1fr;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1700px;
+            margin: 0 auto;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        @media (max-width: 1100px) {
+            #main-container {
+                grid-template-columns: 350px 1fr;
+                gap: 14px;
+                padding: 14px;
+            }
+        }
+
+        /* LEFT COLUMN: Controls + Duty Switcher + Graphic + Pick Button */
+        .left-col {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            height: 100%;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        /* Row 1: Duty Switcher */
+        .duty-switcher {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: #e2e8f0;
+            padding: 5px;
+            border-radius: 18px;
+            gap: 6px;
+        }
+
+        .btn-duty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 10px;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 14px;
+            background: transparent;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-duty.active.cleaning {
+            background: var(--cleaning-primary);
+            color: #ffffff;
+            box-shadow: 0 4px 12px var(--cleaning-shadow);
+        }
+
+        .btn-duty.active.books {
+            background: var(--books-primary);
+            color: #ffffff;
+            box-shadow: 0 4px 12px var(--books-shadow);
+        }
+
+        /* Row 2: Class Switcher (Class C / Class D) + Audio / Settings Icons */
+        .controls-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .class-switcher {
+            display: flex;
+            background: #e2e8f0;
+            padding: 5px;
+            border-radius: 16px;
+            gap: 6px;
+            flex: 1;
+        }
+
+        .btn-class {
+            flex: 1;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            padding: 9px 12px;
+            border: none;
+            border-radius: 12px;
+            background: transparent;
+            color: #64748b;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .btn-class.active {
+            background: #3b82f6;
+            color: #ffffff;
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+        }
+
+        .icon-buttons-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon-top {
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            color: #475569;
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        }
+
+        .btn-icon-top:hover {
+            background: #f1f5f9;
+            transform: translateY(-1px);
+        }
+
+        /* Picture Box */
+        .picture-box {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 14px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 3px solid #e2e8f0;
+            overflow: hidden;
+            position: relative;
+            flex: 1;
+            min-height: 240px;
+            justify-content: center;
+        }
+
+        .duty-image {
+            width: 100%;
+            height: 100%;
+            max-height: 260px;
+            object-fit: contain;
+            border-radius: 16px;
+            transition: transform 0.3s ease;
+        }
+
+        .duty-title-badge {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Giant Animated Pick Button */
+        .btn-giant-pick {
+            background: var(--active-primary);
+            color: #ffffff;
+            border: none;
+            border-radius: 22px;
+            padding: 18px 24px;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 10px 25px var(--active-shadow);
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            width: 100%;
+        }
+
+        .btn-giant-pick:hover:not(:disabled) {
+            transform: translateY(-3px) scale(1.02);
+            filter: brightness(1.05);
+        }
+
+        .btn-giant-pick:active:not(:disabled) {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .btn-giant-pick:disabled {
+            background: #cbd5e1;
+            color: #94a3b8;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Current Team Chosen Banner */
+        .current-team-box {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 16px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+            border: 2px dashed #cbd5e1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .current-team-header {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .team-pair-display {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            background: #f8fafc;
+            padding: 10px 14px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .team-pair-display.has-pair {
+            background: var(--cleaning-light);
+            color: var(--cleaning-dark);
+            border: 2px solid var(--cleaning-primary);
+        }
+
+        .team-pair-display.has-pair.books-mode {
+            background: var(--books-light);
+            color: var(--books-dark);
+            border-color: var(--books-primary);
+        }
+
+        /* RIGHT COLUMN: Friendly Student Cards */
+        .right-col {
+            background: #ffffff;
+            border-radius: 28px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border: 3px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .cards-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-auto-rows: 1fr;
+            gap: 14px;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 1100px) {
+            .cards-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* Student Card - Chunky Bubbly Name Pill */
+        .student-card {
+            background: #ffffff;
+            border: 3px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            height: 100%;
+        }
+
+        /* Available State */
+        .student-card.available {
+            border-color: #cbd5e1;
+            background: #ffffff;
+            cursor: pointer;
+        }
+
+        .student-card.available:hover {
+            transform: translateY(-3px) scale(1.03);
+            border-color: var(--active-primary);
+            box-shadow: 0 8px 20px var(--active-shadow);
+        }
+
+        /* Greyed out / Done State */
+        .student-card.greyed-out {
+            opacity: 0.28 !important;
+            background: #e2e8f0 !important;
+            border-color: #94a3b8 !important;
+            border-style: dashed !important;
+            box-shadow: none !important;
+            cursor: pointer !important;
+            transition: opacity 0.2s ease;
+        }
+
+        .student-card.greyed-out:hover {
+            opacity: 0.6 !important;
+            border-color: var(--active-primary) !important;
+        }
+
+        .student-card.greyed-out .student-name {
+            color: #64748b !important;
+        }
+
+        /* Picking Spotlight Animation (Zero Layout Shift) */
+        .student-card.highlight {
+            background: #3b82f6 !important;
+            border-color: #2563eb !important;
+            box-shadow: 0 4px 18px rgba(59, 130, 246, 0.45) !important;
+            transform: none !important;
+            z-index: 10;
+        }
+
+        .student-card.highlight .student-name {
+            color: #ffffff !important;
+        }
+
+        /* Locked Winner during multi-stage roll */
+        .student-card.locked-winner {
+            background: var(--active-primary) !important;
+            border-color: var(--active-dark) !important;
+            box-shadow: 0 6px 20px var(--active-shadow) !important;
+            transform: none !important;
+            z-index: 8;
+        }
+
+        .student-card.locked-winner .student-name {
+            color: #ffffff !important;
+        }
+
+        /* Winner Final State */
+        .student-card.winner {
+            background: var(--active-primary) !important;
+            border-color: var(--active-dark) !important;
+            color: #ffffff !important;
+            box-shadow: 0 6px 20px var(--active-shadow) !important;
+            transform: none !important;
+            z-index: 5;
+        }
+
+        .student-card.winner .student-name {
+            color: #ffffff !important;
+        }
+
+        .student-name {
+            font-family: 'Fredoka', sans-serif;
+            font-size: clamp(1.25rem, 2vw, 1.65rem);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--text-dark);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+
+        /* CELEBRATION POPUP MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .winner-modal {
+            background: #ffffff;
+            border-radius: 28px;
+            padding: 32px 24px;
+            width: 480px;
+            max-width: 95vw;
+            text-align: center;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.25);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            animation: pop-modal 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 4px solid var(--active-primary);
+        }
+
+        @keyframes pop-modal {
+            0% { transform: scale(0.7); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .winner-modal-icon {
+            font-size: 4rem;
+            line-height: 1;
+        }
+
+        .winner-modal-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .winner-pair-container {
+            display: flex;
+            gap: 14px;
+            width: 100%;
+            margin: 6px 0;
+        }
+
+        .winner-pill {
+            flex: 1;
+            background: var(--active-primary);
+            color: #ffffff;
+            border-radius: 18px;
+            padding: 14px 10px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            box-shadow: 0 8px 20px var(--active-shadow);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .winner-pill-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ffffff;
+            color: var(--active-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            font-weight: 800;
+        }
+
+        .btn-modal-done {
+            background: #1e293b;
+            color: #ffffff;
+            border: none;
+            border-radius: 14px;
+            padding: 12px 28px;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .btn-modal-done:hover {
+            background: #0f172a;
+            transform: translateY(-2px);
+        }
+
+        /* SETTINGS MODAL */
+        .settings-modal {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 22px;
+            width: 580px;
+            max-width: 95vw;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+            gap: 14px;
+        }
+
+        .settings-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 10px;
+        }
+
+        .settings-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .settings-body {
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .tag-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        .tag-table th, .tag-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .tag-table th {
+            background: #f8fafc;
+            color: #64748b;
+            font-weight: 700;
+        }
+
+        .tag-check {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #3b82f6;
+        }
+
+        .btn-reset-cycle {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 2px solid #fca5a5;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-reset-cycle:hover {
+            background: #fecaca;
+        }
+
+        .btn-backup-action {
+            background: #f8fafc;
+            border: 2px solid #cbd5e1;
+            color: #334155;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-backup-action:hover {
+            background: #e2e8f0;
+            border-color: #94a3b8;
+            transform: translateY(-1px);
+        }
+
+        /* Canvas Confetti */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 150;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Confetti Overlay -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Main 2-Column Content (Full Height, No Top Header Bar) -->
+    <div id="main-container">
+
+        <!-- LEFT COLUMN: All Controls + Picture + Big Roll Button + Current Team -->
+        <div class="left-col">
+            
+            <!-- Row 1: Giant Duty Switcher -->
+            <div class="duty-switcher">
+                <button class="btn-duty active cleaning" id="btn-duty-cleaning" onclick="setDuty('cleaning')">
+                    <span>🧹</span> Cleaning
+                </button>
+                <button class="btn-duty books" id="btn-duty-books" onclick="setDuty('books')">
+                    <span>📚</span> Books
+                </button>
+            </div>
+
+            <!-- Row 2: Class Switcher (Class C / Class D) + Audio & Settings -->
+            <div class="controls-row">
+                <div class="class-switcher">
+                    <button class="btn-class active" id="btn-class-a" onclick="setClass('classA')">Class C</button>
+                    <button class="btn-class" id="btn-class-b" onclick="setClass('classB')">Class D</button>
+                </div>
+                <div class="icon-buttons-group">
+                    <button class="btn-icon-top" id="btn-sound" onclick="toggleSound()" title="Sound On/Off">🔊</button>
+                    <button class="btn-icon-top" onclick="openSettings()" title="Settings & History">⚙️</button>
+                </div>
+            </div>
+
+            <!-- Picture Box -->
+            <div class="picture-box">
+                <img id="duty-img" class="duty-image" src="cleaning.jpg" alt="Duty Image" onerror="this.src='cleaning.jpeg'">
+                <div class="duty-title-badge" id="duty-badge-text">🧹 Cleaning Champions</div>
+            </div>
+
+            <!-- Big Pick Button -->
+            <button class="btn-giant-pick" id="btn-pick" onclick="rollPick()">
+                <span id="btn-pick-icon">🎲</span>
+                <span id="btn-pick-text">PICK 2 STUDENTS</span>
+            </button>
+
+            <!-- Current Team Display -->
+            <div class="current-team-box">
+                <div class="current-team-header">
+                    <span id="current-team-label">This Week's Cleaning Team:</span>
+                    <button style="background:none; border:none; color:#94a3b8; cursor:pointer; font-weight:700;" onclick="clearActiveTeam()" title="Clear this selection">↺ Clear</button>
+                </div>
+                <div class="team-pair-display" id="current-team-names">
+                    Ready to pick!
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Friendly Student Cards -->
+        <div class="right-col">
+            <div class="cards-grid" id="cards-grid">
+                <!-- Injected Student Cards -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- WINNER CELEBRATION MODAL -->
+    <div class="modal-overlay" id="winner-modal">
+        <div class="winner-modal">
+            <div class="winner-modal-icon">🎉</div>
+            <div class="winner-modal-title" id="winner-title">Cleaning Team!</div>
+            
+            <div class="winner-pair-container" id="winner-pair-container">
+                <!-- Winner Pills -->
+            </div>
+
+            <button class="btn-modal-done" onclick="closeWinnerModal()">Awesome! ✨</button>
+        </div>
+    </div>
+
+    <!-- SIMPLE SETTINGS & HISTORY MODAL -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="settings-modal">
+            <div class="settings-head">
+                <div class="settings-title" id="settings-title-text">⚙️ Tag Past Duties (Class C)</div>
+                <button class="btn-icon-top" onclick="closeSettings()">✖</button>
+            </div>
+
+            <div class="settings-body">
+                <p style="font-size:0.88rem; color:var(--text-muted);">
+                    Check the boxes for students who have already completed duties. Checked students are greyed out and excluded from picks.
+                </p>
+
+                <div style="max-height: 280px; overflow-y:auto; border:2px solid #e2e8f0; border-radius:12px;">
+                    <table class="tag-table">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>🧹 Cleaning Done</th>
+                                <th>📚 Books Done</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tag-table-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="display:flex; gap:8px; margin-top:4px;">
+                    <button class="btn-reset-cycle" onclick="resetCycle('cleaning')">Reset Cleaning</button>
+                    <button class="btn-reset-cycle" onclick="resetCycle('books')">Reset Books</button>
+                    <button class="btn-reset-cycle" style="background:#f1f5f9; color:#475569; border-color:#cbd5e1;" onclick="resetCycle('all')">Reset All</button>
+                </div>
+
+                <!-- BACKUP & RESTORE UTILITY -->
+                <div style="border-top: 2px solid #f1f5f9; padding-top: 14px; margin-top: 6px;">
+                    <div style="font-size: 1.05rem; font-weight: 700; color: #1e293b; margin-bottom: 4px;">
+                        💾 Backup & Fallback Storage (Both Classes)
+                    </div>
+                    <p style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 10px;">
+                        Export all duty records to save a safe backup offline, or restore them anytime in case browser storage is wiped.
+                    </p>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="btn-backup-action" onclick="exportDataFile()">
+                            <span>📥</span> Download Backup JSON
+                        </button>
+                        <button class="btn-backup-action" onclick="copyDataToClipboard()">
+                            <span>📋</span> Copy Backup Code
+                        </button>
+                        <button class="btn-backup-action" onclick="document.getElementById('file-import-input').click()">
+                            <span>📤</span> Import Backup File
+                        </button>
+                        <button class="btn-backup-action" onclick="importFromPaste()">
+                            <span>📝</span> Paste Backup Code
+                        </button>
+                    </div>
+                    <input type="file" id="file-import-input" accept=".json" style="display:none;" onchange="handleFileImport(event)">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        const DEFAULT_ROSTERS = {
+            classA: [
+                "Huot", "Wiranuth", "Thaneth", "Chay", "Chakravuth", 
+                "Dalis", "Puthika", "Nysang", "Suly", "Ponita", 
+                "Socheata", "Leakhena", "Nima", "Marady"
+            ],
+            classB: [
+                "Takdhenuan", "Yov", "Kimheng", "Lychhay", "Lyhour", 
+                "Sreng", "Tepy", "Julie", "Vortna", "Vatei", 
+                "Vatey", "Thavy", "Ariya", "Monika", "Meyleang", 
+                "Cheng", "Kimchou"
+            ]
+        };
+
+        const AVATAR_COLORS = [
+            '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', 
+            '#06b6d4', '#84cc16', '#f97316', '#6366f1', '#14b8a6'
+        ];
+
+        let state = {
+            activeClass: 'classA', // internal 'classA' corresponds to visually displayed 'Class C'
+            activeDuty: 'cleaning', // 'cleaning' | 'books'
+            soundEnabled: true,
+            isRolling: false,
+            rosters: {
+                classA: JSON.parse(localStorage.getItem('roster_classA')) || DEFAULT_ROSTERS.classA,
+                classB: JSON.parse(localStorage.getItem('roster_classB')) || DEFAULT_ROSTERS.classB
+            },
+            data: {
+                classA: {
+                    currentPair: { cleaning: [], books: [] },
+                    doneCleaning: [],
+                    doneBooks: []
+                },
+                classB: {
+                    currentPair: { cleaning: [], books: [] },
+                    doneCleaning: [],
+                    doneBooks: []
+                }
+            }
+        };
+
+        // Helper to get visual class name (classA -> Class C, classB -> Class D)
+        function getVisualClassName(classKey) {
+            return classKey === 'classA' ? 'Class C' : 'Class D';
+        }
+
+        // Load & Save
+        function loadData() {
+            const saved = localStorage.getItem('class_teams_simple_v1');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (parsed.classA) state.data.classA = Object.assign(state.data.classA, parsed.classA);
+                    if (parsed.classB) state.data.classB = Object.assign(state.data.classB, parsed.classB);
+                } catch(e) {}
+            }
+            if (!state.data.classA.doneCleaning) state.data.classA.doneCleaning = [];
+            if (!state.data.classA.doneBooks) state.data.classA.doneBooks = [];
+            if (!state.data.classA.currentPair) state.data.classA.currentPair = { cleaning: [], books: [] };
+            if (!state.data.classB.doneCleaning) state.data.classB.doneCleaning = [];
+            if (!state.data.classB.doneBooks) state.data.classB.doneBooks = [];
+            if (!state.data.classB.currentPair) state.data.classB.currentPair = { cleaning: [], books: [] };
+        }
+
+        function saveData() {
+            localStorage.setItem('class_teams_simple_v1', JSON.stringify(state.data));
+        }
+
+        // Web Audio Synthesizer (Warm, Mellow, Non-Piercing Tones)
+        let audioCtx = null;
+        function playTone(type) {
+            if (!state.soundEnabled) return;
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const now = audioCtx.currentTime;
+
+                // Dedicated lowpass filter to remove harsh treble edges
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(850, now);
+                filter.connect(audioCtx.destination);
+
+                if (type === 'tick') {
+                    // Mellow wooden tap (sine drop)
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(260, now);
+                    osc.frequency.exponentialRampToValueAtTime(150, now + 0.04);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                    osc.connect(gain);
+                    gain.connect(filter);
+                    osc.start(now);
+                    osc.stop(now + 0.04);
+                } else if (type === 'lock') {
+                    // Warm, pleasant 2-tone bell chime (C4 -> G4)
+                    const notes = [261.63, 392.00];
+                    notes.forEach((f, i) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(f, now + i * 0.12);
+                        gain.gain.setValueAtTime(0.001, now + i * 0.12);
+                        gain.gain.linearRampToValueAtTime(0.14, now + i * 0.12 + 0.015);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.35);
+                        osc.connect(gain);
+                        gain.connect(filter);
+                        osc.start(now + i * 0.12);
+                        osc.stop(now + i * 0.12 + 0.35);
+                    });
+                } else if (type === 'fanfare') {
+                    // Warm, rich major chord arpeggio (C4, E4, G4, C5)
+                    const notes = [261.63, 329.63, 392.00, 523.25];
+                    notes.forEach((f, i) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(f, now + i * 0.1);
+                        gain.gain.setValueAtTime(0.001, now + i * 0.1);
+                        gain.gain.linearRampToValueAtTime(0.12, now + i * 0.1 + 0.02);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.45);
+                        osc.connect(gain);
+                        gain.connect(filter);
+                        osc.start(now + i * 0.1);
+                        osc.stop(now + i * 0.1 + 0.45);
+                    });
+                }
+            } catch(e) {}
+        }
+
+        function toggleSound() {
+            state.soundEnabled = !state.soundEnabled;
+            document.getElementById('btn-sound').innerText = state.soundEnabled ? '🔊' : '🔇';
+        }
+
+        // Availability Logic
+        function isStudentAvailable(name) {
+            const classData = state.data[state.activeClass];
+            const activeDuty = state.activeDuty;
+            const otherDuty = activeDuty === 'cleaning' ? 'books' : 'cleaning';
+
+            // 1. Already done this duty in history
+            const doneList = activeDuty === 'cleaning' ? classData.doneCleaning : classData.doneBooks;
+            if (doneList && doneList.includes(name)) return false;
+
+            // 2. Currently picked for other duty this week
+            const otherCurrent = classData.currentPair[otherDuty] || [];
+            const otherDoneList = otherDuty === 'cleaning' ? classData.doneCleaning : classData.doneBooks;
+            if (otherCurrent.includes(name) && otherDoneList && otherDoneList.includes(name)) return false;
+
+            return true;
+        }
+
+        function getEligiblePool() {
+            const list = state.rosters[state.activeClass] || [];
+            return list.filter(name => isStudentAvailable(name));
+        }
+
+        // UI Updates
+        function render() {
+            const isCleaning = state.activeDuty === 'cleaning';
+            const classData = state.data[state.activeClass];
+
+            // Update Theme Variables
+            document.documentElement.style.setProperty('--active-primary', isCleaning ? 'var(--cleaning-primary)' : 'var(--books-primary)');
+            document.documentElement.style.setProperty('--active-dark', isCleaning ? 'var(--cleaning-dark)' : 'var(--books-dark)');
+            document.documentElement.style.setProperty('--active-shadow', isCleaning ? 'var(--cleaning-shadow)' : 'var(--books-shadow)');
+
+            // Duty buttons
+            document.getElementById('btn-duty-cleaning').className = `btn-duty ${isCleaning ? 'active cleaning' : ''}`;
+            document.getElementById('btn-duty-books').className = `btn-duty ${!isCleaning ? 'active books' : ''}`;
+
+            // Class buttons (Class C / Class D)
+            document.getElementById('btn-class-a').classList.toggle('active', state.activeClass === 'classA');
+            document.getElementById('btn-class-b').classList.toggle('active', state.activeClass === 'classB');
+
+            // Image & Titles
+            const img = document.getElementById('duty-img');
+            img.src = isCleaning ? 'cleaning.jpg' : 'books.jpg';
+            document.getElementById('duty-badge-text').innerText = isCleaning ? '🧹 Cleaning Champions' : '📚 Book-Sharing Team';
+
+            // Current Team Box
+            const doneList = isCleaning ? classData.doneCleaning : classData.doneBooks;
+            const currentPair = (classData.currentPair[state.activeDuty] || []).filter(n => doneList && doneList.includes(n));
+            const teamDisplay = document.getElementById('current-team-names');
+            document.getElementById('current-team-label').innerText = `This Week's ${isCleaning ? 'Cleaning' : 'Book'} Team:`;
+            
+            if (currentPair.length > 0) {
+                teamDisplay.innerText = currentPair.join(' & ');
+                teamDisplay.className = `team-pair-display has-pair ${isCleaning ? '' : 'books-mode'}`;
+            } else {
+                teamDisplay.innerText = 'Ready to pick!';
+                teamDisplay.className = 'team-pair-display';
+            }
+
+            // Pick Button State
+            const pool = getEligiblePool();
+            const pickBtn = document.getElementById('btn-pick');
+            const btnText = document.getElementById('btn-pick-text');
+            
+            if (state.isRolling) {
+                pickBtn.disabled = true;
+                btnText.innerText = 'PICKING...';
+            } else if (pool.length < 2) {
+                pickBtn.disabled = true;
+                btnText.innerText = 'NOT ENOUGH PLAYERS';
+            } else {
+                pickBtn.disabled = false;
+                btnText.innerText = 'PICK 2 STUDENTS';
+            }
+
+            // Roster Cards
+            renderCards();
+        }
+
+        function renderCards() {
+            const list = state.rosters[state.activeClass] || [];
+            const grid = document.getElementById('cards-grid');
+            grid.innerHTML = '';
+
+            const isCleaning = state.activeDuty === 'cleaning';
+            const classData = state.data[state.activeClass];
+            const otherDuty = isCleaning ? 'books' : 'cleaning';
+            const doneList = (isCleaning ? classData.doneCleaning : classData.doneBooks) || [];
+            const otherDoneList = (otherDuty === 'cleaning' ? classData.doneCleaning : classData.doneBooks) || [];
+            
+            const currentPair = (classData.currentPair[state.activeDuty] || []).filter(n => doneList.includes(n));
+            const otherPair = (classData.currentPair[otherDuty] || []).filter(n => otherDoneList.includes(n));
+
+            list.forEach((name, i) => {
+                const isWinner = currentPair.includes(name);
+                const isOtherDuty = otherPair.includes(name);
+                const isDone = doneList.includes(name);
+                const isAvailable = !isWinner && !isOtherDuty && !isDone;
+
+                const card = document.createElement('div');
+                card.id = `card-${escapeId(name)}`;
+
+                if (isWinner) {
+                    card.className = 'student-card winner';
+                } else if (!isAvailable) {
+                    card.className = 'student-card greyed-out';
+                } else {
+                    card.className = 'student-card available';
+                }
+
+                card.onclick = () => handleCardClick(name);
+                card.innerHTML = `<div class="student-name">${name}</div>`;
+                grid.appendChild(card);
+            });
+        }
+
+        // Manual Pick / Swap Override by Clicking a Card
+        function handleCardClick(name) {
+            if (state.isRolling) return;
+            const classData = state.data[state.activeClass];
+            const duty = state.activeDuty;
+            const otherDuty = duty === 'cleaning' ? 'books' : 'cleaning';
+
+            if (!classData.currentPair) classData.currentPair = { cleaning: [], books: [] };
+            if (!classData.currentPair[duty]) classData.currentPair[duty] = [];
+
+            const listName = duty === 'cleaning' ? 'doneCleaning' : 'doneBooks';
+            if (!classData[listName]) classData[listName] = [];
+
+            let current = classData.currentPair[duty];
+
+            if (current.includes(name)) {
+                // Unpick this student from this week's active duty
+                classData.currentPair[duty] = current.filter(n => n !== name);
+                classData[listName] = classData[listName].filter(n => n !== name);
+                playTone('tick');
+            } else {
+                // If they were on the other duty this week, remove from other duty pair
+                if (classData.currentPair[otherDuty]) {
+                    classData.currentPair[otherDuty] = classData.currentPair[otherDuty].filter(n => n !== name);
+                }
+
+                // If already 2 students picked, cycle out the oldest one and add this one
+                if (current.length >= 2) {
+                    const removed = current[0];
+                    classData.currentPair[duty] = [current[1], name];
+                    classData[listName] = classData[listName].filter(n => n !== removed);
+                } else {
+                    classData.currentPair[duty].push(name);
+                }
+
+                // Mark them in this duty's done list
+                if (!classData[listName].includes(name)) {
+                    classData[listName].push(name);
+                }
+                playTone('lock');
+            }
+
+            saveData();
+            render();
+        }
+
+        function escapeId(name) {
+            return encodeURIComponent(name).replace(/[^a-zA-Z0-9_-]/g, '_');
+        }
+
+        // Switchers
+        function setDuty(duty) {
+            if (state.isRolling) return;
+            state.activeDuty = duty;
+            render();
+        }
+
+        function setClass(cls) {
+            if (state.isRolling) return;
+            state.activeClass = cls;
+            render();
+        }
+
+        function clearActiveTeam() {
+            const classData = state.data[state.activeClass];
+            const currentPair = classData.currentPair[state.activeDuty] || [];
+            
+            // Remove them from done list if they were just added
+            if (state.activeDuty === 'cleaning') {
+                classData.doneCleaning = classData.doneCleaning.filter(n => !currentPair.includes(n));
+            } else {
+                classData.doneBooks = classData.doneBooks.filter(n => !currentPair.includes(n));
+            }
+
+            classData.currentPair[state.activeDuty] = [];
+            saveData();
+            render();
+        }
+
+        // --- 2-STAGE DELIBERATE PICKING ANIMATION ---
+        function rollPick() {
+            if (state.isRolling) return;
+            const pool = getEligiblePool();
+            if (pool.length < 2) return;
+
+            state.isRolling = true;
+            render();
+
+            // Select 2 distinct random winners
+            const shuffled = [...pool].sort(() => 0.5 - Math.random());
+            const winner1 = shuffled[0];
+            const winner2 = shuffled[1];
+
+            // Helper to clear moving spotlight
+            function clearSpotlights() {
+                document.querySelectorAll('.student-card.highlight').forEach(c => c.classList.remove('highlight'));
+            }
+
+            // STAGE 1: Pick 1st Teammate
+            const stage1Delays = [80, 85, 90, 100, 115, 130, 150, 180, 220, 270, 330, 410, 500];
+            let s1Index = 0;
+
+            function runStage1() {
+                clearSpotlights();
+
+                if (s1Index < stage1Delays.length - 1) {
+                    const randomCand = pool[Math.floor(Math.random() * pool.length)];
+                    const el = document.getElementById(`card-${escapeId(randomCand)}`);
+                    if (el) el.classList.add('highlight');
+                    playTone('tick');
+
+                    s1Index++;
+                    setTimeout(runStage1, stage1Delays[s1Index]);
+                } else {
+                    // Lock in Winner 1
+                    const win1El = document.getElementById(`card-${escapeId(winner1)}`);
+                    if (win1El) {
+                        win1El.classList.remove('highlight', 'available');
+                        win1El.classList.add('locked-winner');
+                    }
+                    playTone('lock');
+
+                    // Dramatic pause before stage 2 begins
+                    setTimeout(startStage2, 700);
+                }
+            }
+
+            // STAGE 2: Pick 2nd Teammate from remaining candidates
+            function startStage2() {
+                const pool2 = pool.filter(n => n !== winner1);
+                const stage2Delays = [80, 85, 90, 100, 115, 130, 150, 180, 220, 270, 330, 410, 520];
+                let s2Index = 0;
+
+                function runStage2() {
+                    clearSpotlights();
+
+                    if (s2Index < stage2Delays.length - 1) {
+                        const randomCand = pool2[Math.floor(Math.random() * pool2.length)];
+                        const el = document.getElementById(`card-${escapeId(randomCand)}`);
+                        if (el) el.classList.add('highlight');
+                        playTone('tick');
+
+                        s2Index++;
+                        setTimeout(runStage2, stage2Delays[s2Index]);
+                    } else {
+                        // Lock in Winner 2
+                        const win2El = document.getElementById(`card-${escapeId(winner2)}`);
+                        if (win2El) {
+                            win2El.classList.remove('highlight', 'available');
+                            win2El.classList.add('locked-winner');
+                        }
+                        playTone('lock');
+
+                        // Final celebration after short beat
+                        setTimeout(() => {
+                            finalizePick([winner1, winner2]);
+                        }, 500);
+                    }
+                }
+
+                runStage2();
+            }
+
+            function finalizePick(winners) {
+                clearSpotlights();
+                const classData = state.data[state.activeClass];
+                classData.currentPair[state.activeDuty] = winners;
+
+                if (state.activeDuty === 'cleaning') {
+                    winners.forEach(w => { if (!classData.doneCleaning.includes(w)) classData.doneCleaning.push(w); });
+                } else {
+                    winners.forEach(w => { if (!classData.doneBooks.includes(w)) classData.doneBooks.push(w); });
+                }
+
+                saveData();
+                state.isRolling = false;
+                playTone('fanfare');
+                triggerConfetti();
+                render();
+                showWinnerModal(winners);
+            }
+
+            runStage1();
+        }
+
+        // Winner Modal
+        function showWinnerModal(winners) {
+            const isCleaning = state.activeDuty === 'cleaning';
+            document.getElementById('winner-title').innerText = isCleaning ? '🧹 Cleaning Team!' : '📚 Book Team!';
+            
+            const container = document.getElementById('winner-pair-container');
+            container.innerHTML = '';
+
+            winners.forEach(name => {
+                const pill = document.createElement('div');
+                pill.className = 'winner-pill';
+                pill.innerHTML = `
+                    <div style="font-size: 1.8rem; font-weight: 700; padding: 4px;">${name}</div>
+                `;
+                container.appendChild(pill);
+            });
+
+            document.getElementById('winner-modal').classList.add('active');
+        }
+
+        function closeWinnerModal() {
+            document.getElementById('winner-modal').classList.remove('active');
+        }
+
+        // Settings Modal
+        function openSettings() {
+            const classData = state.data[state.activeClass];
+            const list = state.rosters[state.activeClass] || [];
+            const tbody = document.getElementById('tag-table-body');
+            tbody.innerHTML = '';
+
+            const visualClassName = getVisualClassName(state.activeClass);
+            document.getElementById('settings-title-text').innerText = `⚙️ Tag Past Duties (${visualClassName})`;
+
+            list.forEach(name => {
+                const cleaned = classData.doneCleaning.includes(name);
+                const books = classData.doneBooks.includes(name);
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:700;">${name}</td>
+                    <td><input type="checkbox" class="tag-check" ${cleaned ? 'checked' : ''} onchange="toggleTag('${name}', 'cleaning', this.checked)"></td>
+                    <td><input type="checkbox" class="tag-check" ${books ? 'checked' : ''} onchange="toggleTag('${name}', 'books', this.checked)"></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('settings-modal').classList.add('active');
+        }
+
+        function toggleTag(name, duty, checked) {
+            const classData = state.data[state.activeClass];
+            const listName = duty === 'cleaning' ? 'doneCleaning' : 'doneBooks';
+            
+            if (checked) {
+                if (!classData[listName].includes(name)) classData[listName].push(name);
+            } else {
+                classData[listName] = classData[listName].filter(n => n !== name);
+                if (classData.currentPair && classData.currentPair[duty]) {
+                    classData.currentPair[duty] = classData.currentPair[duty].filter(n => n !== name);
+                }
+            }
+            saveData();
+            render();
+        }
+
+        function closeSettings() {
+            document.getElementById('settings-modal').classList.remove('active');
+            render();
+        }
+
+        function resetCycle(type) {
+            const classData = state.data[state.activeClass];
+            if (type === 'cleaning' || type === 'all') {
+                classData.doneCleaning = [];
+                classData.currentPair.cleaning = [];
+            }
+            if (type === 'books' || type === 'all') {
+                classData.doneBooks = [];
+                classData.currentPair.books = [];
+            }
+            saveData();
+            openSettings();
+            render();
+        }
+
+        // --- BACKUP & RESTORE UTILITY ---
+        function getBackupPayload() {
+            return {
+                app: 'ClassDutiesPicker',
+                version: 1,
+                exportedAt: new Date().toISOString(),
+                data: state.data,
+                rosters: state.rosters
+            };
+        }
+
+        function exportDataFile() {
+            try {
+                const payload = getBackupPayload();
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload, null, 2));
+                const downloadAnchor = document.createElement('a');
+                downloadAnchor.setAttribute("href", dataStr);
+                const dateStr = new Date().toISOString().slice(0, 10);
+                downloadAnchor.setAttribute("download", `class_duties_backup_${dateStr}.json`);
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                downloadAnchor.remove();
+            } catch(err) {
+                alert("❌ Failed to create download file.");
+            }
+        }
+
+        function copyDataToClipboard() {
+            try {
+                const payload = getBackupPayload();
+                const jsonStr = JSON.stringify(payload);
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(jsonStr).then(() => {
+                        alert("✅ Backup code copied to clipboard!\n\nYou can paste and save it into a text file, email, or note.");
+                    }).catch(() => {
+                        prompt("Copy this backup code:", jsonStr);
+                    });
+                } else {
+                    prompt("Copy this backup code:", jsonStr);
+                }
+            } catch(err) {
+                alert("❌ Failed to copy backup code.");
+            }
+        }
+
+        function applyRestoredData(payload) {
+            if (!payload || !payload.data) {
+                alert("❌ Invalid backup data structure.");
+                return;
+            }
+
+            if (payload.data.classA) state.data.classA = payload.data.classA;
+            if (payload.data.classB) state.data.classB = payload.data.classB;
+
+            // Guarantee array integrity
+            if (!state.data.classA.doneCleaning) state.data.classA.doneCleaning = [];
+            if (!state.data.classA.doneBooks) state.data.classA.doneBooks = [];
+            if (!state.data.classA.currentPair) state.data.classA.currentPair = { cleaning: [], books: [] };
+            if (!state.data.classB.doneCleaning) state.data.classB.doneCleaning = [];
+            if (!state.data.classB.doneBooks) state.data.classB.doneBooks = [];
+            if (!state.data.classB.currentPair) state.data.classB.currentPair = { cleaning: [], books: [] };
+
+            if (payload.rosters) {
+                if (Array.isArray(payload.rosters.classA)) state.rosters.classA = payload.rosters.classA;
+                if (Array.isArray(payload.rosters.classB)) state.rosters.classB = payload.rosters.classB;
+            }
+
+            saveData();
+            openSettings();
+            render();
+            alert("🎉 Backup restored successfully!\n\nAll duty records and rosters for both classes have been restored.");
+        }
+
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    applyRestoredData(parsed);
+                } catch(err) {
+                    alert("❌ Could not parse JSON file. Please make sure it is a valid backup file.");
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = "";
+        }
+
+        function importFromPaste() {
+            const pasted = prompt("Paste your backup JSON code below:");
+            if (!pasted || !pasted.trim()) return;
+            try {
+                const parsed = JSON.parse(pasted.trim());
+                applyRestoredData(parsed);
+            } catch(err) {
+                alert("❌ The text you pasted is not valid JSON.");
+            }
+        }
+
+        // Confetti Engine
+        let particles = [];
+        let animId = null;
+
+        function triggerConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const colors = ['#10b981', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6', '#ef4444'];
+            particles = [];
+
+            for (let i = 0; i < 75; i++) {
+                particles.push({
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    vx: (Math.random() - 0.5) * 14,
+                    vy: (Math.random() - 0.7) * 16,
+                    size: Math.random() * 8 + 6,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    rot: Math.random() * 360,
+                    alpha: 1
+                });
+            }
+
+            if (animId) cancelAnimationFrame(animId);
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let alive = false;
+
+                particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.35;
+                    p.alpha -= 0.015;
+
+                    if (p.alpha > 0) {
+                        alive = true;
+                        ctx.save();
+                        ctx.globalAlpha = p.alpha;
+                        ctx.translate(p.x, p.y);
+                        ctx.rotate(p.rot);
+                        ctx.fillStyle = p.color;
+                        ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+                        ctx.restore();
+                    }
+                });
+
+                if (alive) animId = requestAnimationFrame(draw);
+                else ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+
+            draw();
+        }
+
+        // External PostMessage from Hub
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'CLASSROOM_ROSTER_UPDATE') {
+                if (event.data.selectedClass && (event.data.selectedClass === 'classA' || event.data.selectedClass === 'classB')) {
+                    state.activeClass = event.data.selectedClass;
+                }
+                const updatedRoster = event.data.roster;
+                if (Array.isArray(updatedRoster) && updatedRoster.length > 0) {
+                    state.rosters[state.activeClass] = updatedRoster;
+                }
+                render();
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            render();
+        });
+    </script>
+</body>
+</html>
