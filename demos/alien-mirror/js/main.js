@@ -6,7 +6,8 @@ class ReflectionGame {
   constructor() {
     this.container = document.getElementById('game-container');
     this.clock = new THREE.Clock();
-    this.keys = { ArrowLeft: false, ArrowRight: false, ArrowUp: false, ArrowDown: false };
+    this.keys = { ArrowLeft: false, ArrowRight: false, ArrowUp: false, ArrowDown: false, KeyK: false };
+    this.keyKHoldTimer = 0;
 
     this.initThree();
     this.initSystems();
@@ -67,6 +68,7 @@ class ReflectionGame {
       if (e.code === 'ArrowRight') this.keys.ArrowRight = true;
       if (e.code === 'ArrowUp') this.keys.ArrowUp = true;
       if (e.code === 'ArrowDown') this.keys.ArrowDown = true;
+      if (e.code === 'KeyK' || e.key === 'k' || e.key === 'K') this.keys.KeyK = true;
     });
 
     window.addEventListener('keyup', (e) => {
@@ -74,6 +76,10 @@ class ReflectionGame {
       if (e.code === 'ArrowRight') this.keys.ArrowRight = false;
       if (e.code === 'ArrowUp') this.keys.ArrowUp = false;
       if (e.code === 'ArrowDown') this.keys.ArrowDown = false;
+      if (e.code === 'KeyK' || e.key === 'k' || e.key === 'K') {
+        this.keys.KeyK = false;
+        this.keyKHoldTimer = 0;
+      }
     });
   }
 
@@ -87,6 +93,7 @@ class ReflectionGame {
     this.gameStartTime = performance.now();
     this.gameElapsedTime = 0;
     this.isVictory = false;
+    this.keyKHoldTimer = 0;
     this.world.reset();
     this.player.reset();
     this.mirrorManager.reset();
@@ -106,6 +113,20 @@ class ReflectionGame {
         const secs = (this.gameElapsedTime % 60).toFixed(1);
         hudTimer.textContent = `${String(mins).padStart(2, '0')}:${secs < 10 ? '0' : ''}${secs}`;
       }
+    }
+
+    // Secret 3-second hold debug key: 'K'
+    if (this.keys.KeyK) {
+      this.keyKHoldTimer += delta;
+      if (this.keyKHoldTimer >= 3.0) {
+        if (this.ufo && !this.ufo.isDefeated) {
+          this.ufo.takeLaserDamage(999);
+        }
+        this.keyKHoldTimer = 0;
+        this.keys.KeyK = false;
+      }
+    } else {
+      this.keyKHoldTimer = 0;
     }
 
     const combinedKeys = {

@@ -686,6 +686,7 @@ class AlienUFO {
         depthWrite: false
       });
       const mesh = new THREE.Mesh(geo, mat);
+      mesh.visible = false;
       this.scene.add(mesh);
       this.bombBlastPuffs.push({
         mesh: mesh,
@@ -752,9 +753,12 @@ class AlienUFO {
       const p = this.bombBlastPuffs[i];
       p.pos.copy(blastOrigin);
       p.mesh.position.copy(blastOrigin);
+      p.mesh.scale.set(0.8, 0.8, 0.8);
       p.life = 0.6 + Math.random() * 0.4;
       p.maxLife = p.life;
+      p.mat.color.set(0xffea00);
       p.mat.opacity = 0.95;
+      p.mesh.visible = true;
 
       const phi = Math.random() * Math.PI * 0.5; // Upper dome
       const theta = Math.random() * Math.PI * 2;
@@ -817,6 +821,7 @@ class AlienUFO {
 
           if (p.life <= 0) {
             p.mat.opacity = 0;
+            p.mesh.visible = false;
           }
         }
       });

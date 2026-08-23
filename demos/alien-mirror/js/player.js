@@ -272,6 +272,11 @@ class RobloxPlayer {
           window.soundFX.playJump();
         }
         break;
+      case 'KeyK':
+        if (window.game && window.game.keys) {
+          window.game.keys.KeyK = true;
+        }
+        break;
     }
   }
 
@@ -288,6 +293,12 @@ class RobloxPlayer {
         break;
       case 'KeyD':
         this.keys.right = false;
+        break;
+      case 'KeyK':
+        if (window.game && window.game.keys) {
+          window.game.keys.KeyK = false;
+          window.game.keyKHoldTime = 0;
+        }
         break;
     }
   }
