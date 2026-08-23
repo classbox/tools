@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UFO Mirror Battle</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Google Fonts: Fredoka & Roboto -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=JetBrains+Mono:wght@500;700&family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+  <!-- Three.js CDN & Reflector shader -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Reflector.js"></script>
+</head>
+<body>
+  <!-- 3D Canvas Container -->
+  <div id="game-container"></div>
+
+  <!-- FPS Reticle / Crosshair -->
+  <div id="crosshair" class="crosshair">
+    <div class="crosshair-dot"></div>
+    <div class="crosshair-ring"></div>
+  </div>
+
+  <!-- HUD Live Game Timer -->
+  <div id="game-timer-hud" class="game-timer-badge">
+    <span class="timer-icon">⏱</span>
+    <span id="hud-timer-val" class="timer-digits">00:00.0</span>
+  </div>
+
+  <!-- Top-Right Action Controls -->
+  <div class="top-actions-container">
+    <button id="btn-sound" class="audio-toggle-btn" title="Toggle Sound">🔊 Sound</button>
+    <button id="btn-reset-times" class="reset-times-btn" title="Reset All Leaderboard Times">🗑 Reset Times</button>
+  </div>
+
+  <!-- Start Mission / Enter Name Modal -->
+  <div id="start-modal" class="modal-backdrop">
+    <div class="modal-content roblox-modal start-card">
+      <div class="start-header">
+        <div class="start-icon">🛸</div>
+        <h2>UFO MIRROR BATTLE</h2>
+      </div>
+      <div class="modal-body start-body">
+        <label for="player-name-input" class="input-label">ENTER YOUR NAME FOR THE LEADERBOARD</label>
+        <div class="input-wrap">
+          <input type="text" id="player-name-input" maxlength="15" placeholder="Pilot Name" autocomplete="off" autofocus />
+        </div>
+      </div>
+      <div class="modal-footer start-footer">
+        <button id="btn-start-game" class="roblox-btn primary large-btn start-mission-btn">START MISSION 🚀</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Victory / Level Complete Modal with Large Leaderboard -->
+  <div id="victory-modal" class="modal-backdrop hidden">
+    <div class="modal-content roblox-modal victory-card">
+      <div class="victory-confetti-header">
+        <div class="trophy-emoji">🏆</div>
+        <h2>VICTORY! UFO DEFEATED!</h2>
+        <div class="victory-subtitle">Hall of Fame Leaderboard</div>
+      </div>
+      <div class="modal-body victory-body">
+        <!-- Player Result Hero -->
+        <div class="player-rank-banner" id="player-rank-banner">
+          <div class="player-rank-info">
+            <span class="player-name-tag" id="victory-player-name">Player</span>
+            <span class="player-time-tag" id="victory-player-time">0.0s</span>
+          </div>
+          <div class="player-rank-badge" id="victory-rank-badge">RANK #1</div>
+        </div>
+
+        <!-- Leaderboard Table -->
+        <div class="leaderboard-section">
+          <div class="leaderboard-table-wrap">
+            <table class="leaderboard-table">
+              <thead>
+                <tr>
+                  <th style="width: 22%;">RANK</th>
+                  <th style="width: 48%; text-align: left;">PILOT</th>
+                  <th style="width: 30%; text-align: right;">TIME</th>
+                </tr>
+              </thead>
+              <tbody id="leaderboard-rows">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer victory-footer">
+        <button id="btn-play-again" class="roblox-btn primary large-btn play-again-hero-btn">Play Again 🔄</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/audio.js"></script>
+  <script src="js/world.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/mirrors.js"></script>
+  <script src="js/ufo.js"></script>
+  <script src="js/optics.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

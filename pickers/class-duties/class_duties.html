@@ -453,90 +453,167 @@
             display: flex;
         }
 
-        .winner-modal {
+        /* FULLSCREEN IN-GAME WINNER CELEBRATION MODAL */
+        .winner-modal-fullscreen {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 120;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+
+        .winner-modal-fullscreen.active {
+            display: flex;
+            animation: fadeInOverlay 0.3s ease-out;
+        }
+
+        @keyframes fadeInOverlay {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .winner-fullscreen-card {
             background: #ffffff;
-            border-radius: 28px;
-            padding: 32px 24px;
-            width: 480px;
-            max-width: 95vw;
-            text-align: center;
-            box-shadow: 0 25px 60px rgba(0,0,0,0.25);
+            border-radius: 32px;
+            padding: 28px 40px;
+            max-width: 900px;
+            width: 92vw;
+            max-height: 92vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 16px;
-            animation: pop-modal 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            border: 4px solid var(--active-primary);
+            justify-content: center;
+            gap: 18px;
+            text-align: center;
+            box-shadow: 0 30px 70px rgba(0,0,0,0.35);
+            border: 6px solid var(--active-primary);
+            position: relative;
+            animation: pop-modal 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-sizing: border-box;
         }
 
         @keyframes pop-modal {
-            0% { transform: scale(0.7); opacity: 0; }
+            0% { transform: scale(0.75); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
         }
 
-        .winner-modal-icon {
-            font-size: 4rem;
-            line-height: 1;
-        }
-
-        .winner-modal-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--text-dark);
-        }
-
-        .winner-pair-container {
-            display: flex;
-            gap: 14px;
-            width: 100%;
-            margin: 6px 0;
-        }
-
-        .winner-pill {
-            flex: 1;
-            background: var(--active-primary);
-            color: #ffffff;
-            border-radius: 18px;
-            padding: 14px 10px;
+        .winner-close-btn {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 2px solid #e2e8f0;
+            background: #f8fafc;
             font-size: 1.3rem;
             font-weight: 700;
-            box-shadow: 0 8px 20px var(--active-shadow);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .winner-pill-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #ffffff;
-            color: var(--active-dark);
+            color: #64748b;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.15rem;
-            font-weight: 800;
-        }
-
-        .btn-modal-done {
-            background: #1e293b;
-            color: #ffffff;
-            border: none;
-            border-radius: 14px;
-            padding: 12px 28px;
-            font-family: 'Fredoka', sans-serif;
-            font-size: 1.15rem;
-            font-weight: 700;
-            cursor: pointer;
-            width: 100%;
             transition: all 0.2s;
         }
 
-        .btn-modal-done:hover {
+        .winner-close-btn:hover {
+            background: #fee2e2;
+            color: #ef4444;
+            border-color: #fca5a5;
+            transform: scale(1.08);
+        }
+
+        .winner-fullscreen-title {
+            font-family: 'Fredoka', sans-serif;
+            font-size: clamp(2rem, 3.8vw, 3.2rem);
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1.1;
+            margin: 0;
+        }
+
+        .winner-fullscreen-img-wrap {
+            width: 100%;
+            max-width: 520px;
+            height: 35vh;
+            max-height: 290px;
+            border-radius: 20px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8fafc;
+            border: 3px solid #e2e8f0;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+        }
+
+        .winner-fullscreen-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .winner-fullscreen-pair {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 780px;
+            justify-content: center;
+        }
+
+        .winner-fullscreen-pill {
+            flex: 1;
+            background: var(--active-primary);
+            color: #ffffff;
+            border-radius: 24px;
+            padding: 16px 22px;
+            font-family: 'Fredoka', sans-serif;
+            font-size: clamp(1.8rem, 3.2vw, 2.8rem);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            box-shadow: 0 10px 25px var(--active-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border: 4px solid #ffffff;
+            animation: winner-pill-bounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        @keyframes winner-pill-bounce {
+            0% { transform: scale(0.6); opacity: 0; }
+            60% { transform: scale(1.08); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+
+        .btn-winner-continue {
+            background: #1e293b;
+            color: #ffffff;
+            border: none;
+            border-radius: 16px;
+            padding: 12px 36px;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+        }
+
+        .btn-winner-continue:hover {
             background: #0f172a;
-            transform: translateY(-2px);
+            transform: translateY(-2px) scale(1.03);
         }
 
         /* SETTINGS MODAL */
@@ -686,7 +763,7 @@
             <!-- Picture Box -->
             <div class="picture-box">
                 <img id="duty-img" class="duty-image" src="cleaning.jpg" alt="Duty Image" onerror="this.src='cleaning.jpeg'">
-                <div class="duty-title-badge" id="duty-badge-text">🧹 Cleaning Champions</div>
+                <div class="duty-title-badge" id="duty-badge-text">🧹 Cleaning Team</div>
             </div>
 
             <!-- Big Pick Button -->
@@ -716,17 +793,21 @@
 
     </div>
 
-    <!-- WINNER CELEBRATION MODAL -->
-    <div class="modal-overlay" id="winner-modal">
-        <div class="winner-modal">
-            <div class="winner-modal-icon">🎉</div>
-            <div class="winner-modal-title" id="winner-title">Cleaning Team!</div>
+    <!-- FULLSCREEN IN-GAME WINNER CELEBRATION MODAL -->
+    <div class="winner-modal-fullscreen" id="winner-modal" onclick="if(event.target === this) closeWinnerModal()">
+        <div class="winner-fullscreen-card">
+            <button class="winner-close-btn" onclick="closeWinnerModal()" title="Close">✖</button>
+            <h1 class="winner-fullscreen-title" id="winner-title">🧹 Cleaning Team!</h1>
             
-            <div class="winner-pair-container" id="winner-pair-container">
-                <!-- Winner Pills -->
+            <div class="winner-fullscreen-img-wrap">
+                <img id="winner-modal-img" class="winner-fullscreen-img" src="cleaning.jpg" alt="Duty illustration">
             </div>
 
-            <button class="btn-modal-done" onclick="closeWinnerModal()">Awesome! ✨</button>
+            <div class="winner-fullscreen-pair" id="winner-pair-container">
+                <!-- Large Winner Name Cards injected dynamically -->
+            </div>
+
+            <button class="btn-winner-continue" onclick="closeWinnerModal()">Awesome! ✨</button>
         </div>
     </div>
 
@@ -976,7 +1057,7 @@
             // Image & Titles
             const img = document.getElementById('duty-img');
             img.src = isCleaning ? 'cleaning.jpg' : 'books.jpg';
-            document.getElementById('duty-badge-text').innerText = isCleaning ? '🧹 Cleaning Champions' : '📚 Book-Sharing Team';
+            document.getElementById('duty-badge-text').innerText = isCleaning ? '🧹 Cleaning Team' : '📚 Book-Sharing Team';
 
             // Current Team Box
             const doneList = isCleaning ? classData.doneCleaning : classData.doneBooks;
@@ -1234,20 +1315,24 @@
             runStage1();
         }
 
-        // Winner Modal
+        // Winner Modal (Full Screen Celebration)
         function showWinnerModal(winners) {
             const isCleaning = state.activeDuty === 'cleaning';
-            document.getElementById('winner-title').innerText = isCleaning ? '🧹 Cleaning Team!' : '📚 Book Team!';
+            document.getElementById('winner-title').innerText = isCleaning ? '🧹 Cleaning Team!' : '📚 Book-Sharing Team!';
             
+            const img = document.getElementById('winner-modal-img');
+            if (img) {
+                img.src = isCleaning ? 'cleaning.jpg' : 'books.jpg';
+            }
+
             const container = document.getElementById('winner-pair-container');
             container.innerHTML = '';
 
-            winners.forEach(name => {
+            winners.forEach((name, idx) => {
                 const pill = document.createElement('div');
-                pill.className = 'winner-pill';
-                pill.innerHTML = `
-                    <div style="font-size: 1.8rem; font-weight: 700; padding: 4px;">${name}</div>
-                `;
+                pill.className = 'winner-fullscreen-pill';
+                pill.style.animationDelay = `${idx * 0.12}s`;
+                pill.innerText = name;
                 container.appendChild(pill);
             });
 
@@ -1489,6 +1574,13 @@
                     state.rosters[state.activeClass] = updatedRoster;
                 }
                 render();
+            }
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeWinnerModal();
+                closeSettings();
             }
         });
 
