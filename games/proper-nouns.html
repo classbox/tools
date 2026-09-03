@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Noun Flashcards</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    :root {
+      --bg-dark: #0f172a;
+      --card-bg: #1e293b;
+      --accent-color: #38bdf8;
+      --proper-color: #0284c7;
+      --common-color: #15803d;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: rgba(255, 255, 255, 0.12);
+      --hover-bg: #334155;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-dark);
+      color: var(--text-main);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 1.75rem 2.5rem;
+      cursor: pointer;
+      overflow-x: hidden;
+    }
+
+    /* Top Control Bar */
+    .top-bar {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      z-index: 10;
+    }
+
+    .top-left-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .top-right-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-icon {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      font-size: 0.95rem;
+      cursor: pointer;
+      padding: 0.45rem 0.9rem;
+      border-radius: 9999px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+    }
+
+    .btn-icon:hover {
+      background-color: var(--hover-bg);
+      border-color: var(--accent-color);
+      transform: translateY(-1px);
+    }
+
+    .counter {
+      background: var(--card-bg);
+      padding: 0.45rem 1.1rem;
+      border-radius: 9999px;
+      border: 1px solid var(--border-color);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Card Area */
+    .card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.75rem;
+      text-align: center;
+      flex-grow: 1;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .word-display {
+      font-size: clamp(3.5rem, 10vw, 8rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      transition: color 0.15s ease;
+      word-break: break-word;
+      text-wrap: balance;
+    }
+
+    .highlight-cap {
+      color: #38bdf8;
+      text-decoration: underline;
+      text-underline-offset: 12px;
+      text-decoration-thickness: 8px;
+    }
+
+    .highlight-low {
+      color: #4ade80;
+    }
+
+    .badge {
+      font-size: clamp(1.25rem, 3vw, 2.25rem);
+      font-weight: 700;
+      padding: 0.6rem 2.2rem;
+      border-radius: 1rem;
+      opacity: 0;
+      transform: translateY(15px);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .badge.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .badge.proper {
+      background: var(--proper-color);
+      color: #ffffff;
+      box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.4);
+    }
+
+    .badge.common {
+      background: var(--common-color);
+      color: #ffffff;
+      box-shadow: 0 10px 25px -5px rgba(21, 128, 61, 0.4);
+    }
+
+    /* Footer */
+    .footer {
+      font-size: 1.05rem;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    .key-hint {
+      background: #334155;
+      color: #e2e8f0;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      border: 1px solid #475569;
+    }
+
+    /* Settings Modal */
+    #settings-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      cursor: default;
+      padding: 20px;
+    }
+
+    .modal-content {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      width: 680px;
+      max-width: 100%;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes modalPop {
+      from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .modal-header h3 {
+      font-size: 1.25rem;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-close-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.3rem;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: color 0.15s, background-color 0.15s;
+    }
+
+    .modal-close-btn:hover {
+      color: var(--text-main);
+      background-color: var(--hover-bg);
+    }
+
+    .modal-desc {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+
+    .modal-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      overflow-y: auto;
+      margin-bottom: 16px;
+      padding-right: 4px;
+    }
+
+    @media (max-width: 600px) {
+      .modal-body {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .noun-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .noun-group label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .noun-group label .tag {
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-weight: 700;
+    }
+
+    .noun-group label .tag.proper {
+      background: rgba(2, 132, 199, 0.25);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .noun-group label .tag.common {
+      background: rgba(21, 128, 61, 0.25);
+      color: #4ade80;
+      border: 1px solid rgba(74, 222, 128, 0.3);
+    }
+
+    .noun-group textarea {
+      width: 100%;
+      height: 200px;
+      background: var(--bg-dark);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      resize: vertical;
+      outline: none;
+      user-select: text;
+    }
+
+    .noun-group textarea:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+    }
+
+    .options-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      user-select: none;
+    }
+
+    .options-row input[type="checkbox"] {
+      cursor: pointer;
+      accent-color: #38bdf8;
+      width: 16px;
+      height: 16px;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      border-top: 1px solid var(--border-color);
+      padding-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .modal-footer-left {
+      display: flex;
+      gap: 8px;
+    }
+
+    .modal-footer-right {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-modal {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border-color: var(--border-color);
+      color: var(--text-main);
+    }
+
+    .btn-secondary:hover {
+      background: var(--hover-bg);
+    }
+
+    .btn-primary {
+      background: #0284c7;
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: #0369a1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <div class="top-bar" id="topBar">
+    <div class="top-left-actions">
+      <button class="btn-icon" id="settingsBtn" title="Customize Noun Lists">
+        ⚙️ <span>Word List</span>
+      </button>
+      <button class="btn-icon" id="shuffleBtn" title="Shuffle Deck">
+        🔀 <span>Shuffle</span>
+      </button>
+    </div>
+    <div class="top-right-actions">
+      <div class="counter" id="counter">1 / 16</div>
+    </div>
+  </div>
+
+  <!-- Main Card -->
+  <main class="card" id="cardContainer">
+    <div class="word-display" id="wordDisplay">---</div>
+    <div class="badge" id="typeBadge">---</div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <span class="key-hint">SPACE</span> or <span class="key-hint">TAP CARD</span> to reveal & advance
+  </footer>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal">
+    <div class="modal-content" id="modalContent">
+      <div class="modal-header">
+        <h3>⚙️ Customize Nouns List</h3>
+        <button class="modal-close-btn" id="closeModalBtn" title="Close">✖</button>
+      </div>
+
+      <p class="modal-desc">
+        Enter one word or phrase per line. Proper nouns inherit automatic capital letter highlighting upon reveal, while common nouns are shown in lowercase.
+      </p>
+
+      <div class="modal-body">
+        <div class="noun-group">
+          <label for="properNounsInput">
+            <span>Proper Nouns</span>
+            <span class="tag proper">Capitalized</span>
+          </label>
+          <textarea id="properNounsInput" placeholder="Friday&#10;France&#10;Superman&#10;Angkor Wat..."></textarea>
+        </div>
+
+        <div class="noun-group">
+          <label for="commonNounsInput">
+            <span>Common Nouns</span>
+            <span class="tag common">Lowercase</span>
+          </label>
+          <textarea id="commonNounsInput" placeholder="blanket&#10;pilot&#10;tiger&#10;mountain..."></textarea>
+        </div>
+      </div>
+
+      <div class="options-row">
+        <input type="checkbox" id="shuffleCheckbox" checked />
+        <label for="shuffleCheckbox" style="cursor:pointer;">Shuffle word order when starting</label>
+      </div>
+
+      <div class="modal-footer">
+        <div class="modal-footer-left">
+          <button class="btn-modal btn-secondary" id="resetDefaultsBtn">Reset to Defaults</button>
+        </div>
+        <div class="modal-footer-right">
+          <button class="btn-modal btn-secondary" id="cancelModalBtn">Cancel</button>
+          <button class="btn-modal btn-primary" id="saveNounsBtn">Save & Apply</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Default Word Lists ---
+    const DEFAULT_PROPER = [
+      "Friday",
+      "France",
+      "Superman",
+      "August",
+      "Netflix",
+      "Sarah",
+      "Minecraft",
+      "Angkor Wat"
+    ];
+
+    const DEFAULT_COMMON = [
+      "blanket",
+      "pilot",
+      "tiger",
+      "market",
+      "jacket",
+      "bottle",
+      "mountain",
+      "morning"
+    ];
+
+    // Helper: auto-capitalize words in a proper noun string if typed entirely in lowercase
+    function formatProperNoun(str) {
+      str = str.trim();
+      if (!str) return "";
+      // If user provided casing with uppercase, preserve it (e.g. Spider-Man, iPhone, Angkor Wat)
+      if (/[A-Z]/.test(str)) {
+        return str;
+      }
+      // Otherwise capitalize each word (handling spaces and hyphens)
+      return str.replace(/(?:^|[\s\-])\S/g, (char) => char.toUpperCase());
+    }
+
+    // Helper: format common noun to lowercase
+    function formatCommonNoun(str) {
+      return str.trim().toLowerCase();
+    }
+
+    // Build the active card deck from proper and common noun lists
+    function buildDeck(properList, commonList, shouldShuffle = true) {
+      const deck = [];
+
+      properList.forEach((line) => {
+        const trimmed = line.trim();
+        if (!trimmed) return;
+        const capitalized = formatProperNoun(trimmed);
+        const raw = capitalized.toLowerCase();
+        deck.push({
+          raw: raw,
+          capitalized: capitalized,
+          proper: true
+        });
+      });
+
+      commonList.forEach((line) => {
+        const trimmed = line.trim();
+        if (!trimmed) return;
+        const formatted = formatCommonNoun(trimmed);
+        deck.push({
+          raw: formatted,
+          capitalized: formatted,
+          proper: false
+        });
+      });
+
+      if (deck.length === 0) {
+        // Fallback default if empty
+        return buildDeck(DEFAULT_PROPER, DEFAULT_COMMON, shouldShuffle);
+      }
+
+      if (shouldShuffle) {
+        // Fisher-Yates shuffle
+        for (let i = deck.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [deck[i], deck[j]] = [deck[j], deck[i]];
+        }
+      }
+
+      return deck;
+    }
+
+    // --- State ---
+    let words = [];
+    let currentIndex = 0;
+    let isRevealed = false;
+
+    // DOM Elements
+    const wordDisplay = document.getElementById("wordDisplay");
+    const typeBadge = document.getElementById("typeBadge");
+    const counter = document.getElementById("counter");
+    const settingsModal = document.getElementById("settings-modal");
+    const modalContent = document.getElementById("modalContent");
+    const settingsBtn = document.getElementById("settingsBtn");
+    const shuffleBtn = document.getElementById("shuffleBtn");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+    const cancelModalBtn = document.getElementById("cancelModalBtn");
+    const resetDefaultsBtn = document.getElementById("resetDefaultsBtn");
+    const saveNounsBtn = document.getElementById("saveNounsBtn");
+    const properNounsInput = document.getElementById("properNounsInput");
+    const commonNounsInput = document.getElementById("commonNounsInput");
+    const shuffleCheckbox = document.getElementById("shuffleCheckbox");
+
+    // Load saved settings or defaults
+    function loadSavedLists() {
+      let savedProper = localStorage.getItem("noun_cards_proper");
+      let savedCommon = localStorage.getItem("noun_cards_common");
+
+      let properList = savedProper ? JSON.parse(savedProper) : DEFAULT_PROPER;
+      let commonList = savedCommon ? JSON.parse(savedCommon) : DEFAULT_COMMON;
+
+      return { properList, commonList };
+    }
+
+    function initDeck(shuffle = true) {
+      const { properList, commonList } = loadSavedLists();
+      words = buildDeck(properList, commonList, shuffle);
+      currentIndex = 0;
+      isRevealed = false;
+      render();
+    }
+
+    // Render the current card state
+    function render() {
+      if (words.length === 0) {
+        wordDisplay.textContent = "No Words";
+        typeBadge.className = "badge";
+        typeBadge.textContent = "---";
+        counter.textContent = "0 / 0";
+        return;
+      }
+
+      const item = words[currentIndex];
+      counter.textContent = `${currentIndex + 1} / ${words.length}`;
+
+      if (!isRevealed) {
+        wordDisplay.textContent = item.raw;
+        typeBadge.className = "badge";
+        typeBadge.textContent = "---";
+      } else {
+        typeBadge.textContent = item.proper ? "Proper Noun" : "Common Noun";
+        typeBadge.className = `badge ${item.proper ? "proper" : "common"} show`;
+
+        const displayWord = item.capitalized;
+
+        if (item.proper) {
+          // Highlight every uppercase letter in cyan with underline
+          let highlighted;
+          if (/[A-Z]/.test(displayWord)) {
+            highlighted = displayWord.replace(/[A-Z]/g, match => `<span class="highlight-cap">${match}</span>`);
+          } else {
+            // If no uppercase character was detected, capitalize the first character
+            const firstChar = displayWord.charAt(0).toUpperCase();
+            highlighted = `<span class="highlight-cap">${firstChar}</span>${displayWord.slice(1)}`;
+          }
+          wordDisplay.innerHTML = highlighted;
+        } else {
+          // Highlight the first lowercase letter in green
+          const firstLetter = displayWord.charAt(0);
+          const restOfWord = displayWord.slice(1);
+          wordDisplay.innerHTML = `<span class="highlight-low">${firstLetter}</span>${restOfWord}`;
+        }
+      }
+    }
+
+    // Step forward: reveal -> advance to next card
+    function advance() {
+      if (words.length === 0) return;
+
+      if (!isRevealed) {
+        isRevealed = true;
+      } else {
+        isRevealed = false;
+        currentIndex = (currentIndex + 1) % words.length;
+      }
+      render();
+    }
+
+    // --- Modal Management ---
+    function openModal() {
+      const { properList, commonList } = loadSavedLists();
+      properNounsInput.value = properList.join("\n");
+      commonNounsInput.value = commonList.join("\n");
+      settingsModal.style.display = "flex";
+    }
+
+    function closeModal() {
+      settingsModal.style.display = "none";
+    }
+
+    function saveCustomLists() {
+      const properList = properNounsInput.value
+        .split("\n")
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+
+      const commonList = commonNounsInput.value
+        .split("\n")
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+
+      localStorage.setItem("noun_cards_proper", JSON.stringify(properList));
+      localStorage.setItem("noun_cards_common", JSON.stringify(commonList));
+
+      closeModal();
+      initDeck(shuffleCheckbox.checked);
+    }
+
+    function resetToDefaults() {
+      properNounsInput.value = DEFAULT_PROPER.join("\n");
+      commonNounsInput.value = DEFAULT_COMMON.join("\n");
+    }
+
+    // --- Event Listeners ---
+    settingsBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openModal();
+    });
+
+    shuffleBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      // Re-shuffle current word deck
+      for (let i = words.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [words[i], words[j]] = [words[j], words[i]];
+      }
+      currentIndex = 0;
+      isRevealed = false;
+      render();
+    });
+
+    closeModalBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      closeModal();
+    });
+
+    cancelModalBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      closeModal();
+    });
+
+    saveNounsBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      saveCustomLists();
+    });
+
+    resetDefaultsBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      resetToDefaults();
+    });
+
+    modalContent.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+
+    settingsModal.addEventListener("click", (e) => {
+      if (e.target === settingsModal) {
+        closeModal();
+      }
+    });
+
+    // Clicking anywhere outside modal triggers flashcard advance
+    document.body.addEventListener("click", (e) => {
+      if (settingsModal.style.display === "flex") return;
+      if (e.target.closest(".top-bar")) return;
+      advance();
+    });
+
+    // Keyboard navigation
+    window.addEventListener("keydown", (e) => {
+      // Ignore keybindings if editing inputs
+      if (document.activeElement && (document.activeElement.tagName === "TEXTAREA" || document.activeElement.tagName === "INPUT")) {
+        return;
+      }
+
+      if (settingsModal.style.display === "flex") {
+        if (e.key === "Escape") {
+          closeModal();
+        }
+        return;
+      }
+
+      if (e.code === "Space" || e.code === "Enter" || e.code === "ArrowRight") {
+        e.preventDefault();
+        advance();
+      } else if (e.code === "ArrowLeft") {
+        e.preventDefault();
+        // Go back
+        if (words.length > 0) {
+          isRevealed = false;
+          currentIndex = (currentIndex - 1 + words.length) % words.length;
+          render();
+        }
+      }
+    });
+
+    // Initialize
+    initDeck(true);
+  </script>
+</body>
+</html>

@@ -293,7 +293,7 @@
 
         <div class="slider-group">
             <span>Zoom:</span>
-            <input type="range" id="size-slider" min="130" max="320" value="200" oninput="updateDeskSize(this.value)">
+            <input type="range" id="size-slider" min="91" max="320" value="200" oninput="updateDeskSize(this.value)">
         </div>
 
         <div class="action-group">
@@ -398,7 +398,7 @@
 
             if (isEditMode) {
                 savedUserSize = currentSize;
-                const minZoom = parseInt(slider.min, 10) || 130;
+                const minZoom = parseInt(slider.min, 10) || 91;
                 slider.value = minZoom;
                 updateDeskSize(minZoom, false);
             } else {
