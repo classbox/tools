@@ -399,38 +399,164 @@
 
         /* --- Random Events Visual Elements --- */
 
-        /* 1. Monkey Container */
+        /* 1. Mischievous Monkey Chaos Event */
         .monkey-container {
             position: fixed;
-            top: -240px;
-            left: calc(50% + 110px);
-            transform: translateX(-50%);
-            width: 180px;
-            height: 180px;
+            top: 0;
+            left: calc(50% - 60px);
+            transform: translateX(-50%) rotate(-85deg);
+            width: 240px;
+            height: 520px;
             z-index: 120;
             pointer-events: none;
-            transition: top 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5));
+            transform-origin: 120px 0px; /* Anchors right at the top ceiling! */
+            opacity: 0;
+            filter: drop-shadow(0 16px 26px rgba(0, 0, 0, 0.55));
         }
 
         .monkey-container.enter {
-            top: max(10px, calc(50vh - min(42.5vw, calc(50vh - 60px)) - 100px));
+            animation: monkeyPendulumSwingIn 0.68s cubic-bezier(0.2, 0.85, 0.35, 1.05) forwards;
         }
 
-        .monkey-container.kick {
-            animation: monkeyKickTopAnim 0.35s ease-in-out forwards;
+        .monkey-container.windup {
+            animation: monkeyPendulumWindup 0.26s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
 
-        @keyframes monkeyKickTopAnim {
-            0% { transform: translateX(-50%) scale(1) rotate(0deg) translateY(0); }
-            35% { transform: translateX(-50%) scale(1.15) rotate(15deg) translateY(-15px); }
-            70% { transform: translateX(-50%) scale(1.25) rotate(-20deg) translateY(65px) translateX(-45px); }
-            100% { transform: translateX(-50%) scale(1) rotate(0deg) translateY(0); }
+        .monkey-container.strike {
+            animation: monkeyPendulumStrike 0.65s cubic-bezier(0.12, 0.82, 0.22, 1) forwards;
+        }
+
+        .monkey-container.exit {
+            animation: monkeyPendulumExit 0.42s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards;
+        }
+
+        @keyframes monkeyPendulumSwingIn {
+            0% {
+                transform: translateX(-50%) rotate(-85deg);
+                opacity: 0;
+            }
+            15% {
+                opacity: 1;
+            }
+            55% {
+                /* Swoops across through the bottom of the arc */
+                transform: translateX(-50%) rotate(18deg);
+            }
+            75% {
+                /* Recovers from overshoot */
+                transform: translateX(-50%) rotate(-7deg);
+            }
+            90% {
+                transform: translateX(-50%) rotate(2deg);
+            }
+            100% {
+                transform: translateX(-50%) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        @keyframes monkeyPendulumWindup {
+            0% {
+                transform: translateX(-50%) rotate(0deg) scale(1);
+                opacity: 1;
+            }
+            100% {
+                /* Pulls back and coils high into a ready kick stance */
+                transform: translateX(-50%) rotate(-18deg) scale(1.04);
+                opacity: 1;
+            }
+        }
+
+        @keyframes monkeyPendulumStrike {
+            0% {
+                transform: translateX(-50%) rotate(-18deg) scale(1.04);
+                opacity: 1;
+            }
+            26% {
+                /* IMPACT MOMENT: Leg snaps forward and strikes down-right into the wheel rim! */
+                transform: translateX(-50%) rotate(16deg) translateY(18px) scale(1.12);
+                opacity: 1;
+            }
+            52% {
+                /* Recoil from the kick force - swings back */
+                transform: translateX(-50%) rotate(-10deg) translateY(-8px) scale(1.02);
+                opacity: 1;
+            }
+            76% {
+                /* Playful taunt swing */
+                transform: translateX(-50%) rotate(6deg) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(-50%) rotate(0deg) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes monkeyPendulumExit {
+            0% {
+                transform: translateX(-50%) rotate(0deg) scale(1);
+                opacity: 1;
+            }
+            20% {
+                /* Slight anticipation crouch before jumping up */
+                transform: translateX(-50%) rotate(6deg) translateY(18px) scale(0.96);
+                opacity: 1;
+            }
+            100% {
+                /* Zips back up into the jungle canopy! */
+                transform: translateX(-50%) rotate(-15deg) translateY(-600px) scale(0.85);
+                opacity: 0;
+            }
         }
 
         .monkey-svg {
             width: 100%;
             height: 100%;
+            overflow: visible;
+        }
+
+        /* Comic Action Impact Burst */
+        .monkey-impact {
+            opacity: 0;
+            transform-origin: 146px 472px;
+            pointer-events: none;
+        }
+
+        .monkey-impact.active {
+            animation: impactFlashAnim 0.42s ease-out forwards;
+        }
+
+        @keyframes impactFlashAnim {
+            0% {
+                opacity: 0;
+                transform: scale(0.2) rotate(-20deg);
+            }
+            18% {
+                opacity: 1;
+                transform: scale(1.5) rotate(8deg);
+            }
+            45% {
+                opacity: 0.95;
+                transform: scale(1.2) rotate(18deg);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1.7) rotate(35deg);
+            }
+        }
+
+        /* Wheel Jolt Reaction on Monkey Kick Impact */
+        .wheel-wrapper.jolt {
+            animation: wheelKickJolt 0.35s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+        }
+
+        @keyframes wheelKickJolt {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            18% { transform: translate(6px, 16px) rotate(1.5deg); }
+            45% { transform: translate(-3px, -5px) rotate(-0.6deg); }
+            72% { transform: translate(1px, 2px) rotate(0.2deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
         }
 
         /* 2. Lightning Overlay & Bolt */
@@ -663,28 +789,186 @@
 
     <!-- Event 1: Animated Mischievous Monkey Container -->
     <div id="monkeyContainer" class="monkey-container">
-        <svg class="monkey-svg" viewBox="0 0 120 120">
-            <path d="M 30 85 Q 10 75 15 50 Q 20 25 35 35" fill="none" stroke="#6d3811" stroke-width="7" stroke-linecap="round"/>
-            <ellipse cx="60" cy="80" rx="26" ry="28" fill="#8b4513"/>
-            <ellipse cx="60" cy="82" rx="18" ry="20" fill="#e6c280"/>
-            <circle cx="60" cy="45" r="26" fill="#8b4513"/>
-            <circle cx="34" cy="45" r="9" fill="#8b4513"/>
-            <circle cx="34" cy="45" r="5" fill="#e6c280"/>
-            <circle cx="86" cy="45" r="9" fill="#8b4513"/>
-            <circle cx="86" cy="45" r="5" fill="#e6c280"/>
-            <path d="M 44 42 C 44 30, 76 30, 76 42 C 76 54, 44 54, 44 42 Z" fill="#e6c280"/>
-            <ellipse cx="51" cy="40" rx="5" ry="6" fill="#ffffff"/>
-            <ellipse cx="69" cy="40" rx="5" ry="6" fill="#ffffff"/>
-            <circle cx="53" cy="41" r="3" fill="#000000"/>
-            <circle cx="71" cy="41" r="3" fill="#000000"/>
-            <path d="M 45 32 L 55 36" stroke="#3d1e0a" stroke-width="2.5" stroke-linecap="round"/>
-            <path d="M 75 32 L 65 36" stroke="#3d1e0a" stroke-width="2.5" stroke-linecap="round"/>
-            <path d="M 50 52 Q 60 62 70 52" fill="none" stroke="#000000" stroke-width="3" stroke-linecap="round"/>
-            <path d="M 55 56 Q 60 63 65 56" fill="#ff4757"/>
-            <path d="M 38 75 Q 25 65 20 50" fill="none" stroke="#8b4513" stroke-width="7" stroke-linecap="round"/>
-            <path d="M 82 75 Q 98 70 108 80" fill="none" stroke="#8b4513" stroke-width="7" stroke-linecap="round"/>
-            <path d="M 48 102 L 42 115" stroke="#8b4513" stroke-width="8" stroke-linecap="round"/>
-            <path d="M 72 102 L 92 110" stroke="#8b4513" stroke-width="8" stroke-linecap="round"/>
+        <svg class="monkey-svg" viewBox="0 0 240 520">
+            <defs>
+                <!-- Fur Shading Gradient -->
+                <linearGradient id="mkFur" x1="20%" y1="0%" x2="80%" y2="100%">
+                    <stop offset="0%" stop-color="#a05d2c"/>
+                    <stop offset="50%" stop-color="#7e431a"/>
+                    <stop offset="100%" stop-color="#562a0c"/>
+                </linearGradient>
+                <linearGradient id="mkFurHighlight" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#bd7743"/>
+                    <stop offset="100%" stop-color="#884a20"/>
+                </linearGradient>
+                <!-- Muzzle / Belly Warm Cream -->
+                <linearGradient id="mkCream" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#ffebd2"/>
+                    <stop offset="100%" stop-color="#f5c792"/>
+                </linearGradient>
+                <!-- Vine Lush Green -->
+                <linearGradient id="mkVine" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#2e7d32"/>
+                    <stop offset="50%" stop-color="#4caf50"/>
+                    <stop offset="100%" stop-color="#1b5e20"/>
+                </linearGradient>
+                <!-- Leaf Gradient -->
+                <linearGradient id="mkLeaf" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#66bb6a"/>
+                    <stop offset="100%" stop-color="#2e7d32"/>
+                </linearGradient>
+            </defs>
+
+            <!-- 1. Long Hanging Jungle Vine & Leaves (from Ceiling) -->
+            <g id="monkeyVineGroup">
+                <!-- Main Hanging Vine Stem -->
+                <path d="M 120 0 Q 115 70 123 140 Q 128 210 122 280" fill="none" stroke="url(#mkVine)" stroke-width="8" stroke-linecap="round"/>
+                <!-- Vine Tendril Curl -->
+                <path d="M 122 290 Q 136 302 130 315 Q 120 325 130 335" fill="none" stroke="#2e7d32" stroke-width="3" stroke-linecap="round"/>
+                <!-- Leaf 1 (left, high) -->
+                <path d="M 120 40 C 92 24, 82 52, 120 57 C 104 65, 126 70, 120 40 Z" fill="url(#mkLeaf)"/>
+                <path d="M 120 40 Q 106 48 94 44" fill="none" stroke="#a5d6a7" stroke-width="1.6" stroke-linecap="round"/>
+                <!-- Leaf 2 (right, mid-high) -->
+                <path d="M 121 100 C 150 84, 160 112, 121 118 C 138 126, 124 132, 121 100 Z" fill="url(#mkLeaf)"/>
+                <path d="M 121 100 Q 136 108 148 105" fill="none" stroke="#a5d6a7" stroke-width="1.6" stroke-linecap="round"/>
+                <!-- Leaf 3 (left, mid-low) -->
+                <path d="M 122 165 C 94 148, 84 176, 122 181 C 106 189, 128 194, 122 165 Z" fill="url(#mkLeaf)"/>
+                <path d="M 122 165 Q 107 173 96 169" fill="none" stroke="#a5d6a7" stroke-width="1.6" stroke-linecap="round"/>
+                <!-- Leaf 4 (right, low near hands) -->
+                <path d="M 122 225 C 152 210, 162 238, 122 244 C 140 252, 125 258, 122 225 Z" fill="url(#mkLeaf)"/>
+                <path d="M 122 225 Q 138 233 150 230" fill="none" stroke="#a5d6a7" stroke-width="1.6" stroke-linecap="round"/>
+            </g>
+
+            <!-- 2. Animated Prehensile Curled Tail -->
+            <path d="M 80 386 C 42 398, 12 372, 16 334 C 19 302, 48 294, 54 310 C 60 326, 42 338, 36 326" 
+                  fill="none" stroke="#562a0c" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M 80 386 C 42 398, 12 372, 16 334 C 19 302, 48 294, 54 310 C 60 326, 42 338, 36 326" 
+                  fill="none" stroke="url(#mkFur)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <!-- 3. Left Leg (Tucked climbing posture) -->
+            <path d="M 76 380 Q 64 395 72 408 Q 80 416 90 408 Q 96 395 88 382 Z" fill="url(#mkFur)"/>
+            <!-- Tucked Foot -->
+            <ellipse cx="76" cy="410" rx="9" ry="6" fill="#562a0c"/>
+            <circle cx="70" cy="411" r="2.5" fill="#f5c792"/>
+            <circle cx="75" cy="413" r="2.5" fill="#f5c792"/>
+            <circle cx="80" cy="412" r="2.5" fill="#f5c792"/>
+
+            <!-- 4. Pear-Shaped Torso -->
+            <path d="M 72 340 C 62 355, 60 380, 72 396 C 82 408, 106 408, 116 396 C 126 380, 124 355, 114 340 Z" fill="url(#mkFur)"/>
+            <!-- Warm Cream Belly Patch -->
+            <path d="M 78 350 C 72 362, 70 380, 78 392 C 86 400, 102 400, 110 392 C 118 380, 116 362, 108 350 C 102 344, 84 344, 78 350 Z" fill="url(#mkCream)"/>
+            <!-- Navel -->
+            <ellipse cx="94" cy="384" rx="2" ry="1.5" fill="#d49b62"/>
+
+            <!-- 5. Left Arm (Reaching up and clutching vine) -->
+            <path d="M 112 348 Q 126 342 124 318" fill="none" stroke="url(#mkFur)" stroke-width="12" stroke-linecap="round"/>
+            <!-- Left Hand / Knuckles clutched around vine -->
+            <ellipse cx="125" cy="316" rx="7" ry="9" fill="#562a0c"/>
+            <circle cx="127" cy="311" r="3" fill="#f5c792"/>
+            <circle cx="128" cy="316" r="3" fill="#f5c792"/>
+            <circle cx="127" cy="321" r="3" fill="#f5c792"/>
+
+            <!-- 6. Monkey Head & Expressive Character Face -->
+            <g id="monkeyHeadGroup">
+                <!-- Left Ear -->
+                <circle cx="56" cy="298" r="14" fill="url(#mkFur)"/>
+                <circle cx="56" cy="298" r="9" fill="url(#mkCream)"/>
+                <path d="M 54 294 Q 58 298 54 302" fill="none" stroke="#d49b62" stroke-width="1.5" stroke-linecap="round"/>
+
+                <!-- Right Ear -->
+                <circle cx="126" cy="298" r="14" fill="url(#mkFur)"/>
+                <circle cx="126" cy="298" r="9" fill="url(#mkCream)"/>
+                <path d="M 128 294 Q 124 298 128 302" fill="none" stroke="#d49b62" stroke-width="1.5" stroke-linecap="round"/>
+
+                <!-- Head Base Skull -->
+                <ellipse cx="91" cy="300" rx="34" ry="32" fill="url(#mkFur)"/>
+
+                <!-- Cheek Fur Tufts -->
+                <path d="M 58 305 L 50 308 L 59 313 L 52 318 L 64 318 Z" fill="url(#mkFur)"/>
+                <path d="M 124 305 L 132 308 L 123 313 L 130 318 L 118 318 Z" fill="url(#mkFur)"/>
+
+                <!-- Playful Crown Hair Tuft -->
+                <path d="M 87 269 Q 89 258 92 254 Q 95 262 97 269 Q 101 260 105 258 Q 103 266 101 271 Z" fill="url(#mkFurHighlight)"/>
+
+                <!-- Classic Heart/Peanut Monkey Mask -->
+                <path d="M 91 288 C 84 280, 68 280, 68 292 C 68 304, 76 308, 80 314 C 84 320, 84 324, 91 324 C 98 324, 98 320, 102 314 C 106 308, 114 304, 114 292 C 114 280, 98 280, 91 288 Z" fill="url(#mkCream)"/>
+
+                <!-- Cheek Blushes -->
+                <ellipse cx="69" cy="304" rx="4.5" ry="3" fill="#f87171" opacity="0.45"/>
+                <ellipse cx="113" cy="304" rx="4.5" ry="3" fill="#f87171" opacity="0.45"/>
+
+                <!-- Expressive Angled Mischievous Eyebrows -->
+                <path d="M 72 287 Q 80 284 85 288" fill="none" stroke="#3e1d08" stroke-width="3" stroke-linecap="round"/>
+                <path d="M 110 287 Q 102 284 97 288" fill="none" stroke="#3e1d08" stroke-width="3" stroke-linecap="round"/>
+
+                <!-- Eyes (Glossy cartoon eyes looking down-right toward wheel) -->
+                <!-- Left Eye -->
+                <ellipse cx="79" cy="294" rx="6" ry="7.5" fill="#ffffff"/>
+                <ellipse cx="80.5" cy="295.5" rx="4.2" ry="5.5" fill="#1e1005"/>
+                <circle cx="82" cy="293.5" r="1.8" fill="#ffffff"/>
+                <circle cx="79" cy="298" r="0.9" fill="#ffffff"/>
+
+                <!-- Right Eye -->
+                <ellipse cx="103" cy="294" rx="6" ry="7.5" fill="#ffffff"/>
+                <ellipse cx="104.5" cy="295.5" rx="4.2" ry="5.5" fill="#1e1005"/>
+                <circle cx="106" cy="293.5" r="1.8" fill="#ffffff"/>
+                <circle cx="103" cy="298" r="0.9" fill="#ffffff"/>
+
+                <!-- Cute Nostrils -->
+                <ellipse cx="88.5" cy="305.5" rx="1.4" ry="1" fill="#884a20"/>
+                <ellipse cx="93.5" cy="305.5" rx="1.4" ry="1" fill="#884a20"/>
+
+                <!-- Cheeky Wide Open Smile with Teeth and Tongue -->
+                <path d="M 77 308 Q 91 309 105 308 C 104 320, 78 320, 77 308 Z" fill="#2a0808"/>
+                <!-- Upper Teeth Row -->
+                <path d="M 80 308 Q 91 309 102 308 C 101 311.5, 81 311.5, 80 308 Z" fill="#ffffff"/>
+                <!-- Pink Tongue -->
+                <path d="M 84 316 Q 91 312 98 316 C 96 319.5, 86 319.5, 84 316 Z" fill="#ff4757"/>
+                <!-- Smile Crease Curves -->
+                <path d="M 75 306 Q 77 309 76 311" fill="none" stroke="#aa6832" stroke-width="1.8" stroke-linecap="round"/>
+                <path d="M 107 306 Q 105 309 106 311" fill="none" stroke="#aa6832" stroke-width="1.8" stroke-linecap="round"/>
+            </g>
+
+            <!-- 7. Right Arm (Wind-up fist / balance pose) -->
+            <path d="M 68 346 Q 48 356 52 372" fill="none" stroke="url(#mkFur)" stroke-width="11" stroke-linecap="round"/>
+            <!-- Fist -->
+            <circle cx="52" cy="374" r="6.5" fill="#562a0c"/>
+            <circle cx="49" cy="372" r="2.2" fill="#f5c792"/>
+            <circle cx="53" cy="372" r="2.2" fill="#f5c792"/>
+            <circle cx="55" cy="375" r="2.2" fill="#f5c792"/>
+
+            <!-- 8. Right Kicking Leg & Foot (Articulated strike pose) -->
+            <g id="monkeyKickLeg" class="monkey-kick-leg">
+                <!-- Thigh -->
+                <path d="M 104 384 Q 120 405 125 426" fill="none" stroke="url(#mkFur)" stroke-width="14" stroke-linecap="round"/>
+                <!-- Shin / Lower Leg -->
+                <path d="M 124 424 Q 136 446 142 462" fill="none" stroke="url(#mkFur)" stroke-width="12" stroke-linecap="round"/>
+                <!-- Foot & Toes striking downward into the wheel -->
+                <path d="M 136 456 C 142 454, 150 458, 152 466 C 153 472, 146 476, 138 475 C 132 474, 131 464, 136 456 Z" fill="#562a0c"/>
+                <!-- Defined Monkey Toes -->
+                <circle cx="140" cy="475" r="3" fill="#f5c792"/>
+                <circle cx="145" cy="476" r="3" fill="#f5c792"/>
+                <circle cx="150" cy="474" r="3" fill="#f5c792"/>
+                <circle cx="154" cy="470" r="2.8" fill="#f5c792"/>
+                <!-- Motion Action Whoosh Arc behind Foot -->
+                <path d="M 116 430 Q 128 456 132 472" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.6" stroke-dasharray="8 6"/>
+            </g>
+
+            <!-- 9. Dynamic Comic Action Impact Burst (At Foot Strike Point) -->
+            <g id="monkeyImpactBurst" class="monkey-impact">
+                <!-- Expanding Shockwave Ring -->
+                <circle cx="146" cy="472" r="24" fill="none" stroke="#ffca28" stroke-width="3" stroke-dasharray="6 4" opacity="0.85"/>
+                <!-- Outer Golden Starburst -->
+                <polygon points="146,440 153,460 173,452 160,466 178,475 159,481 170,496 151,487 145,506 139,487 120,496 131,481 112,475 130,466 117,452 137,460" fill="#ffd600"/>
+                <!-- Inner Bright Hot-White Star Core -->
+                <polygon points="146,450 151,463 164,457 155,467 167,473 154,478 162,488 150,482 145,495 141,482 129,488 137,478 124,473 136,467 127,457 140,463" fill="#ffffff"/>
+                <!-- Radiating Kinetic Action Impact Lines -->
+                <line x1="172" y1="460" x2="188" y2="452" stroke="#ffeb3b" stroke-width="3" stroke-linecap="round"/>
+                <line x1="176" y1="484" x2="194" y2="490" stroke="#ffeb3b" stroke-width="3" stroke-linecap="round"/>
+                <line x1="146" y1="498" x2="146" y2="512" stroke="#ff9800" stroke-width="3.5" stroke-linecap="round"/>
+                <line x1="118" y1="488" x2="102" y2="496" stroke="#ffeb3b" stroke-width="3" stroke-linecap="round"/>
+                <line x1="114" y1="462" x2="98" y2="456" stroke="#ffeb3b" stroke-width="3" stroke-linecap="round"/>
+            </g>
         </svg>
     </div>
 
@@ -798,6 +1082,31 @@
             if (!soundEnabled) return;
             monkeyAudio.currentTime = 0;
             monkeyAudio.play().catch(e => console.log("Monkey audio play prevented:", e));
+        }
+
+        function playKickImpactSound() {
+            if (!soundEnabled) return;
+            initAudio();
+            try {
+                // Punchy low-frequency kick thud with quick transient
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(35, audioCtx.currentTime + 0.16);
+                
+                gain.gain.setValueAtTime(0.65, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.16);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.16);
+            } catch (e) {
+                console.error(e);
+            }
         }
 
         function playLightningSound() {
@@ -1044,8 +1353,11 @@
 
             const chosenEventType = willTriggerEvent ? activeEvents[Math.floor(Math.random() * activeEvents.length)] : null;
             let eventExecuted = false;
+            let monkeyBoostDriving = false;
 
             function animate(now) {
+                if (monkeyBoostDriving) return;
+
                 const elapsed = now - startTime;
                 const progress = Math.min(1, elapsed / durationMs);
 
@@ -1056,11 +1368,18 @@
                 drawWheel();
                 updatePointerAndTicks();
 
-                // Trigger Random Event at ~68% progress while spinning
-                if (willTriggerEvent && !eventExecuted && progress >= 0.68) {
+                // Trigger Random Event while spinning
+                if (willTriggerEvent && !eventExecuted && progress >= 0.58) {
                     eventExecuted = true;
-                    executeRandomEvent(chosenEventType, totalRotation, ease);
-                    return;
+                    if (chosenEventType === 'monkey') {
+                        executeMonkeyEvent(totalRotation, startTime, durationMs, () => {
+                            monkeyBoostDriving = true;
+                        });
+                        // Allow the wheel to keep coasting smoothly until the monkey's foot makes contact!
+                    } else {
+                        executeRandomEvent(chosenEventType, totalRotation, ease);
+                        return;
+                    }
                 }
 
                 if (progress < 1) {
@@ -1073,6 +1392,67 @@
             requestAnimationFrame(animate);
         }
 
+        // --- Enhanced Monkey Chaos Event Execution ---
+        function executeMonkeyEvent(totalRotation, spinStartTime, durationMs, onImpactCallback) {
+            playMonkeySound();
+            const impactBurst = document.getElementById('monkeyImpactBurst');
+            if (impactBurst) impactBurst.classList.remove('active');
+
+            // Phase 1: Majestic pendulum vine swing down from top-left (0ms)
+            monkeyContainer.className = 'monkey-container enter';
+
+            // Phase 2: Windup / coil back into high ready kick stance (680ms)
+            setTimeout(() => {
+                monkeyContainer.className = 'monkey-container windup';
+            }, 680);
+
+            // Phase 3: Explosive strike snap begins (940ms)
+            setTimeout(() => {
+                monkeyContainer.className = 'monkey-container strike';
+            }, 940);
+
+            // Phase 4: Foot Contact Moment on Wheel Rim (1110ms)
+            setTimeout(() => {
+                // 1. Comic action starburst flash at contact point
+                if (impactBurst) {
+                    impactBurst.classList.remove('active');
+                    void impactBurst.offsetWidth;
+                    impactBurst.classList.add('active');
+                }
+
+                // 2. Physical wheel recoil jolt
+                wheelWrapper.classList.add('jolt');
+                setTimeout(() => {
+                    wheelWrapper.classList.remove('jolt');
+                }, 350);
+
+                // 3. Punchy physical kick impact sound
+                playKickImpactSound();
+
+                // 4. Calculate boost momentum from current contact angle
+                const shiftSlots = Math.floor(Math.random() * 4) + 2; // 2 to 5 slots
+                const arc = (2 * Math.PI) / students.length;
+                const currentProgress = Math.min(1, (performance.now() - spinStartTime) / durationMs);
+                const currentEase = 1 - Math.pow(1 - currentProgress, 5);
+                const remainingAngle = Math.max(0, totalRotation * (1 - currentEase));
+                const extraAngle = remainingAngle + (shiftSlots * arc);
+
+                // Stop coasting animate() loop
+                if (onImpactCallback) onImpactCallback();
+
+                // 5. Accelerate wheel with surging re-spin
+                animateEventBoost(extraAngle, 1750, () => {
+                    monkeyContainer.className = 'monkey-container';
+                    if (impactBurst) impactBurst.classList.remove('active');
+                });
+            }, 1110);
+
+            // Phase 5: Monkey recoil finishes, spring-up exit into canopy (1650ms)
+            setTimeout(() => {
+                monkeyContainer.className = 'monkey-container exit';
+            }, 1650);
+        }
+
         // --- Random Events Manager ---
         function executeRandomEvent(type, totalRotation, currentEase) {
             const shiftSlots = Math.floor(Math.random() * 4) + 2; // 2 to 5 slots
@@ -1081,18 +1461,7 @@
             const extraAngle = remainingOriginalAngle + (shiftSlots * arc);
 
             if (type === 'monkey') {
-                playMonkeySound();
-                monkeyContainer.classList.add('enter');
-
-                setTimeout(() => {
-                    monkeyContainer.classList.add('kick');
-                    // Removed old synthetic kick sound to use monkey.mp3 solely
-
-                    animateEventBoost(extraAngle, 1600, () => {
-                        monkeyContainer.classList.remove('kick');
-                        monkeyContainer.classList.remove('enter');
-                    });
-                }, 350);
+                executeMonkeyEvent(totalRotation, performance.now() - 1000, 3000, null);
 
             } else if (type === 'lightning') {
                 lightningOverlay.classList.add('dim');
