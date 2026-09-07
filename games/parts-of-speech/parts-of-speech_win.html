@@ -508,11 +508,10 @@
                 text.split('\n').forEach(line => {
                     const cleaned = line.trim();
                     if (cleaned) {
-                        const existing = wordList.find(w => w.word.toLowerCase() === cleaned.toLowerCase() && w.category === categoryName);
                         newWordList.push({ 
                             word: cleaned, 
                             category: categoryName, 
-                            solved: existing ? existing.solved : false 
+                            solved: false 
                         });
                     }
                 });
@@ -522,14 +521,22 @@
             parseBucket(cat2Words.value, c2Name);
             parseBucket(cat3Words.value, c3Name);
 
-            if (shuffle || wordList.length === 0 || wordList.length !== newWordList.length) {
+            // Re-generate the cloud completely to ensure correct click bindings,
+            // word counts, and randomized styles
+            if (shuffle || wordList.length === 0) {
                 newWordList.sort(() => Math.random() - 0.5);
                 wordList = newWordList;
-                generateCloud();
             } else {
+                // If words changed without clicking shuffle, preserve solved states where words match
+                newWordList.forEach(item => {
+                    const existing = wordList.find(w => w.word.toLowerCase() === item.word.toLowerCase() && w.category === item.category);
+                    if (existing) {
+                        item.solved = existing.solved;
+                    }
+                });
                 wordList = newWordList;
-                updateCloudTextInPlace();
             }
+            generateCloud();
         }
 
         function updateCategoryButtonLabels() {
@@ -555,10 +562,11 @@
 
             if (wordList.length === 0) return;
 
-            wordList.forEach(item => {
+            wordList.forEach((item, index) => {
                 const span = document.createElement('span');
                 span.textContent = item.word;
                 span.className = 'cloud-word';
+                span.dataset.index = index;
 
                 if (item.solved) {
                     span.classList.add('solved');
@@ -576,7 +584,9 @@
                 span.style.margin = `${Math.random() * 12 + 10}px ${Math.random() * 20 + 10}px`;
 
                 span.addEventListener('click', () => {
-                    if (!item.solved) openChallenge(item, span);
+                    const currentIndex = parseInt(span.dataset.index, 10);
+                    const currentItem = wordList[currentIndex] || item;
+                    if (!currentItem.solved) openChallenge(currentItem, span);
                 });
 
                 wordCloud.appendChild(span);
@@ -586,9 +596,15 @@
         // Smooth live text update
         function updateCloudTextInPlace() {
             const spans = wordCloud.querySelectorAll('.cloud-word');
-            wordList.forEach((item, index) => {
-                if (spans[index]) {
-                    spans[index].textContent = item.word;
+            spans.forEach((span) => {
+                const index = parseInt(span.dataset.index, 10);
+                if (!isNaN(index) && wordList[index]) {
+                    span.textContent = wordList[index].word;
+                    if (wordList[index].solved) {
+                        span.classList.add('solved');
+                    } else {
+                        span.classList.remove('solved');
+                    }
                 }
             });
         }
