@@ -112,6 +112,72 @@
             box-shadow: 0 8px 25px rgba(221, 161, 94, 0.5), inset 0 0 15px rgba(183, 228, 199, 0.3);
         }
 
+        body[data-theme="stoneage"] { 
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', Arial, sans-serif; 
+        }
+        body[data-theme="stoneage"] .category-header {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-size: 1.4vw;
+            line-height: 1.25;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9);
+            border-bottom: 3px solid var(--card-border);
+            border-radius: 10px 10px 4px 4px;
+            padding: 6px 8px;
+        }
+        body[data-theme="stoneage"] .card {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            font-weight: 800;
+            font-size: 3.2vw;
+            letter-spacing: 0.5px;
+            text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.8), 0 0 10px var(--card-glow);
+        }
+        body[data-theme="stoneage"] .score-val {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.8), 0 0 12px var(--card-glow);
+        }
+        body[data-theme="stoneage"] .team-name {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        body[data-theme="stoneage"] #q-text {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            font-weight: 600;
+            font-size: 3vw;
+            line-height: 1.35;
+            letter-spacing: 0.2px;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.95), 0 0 15px var(--card-glow);
+        }
+        body[data-theme="stoneage"] .board-cell {
+            border-radius: 8px 16px 8px 14px;
+            border: 2px solid rgba(212, 134, 60, 0.45);
+            box-shadow: 0 4px 0 #100a06, 0 8px 18px rgba(0,0,0,0.65), inset 0 0 10px rgba(0,0,0,0.5);
+            background-image: radial-gradient(circle at 35% 30%, rgba(255, 140, 40, 0.08), transparent 70%);
+        }
+        body[data-theme="stoneage"] .card:hover {
+            transform: translateY(-3px) scale(1.02);
+            border-color: #ff9933;
+            box-shadow: 0 6px 0 #100a06, 0 10px 22px rgba(255, 120, 20, 0.55), inset 0 0 15px rgba(255, 180, 60, 0.3);
+            color: #fff9ed;
+        }
+        body[data-theme="stoneage"] .team-score {
+            border-radius: 10px 6px 10px 6px;
+            border: 2px solid var(--score-border);
+            box-shadow: 0 4px 0 #100a06, inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        body[data-theme="stoneage"] .team-score.active {
+            box-shadow: 0 0 20px var(--card-glow), 0 4px 0 #100a06, inset 0 0 10px var(--score-border);
+        }
+        body[data-theme="stoneage"] .card.disabled {
+            border-radius: 8px 16px 8px 14px;
+            opacity: 0.3;
+        }
+
         /* --- AMBIENT PARTICLES --- */
         #ambient-container {
             position: absolute;
@@ -391,36 +457,69 @@
             box-shadow: 0 8px 20px var(--card-glow);
         }
 
-        /* --- FIXED SETTINGS MODAL --- */
+        /* --- RESPONSIVE SETTINGS MODAL & OVERLAY --- */
+        #settings-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: none;
+            z-index: 199;
+        }
+
         #settings-modal {
             position: fixed;
-            top: 30px;
+            top: 50%;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translate(-50%, -50%);
             background: var(--header-bg);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
             color: var(--text-color);
-            padding: 25px 30px;
-            border-radius: 8px;
+            border-radius: 12px;
             border: 2px solid var(--card-border);
-            width: 440px;
+            width: 480px;
+            max-width: calc(100vw - 32px);
+            max-height: calc(100vh - 32px);
             box-sizing: border-box;
             box-shadow: 0 20px 50px rgba(0,0,0,0.9), 0 0 40px var(--card-glow);
             display: none;
+            flex-direction: column;
             z-index: 200;
+            overflow: hidden;
+        }
+
+        .settings-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 22px 14px 22px;
+            border-bottom: 1px solid var(--score-border);
+            background: rgba(0, 0, 0, 0.25);
+            flex-shrink: 0;
+        }
+
+        .settings-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: var(--score-active);
+            letter-spacing: 2px;
+            font-weight: 800;
+            text-transform: uppercase;
         }
 
         .btn-close-modal {
-            position: absolute;
-            top: 15px;
-            right: 18px;
             background: transparent;
             border: none;
             color: var(--text-color);
             font-size: 1.3rem;
             cursor: pointer;
             opacity: 0.7;
-            padding: 0;
+            padding: 4px;
             line-height: 1;
             transition: all 0.2s;
         }
@@ -430,18 +529,55 @@
             transform: scale(1.2);
             color: var(--score-active);
         }
-        
-        #settings-modal h2 { 
-            margin-top: 0; 
-            color: var(--score-active); 
-            text-align: center; 
-            border-bottom: 1px solid var(--score-border); 
-            padding-bottom: 10px;
-            letter-spacing: 2px;
+
+        .settings-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 22px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
         }
 
-        .setting-group { margin-bottom: 16px; }
-        .setting-group label { display: block; margin-bottom: 6px; font-weight: bold; color: var(--score-active); }
+        .settings-footer {
+            padding: 12px 22px 16px 22px;
+            border-top: 1px solid var(--score-border);
+            background: rgba(0, 0, 0, 0.35);
+            flex-shrink: 0;
+        }
+
+        .settings-body::-webkit-scrollbar,
+        .scroll-inputs-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .settings-body::-webkit-scrollbar-track,
+        .scroll-inputs-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 3px;
+        }
+
+        .settings-body::-webkit-scrollbar-thumb,
+        .scroll-inputs-container::-webkit-scrollbar-thumb {
+            background: var(--score-border);
+            border-radius: 3px;
+        }
+
+        .setting-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .setting-group label { 
+            display: block; 
+            margin-bottom: 5px; 
+            font-weight: bold; 
+            color: var(--score-active); 
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
         .setting-group input, .setting-group select { 
             width: 100%; 
             padding: 8px 10px; 
@@ -454,12 +590,19 @@
             font-family: inherit;
         }
 
+        .setting-group select:focus,
+        .setting-group input:focus {
+            outline: none;
+            border-color: var(--score-active);
+            box-shadow: 0 0 8px var(--card-glow);
+        }
+
         /* Fixed-height scrollable containers prevent modal layout shift */
         .scroll-inputs-container {
             display: flex;
             flex-direction: column;
             gap: 8px;
-            height: 110px;
+            height: 95px;
             overflow-y: auto;
             padding-right: 5px;
             margin-top: 6px;
@@ -478,30 +621,62 @@
             width: 100%; 
             background: linear-gradient(135deg, var(--score-active), var(--card-border)); 
             color: #000; 
-            padding: 10px; 
+            padding: 12px; 
             border: none; 
-            border-radius: 4px; 
-            font-size: 1rem; 
+            border-radius: 6px; 
+            font-size: 1.05rem; 
             font-weight: 900;
-            margin-top: 10px;
+            letter-spacing: 1px;
             cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            transition: all 0.2s;
         }
-        .btn-action:hover { filter: brightness(1.2); }
+        .btn-action:hover { 
+            filter: brightness(1.2); 
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px var(--card-glow);
+        }
 
         .btn-secondary {
             width: 100%;
             background: var(--score-bg);
             color: var(--text-color);
             border: 1px solid var(--card-border);
-            padding: 8px;
+            padding: 9px 12px;
             border-radius: 4px;
             font-weight: bold;
-            margin-top: 8px;
+            margin-top: 6px;
             cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
         .btn-secondary:hover {
             background: var(--card-border);
             color: #fff;
+            transform: translateY(-1px);
+        }
+
+        @media (max-height: 700px) {
+            #settings-modal {
+                max-height: calc(100vh - 16px);
+            }
+            .settings-header {
+                padding: 10px 18px 8px 18px;
+            }
+            .settings-body {
+                padding: 12px 18px;
+                gap: 10px;
+            }
+            .scroll-inputs-container {
+                height: 75px;
+            }
+            .settings-footer {
+                padding: 10px 18px 12px 18px;
+            }
         }
 
     </style>
@@ -529,43 +704,59 @@
     </div>
 </div>
 
-<div id="settings-modal">
-    <button class="btn-close-modal" onclick="closeSettings()" title="Close">✖</button>
-    <h2>Settings</h2>
+<!-- Settings Modal Backdrop Overlay -->
+<div id="settings-overlay" onclick="closeSettings()"></div>
+
+<div id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <div class="settings-header">
+        <h2 id="settings-title">⚙ Settings</h2>
+        <button class="btn-close-modal" onclick="closeSettings()" title="Close">✖</button>
+    </div>
     
-    <div class="setting-group">
-        <label>Visual Theme</label>
-        <select id="theme-select" onchange="applyTheme(this.value)">
-            <option value="classic">Classic Studio (Multicolor)</option>
-            <option value="egypt">Sandstone & Gold</option>
-            <option value="cyber">Neon Cyberpunk</option>
-            <option value="space">Deep Space Nebula</option>
-            <option value="forest">Emerald Grove</option>
-        </select>
+    <div class="settings-body">
+        <div class="setting-group">
+            <label>Visual Theme</label>
+            <select id="theme-select" onchange="onThemeSelect(this.value)">
+                <option value="stoneage">Stone Age (Prehistoric Flint & Fire)</option>
+                <option value="classic">Classic Studio (Multicolor)</option>
+                <option value="egypt">Sandstone & Gold</option>
+                <option value="cyber">Neon Cyberpunk</option>
+                <option value="space">Deep Space Nebula</option>
+                <option value="forest">Emerald Grove</option>
+            </select>
+        </div>
+
+        <div class="setting-group">
+            <label>Categories</label>
+            <input type="number" id="category-count" value="5" min="1" max="6" onchange="renderCategoryInputs()">
+            <div id="category-inputs-container" class="scroll-inputs-container"></div>
+        </div>
+
+        <div class="setting-group">
+            <label>Teams & Scores</label>
+            <input type="number" id="team-count" value="2" min="1" max="6" onchange="renderTeamInputs()">
+            <div id="team-inputs-container" class="scroll-inputs-container"></div>
+        </div>
+
+        <div class="setting-group">
+            <label>Load Questions (.txt)</label>
+            <input type="file" id="file-input" accept=".txt">
+            <small style="display:block; margin-top:4px; color:#aaa; line-height: 1.2;">
+                Note: Loading a file overrides category names & questions above.
+            </small>
+        </div>
+
+        <div class="setting-group">
+            <label>Presets & Tools</label>
+            <button class="btn-secondary" onclick="loadStoneAgeQuiz(true)">🪨 Load Stone Age Quiz (h_w5_stone_age_game_questions.txt)</button>
+            <button class="btn-secondary" onclick="downloadStoneAgeFile()">📄 Download Stone Age Questions (.TXT)</button>
+            <button class="btn-secondary" onclick="downloadTxtTemplate()">📥 Download Blank Template (.TXT)</button>
+        </div>
     </div>
 
-    <div class="setting-group">
-        <label>Categories</label>
-        <input type="number" id="category-count" value="5" min="1" max="6" onchange="renderCategoryInputs()">
-        <div id="category-inputs-container" class="scroll-inputs-container"></div>
+    <div class="settings-footer">
+        <button class="btn-action" onclick="saveSettings()">Save & Update</button>
     </div>
-
-    <div class="setting-group">
-        <label>Teams & Scores</label>
-        <input type="number" id="team-count" value="2" min="1" max="6" onchange="renderTeamInputs()">
-        <div id="team-inputs-container" class="scroll-inputs-container"></div>
-    </div>
-
-    <div class="setting-group">
-        <label>Load Questions (.txt)</label>
-        <input type="file" id="file-input" accept=".txt">
-        <small style="display:block; margin-top:4px; color:#aaa; line-height: 1.2;">
-            Note: Loading a file overrides category names & questions above.
-        </small>
-    </div>
-
-    <button class="btn-action" onclick="saveSettings()">Save & Update</button>
-    <button class="btn-secondary" onclick="downloadTxtTemplate()">Download Template (.TXT)</button>
 </div>
 
 <script>
@@ -686,14 +877,46 @@
             },
             particles: ['✨', '🍃', '🌱', '•', '✦'],
             disabledIcon: "🍃"
+        },
+        stoneage: {
+            name: "Stone Age & Flint",
+            synthWave: 'triangle',
+            vars: {
+                '--bg-top': '#120d09',
+                '--bg-bottom': '#24160d',
+                '--text-color': '#f8ebd4',
+                '--c1': 'rgba(166, 77, 36, 0.38)',    /* Cave Ochre & Pigment Red */
+                '--c2': 'rgba(105, 115, 122, 0.38)',  /* Flint & Slate Rock */
+                '--c3': 'rgba(196, 114, 28, 0.38)',   /* Campfire Ember Orange */
+                '--c4': 'rgba(125, 93, 59, 0.38)',    /* Mammoth Fur & Timber */
+                '--c5': 'rgba(74, 107, 72, 0.38)',    /* Primitive Moss & River Stone */
+                '--card-border': '#d4863c',
+                '--card-glow': 'rgba(255, 120, 30, 0.85)',
+                '--header-bg': 'rgba(20, 13, 8, 0.94)',
+                '--modal-bg': 'rgba(14, 9, 6, 0.97)',
+                '--score-bg': 'rgba(212, 134, 60, 0.08)',
+                '--score-border': 'rgba(212, 134, 60, 0.45)',
+                '--score-active': '#ff8f29'
+            },
+            particles: ['🔥', '🪨', '🦴', '🦣', '✨', '🪵', '🐾', '🌋', '🥩'],
+            disabledIcon: "🦴"
         }
     };
 
-    let currentThemeKey = 'classic';
+    let currentThemeKey = localStorage.getItem('jeopardy_theme') || 'stoneage';
+
+    function onThemeSelect(themeKey) {
+        if (themeKey === 'stoneage') {
+            loadStoneAgeQuiz(false);
+        } else {
+            applyTheme(themeKey);
+        }
+    }
 
     function applyTheme(themeKey) {
         if (!themes[themeKey]) themeKey = 'classic';
         currentThemeKey = themeKey;
+        try { localStorage.setItem('jeopardy_theme', themeKey); } catch (e) {}
         const theme = themes[themeKey];
 
         document.body.setAttribute('data-theme', themeKey);
@@ -757,13 +980,15 @@
         const wave = themes[currentThemeKey].synthWave || 'triangle';
 
         if (type === 'click') {
-            osc.type = wave;
-            osc.frequency.setValueAtTime(800, now);
-            osc.frequency.exponentialRampToValueAtTime(250, now + 0.05);
-            gainNode.gain.setValueAtTime(0.08, now);
-            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+            // Smooth, pleasant chime/pop instead of harsh frequency plunge
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(440, now);
+            osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
+            gainNode.gain.setValueAtTime(0.001, now);
+            gainNode.gain.linearRampToValueAtTime(0.07, now + 0.015);
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
             osc.start(now);
-            osc.stop(now + 0.05);
+            osc.stop(now + 0.14);
         } else if (type === 'correct') {
             osc.type = 'sine';
             osc.frequency.setValueAtTime(523.25, now); 
@@ -805,12 +1030,17 @@
 
     // --- Initialization ---
     function initGame(resetBoard = true) {
+        if (currentThemeKey === 'stoneage' && (!gameData.questions || gameData.questions.length === 0)) {
+            gameData = JSON.parse(JSON.stringify(stoneAgeQuizData));
+        }
         applyTheme(currentThemeKey);
         if (resetBoard) {
             renderBoard();
         }
         renderScoreboard();
         document.getElementById('settings-modal').style.display = 'none';
+        const overlay = document.getElementById('settings-overlay');
+        if (overlay) overlay.style.display = 'none';
     }
 
     function renderBoard() {
@@ -977,11 +1207,15 @@
         
         renderCategoryInputs();
         renderTeamInputs();
-        document.getElementById('settings-modal').style.display = 'block';
+        document.getElementById('settings-modal').style.display = 'flex';
+        const overlay = document.getElementById('settings-overlay');
+        if (overlay) overlay.style.display = 'block';
     }
 
     function closeSettings() {
         document.getElementById('settings-modal').style.display = 'none';
+        const overlay = document.getElementById('settings-overlay');
+        if (overlay) overlay.style.display = 'none';
     }
 
     function renderCategoryInputs() {
@@ -1183,6 +1417,125 @@ Category: Category 5 Name
         const file = new Blob([txtTemplate], { type: "text/plain" });
         a.href = URL.createObjectURL(file);
         a.download = "game_questions.txt";
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
+
+    // --- Stone Age Questions (from h_w5_stone_age_game_questions.txt) ---
+    const stoneAgeQuizData = {
+        categories: [
+            "The Stone Age Toolbox",
+            "What's for Dinner?",
+            "Home Sweet Home",
+            "Then and Now",
+            "The Fire Pit"
+        ],
+        questions: [
+            { col: 1, row: 1, q: "What did Stone Age people use to make sharp tools?" },
+            { col: 1, row: 2, q: "What weapon was made from a long stick with a sharp point?" },
+            { col: 1, row: 3, q: "What tool did people use to chop wood?" },
+            { col: 1, row: 4, q: "What did people use to sew animal skins together?" },
+            { col: 1, row: 5, q: "What did people use like string to tie stones onto sticks?" },
+
+            { col: 2, row: 1, q: "What small, sweet fruits did people pick from bushes?" },
+            { col: 2, row: 2, q: "What did Stone Age people catch in rivers to eat?" },
+            { col: 2, row: 3, q: "What huge, furry animal had long, curved tusks?" },
+            { col: 2, row: 4, q: "What did early farmers grow to make flour?" },
+            { col: 2, row: 5, q: "How did people crush grain to make flour?" },
+
+            { col: 3, row: 1, q: "Where could Stone Age people shelter from wind and rain?" },
+            { col: 3, row: 2, q: "What did people wear to keep warm?" },
+            { col: 3, row: 3, q: "What do we call a group of huts where people live together?" },
+            { col: 3, row: 4, q: "What did people put on hut roofs to keep out the rain?" },
+            { col: 3, row: 5, q: "People mixed mud with what to make hut walls?" },
+
+            { col: 4, row: 1, q: "How did Stone Age people travel?" },
+            { col: 4, row: 2, q: "What did people shape into bowls and pots?" },
+            { col: 4, row: 3, q: "Why did people build their homes near rivers?" },
+            { col: 4, row: 4, q: "Why did farmers build fences around their animals?" },
+            { col: 4, row: 5, q: "Why did hunters move to new places?" },
+
+            { col: 5, row: 1, q: "What did people put on a fire to keep it burning?" },
+            { col: 5, row: 2, q: "What did people carry to see inside dark caves?" },
+            { col: 5, row: 3, q: "How did fire protect people at night?" },
+            { col: 5, row: 4, q: "Why did people cook meat over a fire?" },
+            { col: 5, row: 5, q: "What did Stone Age people use to make black drawings on cave walls?" }
+        ]
+    };
+
+    async function loadStoneAgeQuiz(closeModalAfter = true) {
+        try {
+            const res = await fetch('h_w5_stone_age_game_questions.txt');
+            if (res.ok) {
+                const text = await res.text();
+                const parsed = parseTxtQuestions(text);
+                if (parsed && parsed.categories.length) {
+                    gameData = parsed;
+                } else {
+                    gameData = JSON.parse(JSON.stringify(stoneAgeQuizData));
+                }
+            } else {
+                gameData = JSON.parse(JSON.stringify(stoneAgeQuizData));
+            }
+        } catch (e) {
+            gameData = JSON.parse(JSON.stringify(stoneAgeQuizData));
+        }
+
+        applyTheme('stoneage');
+        const themeSelect = document.getElementById('theme-select');
+        if (themeSelect) themeSelect.value = 'stoneage';
+
+        const catCountInput = document.getElementById('category-count');
+        if (catCountInput) catCountInput.value = gameData.categories.length;
+
+        renderCategoryInputs();
+        initGame(true);
+        if (closeModalAfter) {
+            closeSettings();
+        }
+    }
+
+    function downloadStoneAgeFile() {
+        const text = 
+`Category: The Stone Age Toolbox
+100: What did Stone Age people use to make sharp tools?
+200: What weapon was made from a long stick with a sharp point?
+300: What tool did people use to chop wood?
+400: What did people use to sew animal skins together?
+500: What did people use like string to tie stones onto sticks?
+
+Category: What's for Dinner?
+100: What small, sweet fruits did people pick from bushes?
+200: What did Stone Age people catch in rivers to eat?
+300: What huge, furry animal had long, curved tusks?
+400: What did early farmers grow to make flour?
+500: How did people crush grain to make flour?
+
+Category: Home Sweet Home
+100: Where could Stone Age people shelter from wind and rain?
+200: What did people wear to keep warm?
+300: What do we call a group of huts where people live together?
+400: What did people put on hut roofs to keep out the rain?
+500: People mixed mud with what to make hut walls?
+
+Category: Then and Now
+100: How did Stone Age people travel?
+200: What did people shape into bowls and pots?
+300: Why did people build their homes near rivers?
+400: Why did farmers build fences around their animals?
+500: Why did hunters move to new places?
+
+Category: The Fire Pit
+100: What did people put on a fire to keep it burning?
+200: What did people carry to see inside dark caves?
+300: How did fire protect people at night?
+400: Why did people cook meat over a fire?
+500: What did Stone Age people use to make black drawings on cave walls?`;
+
+        const a = document.createElement('a');
+        const file = new Blob([text], { type: "text/plain" });
+        a.href = URL.createObjectURL(file);
+        a.download = "h_w5_stone_age_game_questions.txt";
         a.click();
         URL.revokeObjectURL(a.href);
     }

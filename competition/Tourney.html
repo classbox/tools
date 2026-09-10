@@ -174,7 +174,7 @@
             flex: 1;
             position: relative;
             overflow: auto;
-            display: flex;
+            display: block;
             background-color: var(--bg-color);
             background-image: 
                 radial-gradient(1px 1px at 20px 20px, rgba(255,255,255,0.04) 100%, transparent),
@@ -184,9 +184,11 @@
 
         #bracket-content {
             position: relative;
+            display: inline-flex;
             min-width: 100%;
             min-height: 100%;
-            display: flex;
+            width: max-content;
+            height: max-content;
             padding: 30px 40px;
             gap: 40px;
             align-items: stretch;
@@ -201,6 +203,7 @@
             height: 100%;
             pointer-events: none;
             z-index: 1;
+            overflow: visible;
         }
 
         .svg-connector {
@@ -1469,8 +1472,22 @@
             bracketSvg.innerHTML = '';
             const contentRect = bracketContent.getBoundingClientRect();
 
-            bracketSvg.setAttribute('width', contentRect.width);
-            bracketSvg.setAttribute('height', contentRect.height);
+            const fullWidth = Math.max(
+                bracketContent.scrollWidth,
+                bracketContent.offsetWidth,
+                bracketContent.clientWidth
+            );
+            const fullHeight = Math.max(
+                bracketContent.scrollHeight,
+                bracketContent.offsetHeight,
+                bracketContent.clientHeight
+            );
+
+            bracketSvg.setAttribute('width', fullWidth);
+            bracketSvg.setAttribute('height', fullHeight);
+            bracketSvg.setAttribute('viewBox', `0 0 ${fullWidth} ${fullHeight}`);
+            bracketSvg.style.width = `${fullWidth}px`;
+            bracketSvg.style.height = `${fullHeight}px`;
 
             const roundCols = bracketContent.querySelectorAll('.round-col');
 
@@ -1811,8 +1828,11 @@
             showToast("Bracket progress reset", "🔄");
         });
 
-        // Window resize re-computes SVG paths
+        // Window resize and load re-computes SVG paths
         window.addEventListener('resize', () => {
+            requestAnimationFrame(drawBracketConnectors);
+        });
+        window.addEventListener('load', () => {
             requestAnimationFrame(drawBracketConnectors);
         });
 
