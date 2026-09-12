@@ -833,10 +833,26 @@ Liam</textarea>
         }
     });
 
+    // Synchronously preload active roster from storage if present
+    try {
+        const activeClass = localStorage.getItem('classroom_selected_class') || 'classA';
+        const key = activeClass === 'classB' ? 'roster_classB' : 'roster_classA';
+        const raw = localStorage.getItem(key);
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                const textarea = document.getElementById('names-input');
+                if (textarea) textarea.value = parsed.join('\n');
+            }
+        }
+    } catch (e) {}
+
     // Re-cache ball text after Google Fonts arrive asynchronously
-    document.fonts.ready.then(() => {
-        balls.forEach(b => b.cacheCanvas());
-    });
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(() => {
+            balls.forEach(b => b.cacheCanvas());
+        });
+    }
 
     applySettings(); loop();
 </script>
