@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Instructions Ordering</title>
+  <style>
+    :root {
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --bg: #e8f5e9;
+      --card-bg: #ffffff;
+      --primary: #2e7d32;
+      --primary-gradient: linear-gradient(135deg, #43a047 0%, #2e7d32 100%);
+      --accent: #f57c00;
+      --accent-gradient: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%);
+      --theme-banner: #c8e6c9;
+      --border-color: #a5d6a7;
+      --text-dark: #1b5e20;
+      --text-body: #1e293b;
+      --card-border: #81c784;
+    }
+
+    body.minecraft-theme {
+      --bg: #e0f2f1;
+      --primary: #00796b;
+      --primary-gradient: linear-gradient(135deg, #26a69a 0%, #00796b 100%);
+      --accent: #0288d1;
+      --accent-gradient: linear-gradient(135deg, #29b6f6 0%, #0288d1 100%);
+      --theme-banner: #b2dfdb;
+      --border-color: #80cbc4;
+      --text-dark: #004d40;
+      --card-border: #4db6ac;
+    }
+
+    body.pancake-theme {
+      --bg: #fff8e1;
+      --primary: #d84315;
+      --primary-gradient: linear-gradient(135deg, #ff7043 0%, #d84315 100%);
+      --accent: #fbc02d;
+      --accent-gradient: linear-gradient(135deg, #fdd835 0%, #f57f17 100%);
+      --theme-banner: #ffe082;
+      --border-color: #ffd54f;
+      --text-dark: #bf360c;
+      --card-border: #ffb74d;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background: var(--bg);
+      color: var(--text-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 24px;
+      transition: background 0.3s ease;
+    }
+
+    /* Top Navigation Bar */
+    header {
+      width: 100%;
+      max-width: 1320px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      background: #ffffff;
+      border: 3px solid #cbd5e1;
+      color: #334155;
+      font-size: 1.3rem;
+      font-weight: 800;
+      padding: 10px 22px;
+      border-radius: 40px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .tab-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+    }
+
+    .tab-btn.active {
+      background: var(--primary-gradient);
+      color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.8);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .icon-btn {
+      background: #ffffff;
+      border: 3px solid #cbd5e1;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+    }
+
+    .icon-btn:hover {
+      border-color: #64748b;
+      transform: scale(1.08);
+    }
+
+    /* Word Bank Ribbon with Colorful Accents */
+    .word-ribbon {
+      width: 100%;
+      max-width: 1320px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      padding: 14px 22px;
+      background: #ffffff;
+      border-radius: 24px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+      border: 3.5px solid var(--accent);
+    }
+
+    .word-chip {
+      background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+      border: 3px solid #fb8c00;
+      color: #b23c00;
+      font-size: 1.45rem;
+      font-weight: 900;
+      padding: 9px 24px;
+      border-radius: 16px;
+      cursor: grab;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 4px 10px rgba(251, 140, 0, 0.25);
+    }
+
+    .word-chip:hover:not(.used) {
+      background: var(--accent-gradient);
+      color: #ffffff;
+      border-color: #e65100;
+      transform: translateY(-3px) scale(1.04);
+      box-shadow: 0 8px 18px rgba(230, 81, 0, 0.35);
+    }
+
+    .word-chip:active:not(.used) {
+      cursor: grabbing;
+    }
+
+    .word-chip.dragging {
+      opacity: 0.5;
+      transform: scale(0.95);
+    }
+
+    /* Word becomes greyed out when used */
+    .word-chip.used {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+      color: #94a3b8;
+      opacity: 0.4;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+      text-decoration: line-through;
+    }
+
+    /* Main Grid Split */
+    main {
+      width: 100%;
+      max-width: 1320px;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 24px;
+      flex: 1;
+      align-items: start;
+    }
+
+    @media (max-width: 1024px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Left: Steps Timeline */
+    .steps-container {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .step-row {
+      background: #ffffff;
+      border: 3px solid #e2e8f0;
+      border-radius: 22px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-height: 90px;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    }
+
+    .step-row.active-slot {
+      border: 3.5px dashed var(--accent);
+      background: #fffdf5;
+      box-shadow: 0 0 20px rgba(245, 124, 0, 0.22);
+      transform: scale(1.01);
+    }
+
+    .step-row.filled {
+      border: 3.5px solid var(--primary);
+      background: #ffffff;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    .step-num {
+      font-size: 1.35rem;
+      font-weight: 900;
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: #e2e8f0;
+      color: #475569;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 2px solid #cbd5e1;
+    }
+
+    .step-row.filled .step-num {
+      background: var(--primary-gradient);
+      color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.4);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Sequencing Word Drop Zone */
+    .word-slot-btn {
+      font-family: inherit;
+      font-size: 1.35rem;
+      font-weight: 900;
+      padding: 9px 18px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 140px;
+      min-height: 50px;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+
+    /* When word is empty on page load - inviting drop target */
+    .word-slot-btn.empty {
+      background: #f8fafc;
+      border: 2.5px dashed #94a3b8;
+      color: #64748b;
+    }
+
+    .word-slot-btn.empty:hover {
+      background: #fff7ed;
+      border-color: #fb8c00;
+      color: #c2410c;
+    }
+
+    /* When dragging over slot */
+    .word-slot-btn.drag-over {
+      background: #fed7aa !important;
+      border: 3.5px dashed #ea580c !important;
+      color: #9a3412 !important;
+      transform: scale(1.08) !important;
+      box-shadow: 0 0 18px rgba(234, 88, 12, 0.4) !important;
+    }
+
+    /* When word is dropped / slotted */
+    .word-slot-btn.has-word {
+      background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+      border: 2.5px solid #e65100;
+      color: #ffffff;
+      box-shadow: 0 4px 10px rgba(245, 124, 0, 0.35);
+      cursor: pointer;
+    }
+
+    .word-slot-btn.has-word:hover {
+      background: linear-gradient(135deg, #ffa726 0%, #ef6c00 100%);
+      transform: translateY(-1px);
+    }
+
+    .word-slot-btn .remove-x {
+      font-size: 1.1rem;
+      opacity: 0.8;
+      margin-left: 4px;
+      cursor: pointer;
+    }
+
+    .word-slot-btn .remove-x:hover {
+      opacity: 1;
+      transform: scale(1.2);
+    }
+
+    /* Action Text Slot */
+    .step-action-text {
+      flex: 1;
+      font-size: 1.35rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: #1e293b;
+      line-height: 1.35;
+    }
+
+    .step-action-text.empty {
+      color: #94a3b8;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    /* Vibrant, Themed Picture Badges */
+    .emoji-badge {
+      font-size: 2.2rem;
+      width: 58px;
+      height: 58px;
+      border-radius: 16px;
+      background: #f8fafc;
+      border: 2.5px solid #cbd5e1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Slime Badge Glow */
+    .step-row.filled .emoji-badge {
+      background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+      border-color: #86efac;
+    }
+
+    /* Minecraft Badge Glow */
+    body.minecraft-theme .step-row.filled .emoji-badge {
+      background: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%);
+      border-color: #5eead4;
+    }
+
+    /* Pancake Badge Glow */
+    body.pancake-theme .step-row.filled .emoji-badge {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border-color: #fcd34d;
+    }
+
+    /* Right: Candidate Cards with Colorful Borders & Hover */
+    .cards-container {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .card {
+      background: #ffffff;
+      border: 3px solid #93c5fd;
+      border-radius: 22px;
+      padding: 16px 20px;
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+      transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    body.minecraft-theme .card {
+      border-color: #80cbc4;
+    }
+
+    body.pancake-theme .card {
+      border-color: #fbc02d;
+    }
+
+    .card:hover {
+      border-color: #2563eb;
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.2);
+      background: #f8fafc;
+    }
+
+    body.minecraft-theme .card:hover {
+      border-color: #00897b;
+      box-shadow: 0 10px 24px rgba(0, 137, 123, 0.2);
+    }
+
+    body.pancake-theme .card:hover {
+      border-color: #e65100;
+      box-shadow: 0 10px 24px rgba(230, 81, 0, 0.22);
+    }
+
+    .card:active {
+      transform: scale(0.98);
+    }
+
+    .card.used {
+      display: none;
+    }
+
+    .card.shake {
+      animation: cardShake 0.45s cubic-bezier(.36,.07,.19,.97) both;
+      border-color: #ef4444 !important;
+      background: #fef2f2 !important;
+    }
+
+    @keyframes cardShake {
+      20%, 80% { transform: translateX(8px); }
+      40%, 60% { transform: translateX(-8px); }
+    }
+
+    /* Word Picker Popover */
+    .popover-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.38);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      backdrop-filter: blur(3px);
+    }
+
+    .popover-backdrop.open {
+      display: flex;
+    }
+
+    .popover-card {
+      background: #ffffff;
+      border-radius: 26px;
+      padding: 26px 30px;
+      max-width: 540px;
+      width: 90%;
+      border: 4px solid var(--accent);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.25);
+      text-align: center;
+      animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.88); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .popover-title {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: #d84315;
+      margin-bottom: 18px;
+    }
+
+    .popover-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .popover-choice {
+      background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+      border: 2.5px solid #fb923c;
+      color: #c2410c;
+      font-size: 1.4rem;
+      font-weight: 800;
+      padding: 12px 6px;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .popover-choice:hover {
+      background: var(--accent-gradient);
+      color: #ffffff;
+      border-color: #e65100;
+    }
+
+    .popover-clear-btn {
+      background: #f1f5f9;
+      border: 2px solid #cbd5e1;
+      color: #475569;
+      font-size: 1.15rem;
+      font-weight: 800;
+      padding: 10px 24px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .popover-clear-btn:hover {
+      background: #e2e8f0;
+      color: #1e293b;
+    }
+
+    /* Full Story View on Completion */
+    .story-card {
+      display: none;
+      grid-column: 1 / -1;
+      background: #ffffff;
+      border: 4px solid var(--primary);
+      border-radius: 26px;
+      padding: 28px;
+      margin-top: 10px;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.1);
+      animation: fadeIn 0.35s ease;
+    }
+
+    .story-card.show {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .story-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .story-paragraph {
+      font-size: 1.65rem;
+      line-height: 1.9;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .story-word {
+      background: #fef08a;
+      color: #854d0e;
+      font-weight: 900;
+      padding: 3px 12px;
+      border-radius: 10px;
+      border: 1.5px solid #facc15;
+    }
+
+    .btn-read {
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      font-size: 1.3rem;
+      font-weight: 900;
+      padding: 12px 24px;
+      border-radius: 30px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transition: all 0.2s;
+    }
+
+    .btn-read:hover {
+      filter: brightness(1.1);
+      transform: translateY(-2px);
+    }
+
+    /* Confetti Canvas */
+    #confettiCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 2000;
+    }
+
+    .reading-highlight {
+      background: #bbf7d0 !important;
+      color: #14532d !important;
+      border-radius: 8px;
+      padding: 2px 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="confettiCanvas"></canvas>
+
+  <!-- Top Navigation with 3 Activities -->
+  <header>
+    <div class="tabs">
+      <button class="tab-btn active" id="tabSlime" onclick="setActivity('slime')">
+        🧪 Making Slime
+      </button>
+      <button class="tab-btn" id="tabMinecraft" onclick="setActivity('minecraft')">
+        ⛏️ Minecraft Item
+      </button>
+      <button class="tab-btn" id="tabPancakes" onclick="setActivity('pancakes')">
+        🥞 Making Pancakes
+      </button>
+    </div>
+
+    <div class="top-actions">
+      <button class="icon-btn" id="btnSound" title="Sound" onclick="toggleSound()">🔊</button>
+      <button class="icon-btn" title="Reset" onclick="resetCurrent()">🔄</button>
+      <button class="icon-btn" title="Fullscreen" onclick="toggleFullscreen()">⛶</button>
+    </div>
+  </header>
+
+  <!-- Clean Word Bank Ribbon -->
+  <div class="word-ribbon" id="wordRibbon">
+    <!-- Words rendered dynamically -->
+  </div>
+
+  <!-- Main Grid: Left Steps, Right Cards -->
+  <main>
+    <div class="steps-container" id="stepsContainer">
+      <!-- 5 Step Rows -->
+    </div>
+
+    <div class="cards-container" id="cardsContainer">
+      <!-- Candidate Cards -->
+    </div>
+
+    <!-- Complete Story Card (revealed when complete) -->
+    <div class="story-card" id="storyCard">
+      <div class="story-card-top">
+        <h2 style="font-size: 1.65rem; color: var(--primary);">📖 Completed Instructions</h2>
+        <button class="btn-read" onclick="readStoryAloud()">📢 Read Aloud</button>
+      </div>
+      <div class="story-paragraph" id="storyParagraph"></div>
+    </div>
+  </main>
+
+  <script>
+    /* ==========================================
+       AUDIO SYNTHESIZER (Pure Web Audio API)
+       ========================================== */
+    class AudioPlayer {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      ping() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        [1046.5, 1567.98].forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.07);
+          gain.gain.setValueAtTime(0.28, now + idx * 0.07);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.07 + 0.5);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.07);
+          osc.stop(now + idx * 0.07 + 0.55);
+        });
+      }
+
+      wobble() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.exponentialRampToValueAtTime(130, now + 0.22);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.26);
+      }
+
+      click() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(750, now);
+        osc.frequency.exponentialRampToValueAtTime(350, now + 0.05);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.06);
+      }
+
+      fanfare() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const notes = [523.25, 659.25, 783.99, 1046.5];
+        const now = this.ctx.currentTime;
+        notes.forEach((f, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(f, now + i * 0.1);
+          gain.gain.setValueAtTime(0.25, now + i * 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.7);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + i * 0.1);
+          osc.stop(now + i * 0.1 + 0.75);
+        });
+      }
+    }
+
+    const audio = new AudioPlayer();
+
+    /* ==========================================
+       DATA: 3 ACTIVITIES
+       ========================================== */
+    const WORDS = ['First', 'Next', 'Then', 'After that', 'And', 'Lastly'];
+
+    const DATA = {
+      slime: {
+        themeClass: '',
+        steps: [
+          { order: 1, text: "Pour clear glue into a big bowl.", emoji: "🥣" },
+          { order: 2, text: "Add food colouring and shiny glitter.", emoji: "✨" },
+          { order: 3, text: "Mix in baking soda and contact solution.", emoji: "🧴" },
+          { order: 4, text: "Squeeze and stretch the slime with your hands.", emoji: "👐" },
+          { order: 5, text: "Put your slime into a clean jar.", emoji: "🫙" }
+        ]
+      },
+      minecraft: {
+        themeClass: 'minecraft-theme',
+        steps: [
+          { order: 1, text: "Punch oak trees to collect wood logs.", emoji: "🌲" },
+          { order: 2, text: "Make the wood logs into wooden planks.", emoji: "🪵" },
+          { order: 3, text: "Make a crafting table and wooden sticks.", emoji: "🪓" },
+          { order: 4, text: "Dig deep down to find shiny diamonds.", emoji: "💎" },
+          { order: 5, text: "Put two diamonds and one stick on the table.", emoji: "⚔️" }
+        ]
+      },
+      pancakes: {
+        themeClass: 'pancake-theme',
+        steps: [
+          { order: 1, text: "Put flour, eggs, and milk into a big bowl.", emoji: "🥚" },
+          { order: 2, text: "Mix everything together with a spoon.", emoji: "🥣" },
+          { order: 3, text: "Warm up butter in a frying pan.", emoji: "🍳" },
+          { order: 4, text: "Cook the pancake and flip it over.", emoji: "🥞" },
+          { order: 5, text: "Eat the warm pancake with sweet syrup.", emoji: "🍓" }
+        ]
+      }
+    };
+
+    /* ==========================================
+       STATE
+       ========================================== */
+    let currentKey = 'slime';
+    let currentStep = 1; // 1 to 5
+    let slottedWords = {}; // Starts EMPTY on load!
+    let placedActions = {}; // order -> step object
+    let activePopoverStep = null;
+    let availableCardOrders = [1, 2, 3, 4, 5];
+    let shuffledWords = [...WORDS];
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initConfetti();
+      setActivity('slime');
+    });
+
+    function setActivity(key) {
+      currentKey = key;
+      currentStep = 1;
+      placedActions = {};
+      slottedWords = {}; // EMPTY on activity load
+
+      document.body.className = DATA[key].themeClass;
+      document.getElementById('tabSlime').classList.toggle('active', key === 'slime');
+      document.getElementById('tabMinecraft').classList.toggle('active', key === 'minecraft');
+      document.getElementById('tabPancakes').classList.toggle('active', key === 'pancakes');
+      document.getElementById('storyCard').classList.remove('show');
+
+      // Shuffle cards
+      availableCardOrders = [1, 2, 3, 4, 5];
+      for (let i = availableCardOrders.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [availableCardOrders[i], availableCardOrders[j]] = [availableCardOrders[j], availableCardOrders[i]];
+      }
+
+      // Shuffle word bank so words are NOT in chronological order!
+      shuffledWords = [...WORDS];
+      for (let i = shuffledWords.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledWords[i], shuffledWords[j]] = [shuffledWords[j], shuffledWords[i]];
+      }
+
+      renderWordRibbon();
+      renderSteps();
+      renderCards();
+    }
+
+    function resetCurrent() {
+      audio.click();
+      setActivity(currentKey);
+    }
+
+    /* Word Ribbon: Draggable chips */
+    let draggedWord = null;
+
+    function renderWordRibbon() {
+      const ribbon = document.getElementById('wordRibbon');
+      ribbon.innerHTML = '';
+      
+      const usedWordsList = Object.values(slottedWords).filter(Boolean);
+
+      shuffledWords.forEach(word => {
+        const isUsed = usedWordsList.includes(word);
+        const chip = document.createElement('div');
+        chip.className = `word-chip ${isUsed ? 'used' : ''}`;
+        chip.innerText = word;
+        
+        if (!isUsed) {
+          chip.setAttribute('draggable', 'true');
+          chip.title = `Drag "${word}" into any step`;
+
+          // HTML5 Drag Events
+          chip.addEventListener('dragstart', (e) => {
+            draggedWord = word;
+            chip.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', word);
+            e.dataTransfer.effectAllowed = 'copyMove';
+            audio.click();
+          });
+
+          chip.addEventListener('dragend', () => {
+            chip.classList.remove('dragging');
+            draggedWord = null;
+            document.querySelectorAll('.word-slot-btn').forEach(slot => slot.classList.remove('drag-over'));
+          });
+
+          // Touch Drag Support for Interactive Whiteboards / iPads
+          let touchClone = null;
+          chip.addEventListener('touchstart', (e) => {
+            draggedWord = word;
+            audio.click();
+            const touch = e.touches[0];
+            touchClone = chip.cloneNode(true);
+            touchClone.style.position = 'fixed';
+            touchClone.style.zIndex = '9999';
+            touchClone.style.pointerEvents = 'none';
+            touchClone.style.opacity = '0.85';
+            touchClone.style.transform = 'scale(1.1)';
+            touchClone.style.left = (touch.clientX - 50) + 'px';
+            touchClone.style.top = (touch.clientY - 25) + 'px';
+            document.body.appendChild(touchClone);
+          }, { passive: true });
+
+          chip.addEventListener('touchmove', (e) => {
+            const touch = e.touches[0];
+            if (touchClone) {
+              touchClone.style.left = (touch.clientX - 50) + 'px';
+              touchClone.style.top = (touch.clientY - 25) + 'px';
+            }
+            // Highlight target slot if over one
+            const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
+            const slot = targetEl ? targetEl.closest('.word-slot-btn') : null;
+            document.querySelectorAll('.word-slot-btn').forEach(s => s.classList.remove('drag-over'));
+            if (slot) slot.classList.add('drag-over');
+          }, { passive: true });
+
+          chip.addEventListener('touchend', (e) => {
+            if (touchClone) {
+              touchClone.remove();
+              touchClone = null;
+            }
+            const touch = e.changedTouches[0];
+            const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
+            const slot = targetEl ? targetEl.closest('.word-slot-btn') : null;
+            document.querySelectorAll('.word-slot-btn').forEach(s => s.classList.remove('drag-over'));
+            if (slot && draggedWord) {
+              const stepIndex = parseInt(slot.dataset.stepIndex, 10);
+              slotWordIntoStep(stepIndex, draggedWord);
+            }
+            draggedWord = null;
+          });
+
+          // Optional 1-click fallback: clicking also drops it in the first empty slot!
+          chip.onclick = () => {
+            audio.click();
+            let target = null;
+            for (let i = 1; i <= 5; i++) {
+              if (!slottedWords[i]) { target = i; break; }
+            }
+            if (!target) target = Math.min(currentStep, 5);
+            slotWordIntoStep(target, word);
+          };
+        } else {
+          chip.title = `"${word}" is already in use`;
+        }
+
+        ribbon.appendChild(chip);
+      });
+    }
+
+    function slotWordIntoStep(stepIndex, word) {
+      audio.click();
+      slottedWords[stepIndex] = word;
+      renderWordRibbon();
+      renderSteps();
+      updateStory();
+    }
+
+    function removeWordFromStep(stepIndex) {
+      audio.click();
+      delete slottedWords[stepIndex];
+      renderWordRibbon();
+      renderSteps();
+      updateStory();
+    }
+
+    /* Left Steps Panel */
+    function renderSteps() {
+      const container = document.getElementById('stepsContainer');
+      container.innerHTML = '';
+
+      for (let i = 1; i <= 5; i++) {
+        const isFilled = !!placedActions[i];
+        const isActive = i === currentStep && !isFilled;
+
+        const row = document.createElement('div');
+        row.className = `step-row ${isFilled ? 'filled' : ''} ${isActive ? 'active-slot' : ''}`;
+
+        // Number badge
+        const num = document.createElement('div');
+        num.className = 'step-num';
+        num.innerText = i;
+
+        // Sequencing word drop zone
+        const slot = document.createElement('div');
+        const word = slottedWords[i];
+        slot.className = `word-slot-btn ${word ? 'has-word' : 'empty'}`;
+        slot.dataset.stepIndex = i;
+
+        if (word) {
+          slot.innerHTML = `<span>${word}</span> <span class="remove-x" title="Remove word">✕</span>`;
+          slot.title = `Click ✕ to return "${word}" to the bank`;
+          const removeBtn = slot.querySelector('.remove-x');
+          if (removeBtn) {
+            removeBtn.onclick = (e) => {
+              e.stopPropagation();
+              removeWordFromStep(i);
+            };
+          }
+        } else {
+          slot.innerHTML = ``;
+          slot.title = `Drop a sequencing word here`;
+        }
+
+        // Drag-and-Drop listeners for the drop zone
+        slot.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'copy';
+          slot.classList.add('drag-over');
+        });
+
+        slot.addEventListener('dragleave', () => {
+          slot.classList.remove('drag-over');
+        });
+
+        slot.addEventListener('drop', (e) => {
+          e.preventDefault();
+          slot.classList.remove('drag-over');
+          const droppedWord = e.dataTransfer.getData('text/plain') || draggedWord;
+          if (droppedWord) {
+            slotWordIntoStep(i, droppedWord);
+          }
+        });
+
+        // Action text slot
+        const textSpan = document.createElement('div');
+        textSpan.className = `step-action-text ${!isFilled ? 'empty' : ''}`;
+
+        if (isFilled) {
+          const step = placedActions[i];
+          textSpan.innerHTML = `
+            <div class="emoji-badge">${step.emoji}</div>
+            <span>${step.text}</span>
+          `;
+        } else {
+          textSpan.innerText = isActive ? "Select next step..." : "";
+        }
+
+        row.appendChild(num);
+        row.appendChild(slot);
+        row.appendChild(textSpan);
+        container.appendChild(row);
+      }
+    }
+
+    /* Right Cards Panel */
+    function renderCards() {
+      const container = document.getElementById('cardsContainer');
+      container.innerHTML = '';
+      const act = DATA[currentKey];
+
+      availableCardOrders.forEach(order => {
+        const step = act.steps.find(s => s.order === order);
+        if (!step) return;
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.id = `card-${order}`;
+        card.innerHTML = `
+          <div class="emoji-badge">${step.emoji}</div>
+          <span>${step.text}</span>
+        `;
+        card.onclick = () => onCardClick(step);
+        container.appendChild(card);
+      });
+    }
+
+    /* Card validation with ping */
+    function onCardClick(step) {
+      audio.init();
+
+      if (currentStep > 5) return;
+
+      if (step.order === currentStep) {
+        // CORRECT STEP! Ping!
+        audio.ping();
+        placedActions[currentStep] = step;
+        availableCardOrders = availableCardOrders.filter(o => o !== step.order);
+
+        currentStep++;
+        renderSteps();
+        renderCards();
+
+        if (currentStep > 5) {
+          audio.fanfare();
+          launchConfetti();
+          document.getElementById('storyCard').classList.add('show');
+          updateStory();
+        }
+      } else {
+        // WRONG STEP - gentle wobble
+        audio.wobble();
+        const el = document.getElementById(`card-${step.order}`);
+        if (el) {
+          el.classList.remove('shake');
+          void el.offsetWidth;
+          el.classList.add('shake');
+          setTimeout(() => el.classList.remove('shake'), 450);
+        }
+      }
+    }
+
+    /* Story Paragraph View */
+    function updateStory() {
+      const p = document.getElementById('storyParagraph');
+      let parts = [];
+      for (let i = 1; i <= 5; i++) {
+        const w = slottedWords[i];
+        const action = placedActions[i];
+        if (action) {
+          const lower = action.text.charAt(0).toLowerCase() + action.text.slice(1);
+          const wordHtml = w ? `<span class="story-word">${w}</span>, ` : '';
+          parts.push(`<span id="sent-${i}">${wordHtml}${lower}</span>`);
+        }
+      }
+      p.innerHTML = parts.join(' ');
+    }
+
+    /* Speech Synthesis Read-Aloud */
+    function readStoryAloud() {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+
+      let sentences = [];
+      for (let i = 1; i <= 5; i++) {
+        const w = slottedWords[i] || '';
+        const action = placedActions[i];
+        if (action) {
+          const lower = action.text.charAt(0).toLowerCase() + action.text.slice(1);
+          sentences.push({
+            id: i,
+            text: `${w ? w + ',' : ''} ${lower}`
+          });
+        }
+      }
+
+      if (sentences.length === 0) return;
+
+      let idx = 0;
+      function speakNext() {
+        if (idx >= sentences.length) {
+          document.querySelectorAll('.story-paragraph span').forEach(el => el.classList.remove('reading-highlight'));
+          return;
+        }
+        const item = sentences[idx];
+        const span = document.getElementById(`sent-${item.id}`);
+        document.querySelectorAll('.story-paragraph span').forEach(el => el.classList.remove('reading-highlight'));
+        if (span) span.classList.add('reading-highlight');
+
+        const u = new SpeechSynthesisUtterance(item.text);
+        u.rate = 0.88;
+        u.pitch = 1.05;
+        u.onend = () => { idx++; speakNext(); };
+        u.onerror = () => { idx++; speakNext(); };
+        window.speechSynthesis.speak(u);
+      }
+      speakNext();
+    }
+
+    /* Fullscreen & Sound Controls */
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    }
+
+    function toggleSound() {
+      audio.muted = !audio.muted;
+      document.getElementById('btnSound').innerText = audio.muted ? '🔇' : '🔊';
+    }
+
+    /* Confetti Engine */
+    let confettiList = [];
+    let confettiTimer = null;
+    function initConfetti() {
+      const c = document.getElementById('confettiCanvas');
+      c.width = window.innerWidth;
+      c.height = window.innerHeight;
+      window.addEventListener('resize', () => {
+        c.width = window.innerWidth;
+        c.height = window.innerHeight;
+      });
+    }
+
+    function launchConfetti() {
+      const c = document.getElementById('confettiCanvas');
+      const ctx = c.getContext('2d');
+      const colors = ['#f44336', '#e91e63', '#9c27b0', '#2196f3', '#4caf50', '#ffeb3b', '#ff9800'];
+      confettiList = [];
+      for (let i = 0; i < 85; i++) {
+        confettiList.push({
+          x: window.innerWidth / 2,
+          y: window.innerHeight / 2,
+          vx: (Math.random() - 0.5) * 16,
+          vy: (Math.random() - 0.8) * 16,
+          size: Math.random() * 8 + 6,
+          color: colors[Math.floor(Math.random() * colors.length)]
+        });
+      }
+      if (confettiTimer) cancelAnimationFrame(confettiTimer);
+
+      function frame() {
+        ctx.clearRect(0, 0, c.width, c.height);
+        let alive = 0;
+        confettiList.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.25;
+          if (p.y < c.height + 20) {
+            alive++;
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x, p.y, p.size, p.size);
+          }
+        });
+        if (alive > 0) confettiTimer = requestAnimationFrame(frame);
+        else ctx.clearRect(0, 0, c.width, c.height);
+      }
+      frame();
+    }
+  </script>
+</body>
+</html>
