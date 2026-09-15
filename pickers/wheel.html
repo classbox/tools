@@ -216,6 +216,140 @@
             line-height: 1;
         }
 
+        /* Tab Navigation inside Settings */
+        .tab-nav {
+            display: flex;
+            background: #e2e8f0;
+            padding: 4px;
+            border-radius: 10px;
+            gap: 4px;
+            margin-bottom: 0.25rem;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 0.5rem 0.6rem;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-weight: 700;
+            font-size: 0.85rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+        }
+
+        .tab-btn:hover {
+            color: #1e293b;
+        }
+
+        .tab-btn.active {
+            background: #ffffff;
+            color: var(--primary);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        }
+
+        .tab-content {
+            display: none;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        /* Luck Student Card in Settings */
+        .luck-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0.65rem;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            gap: 0.5rem;
+            transition: all 0.15s;
+        }
+        .luck-card:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        }
+        .luck-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+            flex: 1;
+        }
+        .luck-name {
+            font-weight: 700;
+            font-size: 0.88rem;
+            color: #1e293b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .luck-meta {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #64748b;
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .luck-meta .pts {
+            font-weight: 700;
+        }
+        .luck-actions {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .luck-btn {
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            color: #334155;
+            padding: 3px 6px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .luck-btn:hover {
+            background: #e2e8f0;
+        }
+        .luck-btn.bump {
+            background: #dcfce7;
+            color: #15803d;
+            border-color: #bbf7d0;
+        }
+        .luck-btn.bump:hover {
+            background: #bbf7d0;
+        }
+        .luck-btn.drop {
+            background: #fee2e2;
+            color: #b91c1c;
+            border-color: #fecaca;
+        }
+        .luck-btn.drop:hover {
+            background: #fecaca;
+        }
+        .luck-btn.max {
+            background: #fef3c7;
+            color: #b45309;
+            border-color: #fde68a;
+        }
+        .luck-btn.max:hover {
+            background: #fde68a;
+        }
+
         .setting-group {
             display: flex;
             flex-direction: column;
@@ -340,15 +474,47 @@
             justify-content: center;
         }
 
-        /* Confetti Overlay Canvas */
-        #confettiCanvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            pointer-events: none;
-            z-index: 105;
+        /* Toggle Switches */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e1;
+            transition: .3s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--primary);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(20px);
         }
 
     </style>
@@ -383,24 +549,69 @@
             <button id="btnCloseSettings" class="close-btn">&times;</button>
         </div>
 
-        <div class="setting-group">
-            <label for="contestantsInput">
-                <span>Contestants / Students</span>
-                <span id="contestantCount" style="color: var(--primary); font-weight:700;">0</span>
-            </label>
-            <textarea id="contestantsInput" placeholder="Enter student names, one per line..."></textarea>
-            <div class="preset-btns">
-                <button id="btnShuffle" class="btn-small">🔀 Shuffle</button>
-                <button id="btnLoadSample" class="btn-small">📋 Load Sample Class</button>
+        <!-- Tab Bar -->
+        <div class="tab-nav">
+            <button class="tab-btn active" data-tab="tabGeneral">⚙️ General</button>
+            <button class="tab-btn" data-tab="tabLuck">🍀 Luck</button>
+        </div>
+
+        <!-- Tab 1: General -->
+        <div id="tabGeneral" class="tab-content active">
+            <div class="setting-group">
+                <label for="contestantsInput">
+                    <span>Contestants / Students</span>
+                    <span id="contestantCount" style="color: var(--primary); font-weight:700;">0</span>
+                </label>
+                <textarea id="contestantsInput" placeholder="Enter student names, one per line..."></textarea>
+                <div class="preset-btns">
+                    <button id="btnShuffle" class="btn-small">🔀 Shuffle</button>
+                    <button id="btnLoadSample" class="btn-small">📋 Load Sample Class</button>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label for="spinDuration">
+                    <span>Spin Duration</span>
+                    <span id="durationValue">7s</span>
+                </label>
+                <input type="range" id="spinDuration" min="3" max="15" step="1" value="7">
             </div>
         </div>
 
-        <div class="setting-group">
-            <label for="spinDuration">
-                <span>Spin Duration</span>
-                <span id="durationValue">7s</span>
-            </label>
-            <input type="range" id="spinDuration" min="3" max="15" step="1" value="7">
+        <!-- Tab 2: Luck Tab -->
+        <div id="tabLuck" class="tab-content">
+            <div class="setting-group" style="background: #f8fafc; padding: 1rem; border-radius: 12px; border: 1px solid #e2e8f0;">
+                <label for="dynamicFairnessToggle" style="margin-bottom: 0.25rem;">
+                    <span style="display:flex; align-items:center; gap:0.4rem; font-weight:700;">🍀 Dynamic Luck Engine</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="dynamicFairnessToggle" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </label>
+                <p id="luckStatusDesc" style="font-size: 0.8rem; color: #64748b; line-height: 1.35; margin-top: 0.25rem;">
+                    <span style="color:#15803d; font-weight:700;">Active:</span> Winners drop to 15 pts, unpicked gain +15 pts per roll.
+                </p>
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+                    <button id="btnResetWeights" type="button" class="btn-small" style="background: #e2e8f0; color: #334155; padding: 0.45rem 0.85rem; width: 100%;">
+                        🔄 Reset All Luck to Normal (100 pts)
+                    </button>
+                </div>
+            </div>
+
+            <div class="setting-group" style="flex: 1; min-height: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                    <label style="font-weight: 700; font-size: 0.85rem; color: #334155; text-transform: uppercase; letter-spacing: 0.05em;">
+                        🎯 Sore Loser & Ladder Management
+                    </label>
+                    <span style="font-size: 0.75rem; color: #64748b;">(15 - 300 pts)</span>
+                </div>
+                <p style="font-size: 0.75rem; color: #64748b; line-height: 1.3;">
+                    Manually bump a student up the ladder or cool them down instantly.
+                </p>
+                <div id="luckListContainer" style="display: flex; flex-direction: column; gap: 0.4rem; max-height: 290px; overflow-y: auto; padding-right: 2px;">
+                    <!-- Dynamically rendered student luck cards -->
+                </div>
+            </div>
         </div>
 
         <div style="margin-top: auto;">
@@ -431,17 +642,228 @@
     <canvas id="confettiCanvas"></canvas>
 
     <script>
-        // --- Default Roster ---
-        const DEFAULT_STUDENTS = [
+        // --- Default Rosters ---
+        const DEFAULT_CLASS_A = [
+            "Huot", "Wiranuth", "Thaneth", "Chay", "Chakravuth", 
+            "Dalis", "Puthika", "Nysang", "Suly", "Ponita", 
+            "Socheata", "Leakhena", "Nima", "Marady"
+        ];
+
+        const DEFAULT_CLASS_B = [
+            "Takdhenuan", "Yov", "Kimheng", "Lychhay", "Lyhour", 
+            "Sreng", "Tepy", "Julie", "Vortna", "Vatei", 
+            "Vatey", "Thavy", "Ariya", "Monika", "Meyleang", 
+            "Cheng", "Kimchou"
+        ];
+
+        const SAMPLE_STUDENTS = [
             "Alex", "Sam", "Jordan", "Taylor", 
             "Morgan", "Casey", "Riley", "Avery"
         ];
 
+        function getInitialRoster() {
+            try {
+                if (window.parent && window.parent !== window && window.parent.rosters) {
+                    const selector = window.parent.document.getElementById('class-selector');
+                    const activeClass = selector ? selector.value : 'classA';
+                    if (window.parent.rosters[activeClass] && window.parent.rosters[activeClass].length > 0) {
+                        return [...window.parent.rosters[activeClass]];
+                    }
+                }
+            } catch (e) {
+                // Cross-origin fallback
+            }
+
+            try {
+                const activeClass = localStorage.getItem('classroom_selected_class') || 'classA';
+                const key = activeClass === 'classB' ? 'roster_classB' : 'roster_classA';
+                const raw = localStorage.getItem(key);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        return parsed;
+                    }
+                }
+                return activeClass === 'classB' ? [...DEFAULT_CLASS_B] : [...DEFAULT_CLASS_A];
+            } catch (e) {
+                return [...DEFAULT_CLASS_A];
+            }
+        }
+
+        // --- Cryptographic Hardware Entropy RNG ---
+        function getCryptoRandom() {
+            try {
+                const buf = new Uint32Array(1);
+                window.crypto.getRandomValues(buf);
+                return buf[0] / (0xffffffff + 1);
+            } catch (e) {
+                return Math.random();
+            }
+        }
+
         // --- Application State ---
-        let students = [...DEFAULT_STUDENTS];
+        let students = getInitialRoster();
         let colors = [];
         let spinDuration = 7; // seconds
         let soundEnabled = true;
+
+        // Dynamic Fairness & "Bad Luck" Catch-Up Weight Engine
+        const BASE_WEIGHT = 100;
+        const MIN_WEIGHT = 15;        // Floor weight for recent winners (greatly reduces back-to-back repeats)
+        const NUDGE_INCREMENT = 15;   // Points added to unpicked students on every roll
+        const MAX_WEIGHT = 300;       // Max weight ceiling for long-unpicked students
+        let dynamicFairnessEnabled = true;
+        let currentActiveClassName = localStorage.getItem('classroom_selected_class') || 'classA';
+        let studentWeights = {};
+
+        function getActiveClassName() {
+            try {
+                return currentActiveClassName || localStorage.getItem('classroom_selected_class') || 'classA';
+            } catch (e) {
+                return 'classA';
+            }
+        }
+
+        function getWeightsStorageKey() {
+            try {
+                const activeClass = getActiveClassName();
+                return 'wheel_fairness_weights_' + activeClass;
+            } catch (e) {
+                return 'wheel_fairness_weights_classA';
+            }
+        }
+
+        function loadWeights() {
+            try {
+                const raw = localStorage.getItem(getWeightsStorageKey());
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (typeof parsed === 'object' && parsed !== null) {
+                        return parsed;
+                    }
+                }
+            } catch (e) {
+                console.warn("Could not load fairness weights:", e);
+            }
+            const initial = {};
+            students.forEach(name => { initial[name] = BASE_WEIGHT; });
+            return initial;
+        }
+
+        function saveWeights() {
+            try {
+                const stored = loadWeights();
+                const merged = Object.assign({}, stored, studentWeights);
+                localStorage.setItem(getWeightsStorageKey(), JSON.stringify(merged));
+            } catch (e) {
+                console.warn("Could not save fairness weights:", e);
+            }
+        }
+
+        function resetWeights() {
+            studentWeights = {};
+            students.forEach(name => { studentWeights[name] = BASE_WEIGHT; });
+            saveWeights();
+            renderLuckTab();
+        }
+
+        function modifyStudentLuck(studentName, delta) {
+            const currentW = (studentWeights[studentName] !== undefined ? studentWeights[studentName] : BASE_WEIGHT);
+            let nextW = currentW + delta;
+            nextW = Math.max(MIN_WEIGHT, Math.min(MAX_WEIGHT, nextW));
+            studentWeights[studentName] = nextW;
+            saveWeights();
+            renderLuckTab();
+        }
+
+        function setStudentLuck(studentName, targetWeight) {
+            studentWeights[studentName] = Math.max(MIN_WEIGHT, Math.min(MAX_WEIGHT, targetWeight));
+            saveWeights();
+            renderLuckTab();
+        }
+
+        function renderLuckTab() {
+            const container = document.getElementById('luckListContainer');
+            const desc = document.getElementById('luckStatusDesc');
+            const classLabel = getActiveClassName() === 'classB' ? 'Class B' : (getActiveClassName() === 'classA' ? 'Class A' : 'Custom');
+            
+            if (desc) {
+                if (dynamicFairnessEnabled) {
+                    desc.innerHTML = `<span style="color:#15803d; font-weight:700;">Active (${classLabel}):</span> Winners drop to 15 pts, unpicked gain +15 pts per roll. Tracked independently for each class.`;
+                } else {
+                    desc.innerHTML = `<span style="color:#b91c1c; font-weight:700;">Temporarily Suspended:</span> Spins are currently 100% equal odds. <em style="color:#64748b;">(Accrued table for ${classLabel} is preserved and will resume when toggled back on!)</em>`;
+                }
+            }
+            if (!container) return;
+            if (students.length === 0) {
+                container.innerHTML = '<div style="padding:1rem; text-align:center; color:#94a3b8; font-size:0.85rem;">No active contestants.</div>';
+                return;
+            }
+
+            let totalWeight = 0;
+            students.forEach(name => {
+                totalWeight += (studentWeights[name] !== undefined ? studentWeights[name] : BASE_WEIGHT);
+            });
+
+            // Sort students descending by weight
+            const sortedStudents = [...students].sort((a, b) => {
+                const wA = studentWeights[a] !== undefined ? studentWeights[a] : BASE_WEIGHT;
+                const wB = studentWeights[b] !== undefined ? studentWeights[b] : BASE_WEIGHT;
+                return wB - wA;
+            });
+
+            container.innerHTML = sortedStudents.map(name => {
+                const w = studentWeights[name] !== undefined ? studentWeights[name] : BASE_WEIGHT;
+                const pct = totalWeight > 0 ? ((w / totalWeight) * 100).toFixed(1) : '0';
+                
+                let badgeBg = '#f1f5f9';
+                let badgeColor = '#475569';
+                if (w > 150) { badgeBg = '#dcfce7'; badgeColor = '#15803d'; }
+                else if (w < 60) { badgeBg = '#fee2e2'; badgeColor = '#b91c1c'; }
+
+                const safeName = name.replace(/'/g, "\\'");
+
+                return `
+                <div class="luck-card">
+                    <div class="luck-info">
+                        <div class="luck-name" title="${name}">${name}</div>
+                        <div class="luck-meta">
+                            <span class="pts" style="background:${badgeBg}; color:${badgeColor}; padding:1px 6px; border-radius:4px;">${w} pts</span>
+                            <span>• ${pct}% odds</span>
+                        </div>
+                    </div>
+                    <div class="luck-actions">
+                        <button type="button" class="luck-btn bump" onclick="modifyStudentLuck('${safeName}', 25)" title="Bump Luck (+25 pts)">▲ +25</button>
+                        <button type="button" class="luck-btn drop" onclick="modifyStudentLuck('${safeName}', -25)" title="Reduce Luck (-25 pts)">▼ -25</button>
+                        <button type="button" class="luck-btn max" onclick="setStudentLuck('${safeName}', 300)" title="Max Out Luck (300 pts)">⭐ Max</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function pickWeightedWinnerIndex() {
+            if (!dynamicFairnessEnabled || students.length === 0) {
+                return Math.floor(getCryptoRandom() * students.length);
+            }
+            let totalWeight = 0;
+            for (let i = 0; i < students.length; i++) {
+                const name = students[i];
+                totalWeight += (studentWeights[name] !== undefined ? studentWeights[name] : BASE_WEIGHT);
+            }
+            if (totalWeight <= 0) {
+                return Math.floor(getCryptoRandom() * students.length);
+            }
+            const rand = getCryptoRandom() * totalWeight;
+            let running = 0;
+            for (let i = 0; i < students.length; i++) {
+                const name = students[i];
+                running += (studentWeights[name] !== undefined ? studentWeights[name] : BASE_WEIGHT);
+                if (rand < running) {
+                    return i;
+                }
+            }
+            return students.length - 1;
+        }
         
         let currentAngle = 0; // In radians
         let isSpinning = false;
@@ -534,6 +956,11 @@
         const btnShuffle = document.getElementById('btnShuffle');
         const btnLoadSample = document.getElementById('btnLoadSample');
         
+        const dynamicFairnessToggle = document.getElementById('dynamicFairnessToggle');
+        const fairnessOptions = document.getElementById('fairnessOptions');
+        const btnResetWeights = document.getElementById('btnResetWeights');
+        const weightsSummary = document.getElementById('weightsSummary');
+
         const winnerModal = document.getElementById('winnerModal');
         const winnerNameEl = document.getElementById('winnerName');
         const btnRemoveWinner = document.getElementById('btnRemoveWinner');
@@ -702,12 +1129,12 @@
             const durationMs = spinDuration * 1000;
             const startAngle = currentAngle;
 
-            // Pick fair random winner index
-            const winningIndex = Math.floor(Math.random() * students.length);
+            // Pick fair weighted winner index
+            const winningIndex = pickWeightedWinnerIndex();
             const arc = (2 * Math.PI) / students.length;
 
             // Position winner under top pointer (1.5 * PI) with slight random internal offset
-            const sliceOffset = (0.15 + Math.random() * 0.7) * arc;
+            const sliceOffset = (0.15 + getCryptoRandom() * 0.7) * arc;
             const targetWheelAngle = winningIndex * arc + sliceOffset;
 
             let finalAngleBase = 1.5 * Math.PI - targetWheelAngle;
@@ -736,14 +1163,34 @@
                 if (progress < 1) {
                     requestAnimationFrame(animate);
                 } else {
-                    isSpinning = false;
-                    btnSpin.disabled = false;
-                    lastWinnerIndex = winningIndex;
-                    onSpinComplete(students[winningIndex]);
+                    finishSpin(winningIndex);
                 }
             }
 
             requestAnimationFrame(animate);
+        }
+
+        function finishSpin(winnerIdx) {
+            isSpinning = false;
+            btnSpin.disabled = false;
+            lastWinnerIndex = winnerIdx;
+
+            // Apply Dynamic Fairness: Winner drops to floor, unpicked students get boosted
+            if (dynamicFairnessEnabled && winnerIdx >= 0 && winnerIdx < students.length) {
+                const winnerName = students[winnerIdx];
+                studentWeights[winnerName] = MIN_WEIGHT;
+                for (let i = 0; i < students.length; i++) {
+                    if (i !== winnerIdx) {
+                        const otherName = students[i];
+                        const currentW = (studentWeights[otherName] !== undefined ? studentWeights[otherName] : BASE_WEIGHT);
+                        studentWeights[otherName] = Math.min(MAX_WEIGHT, currentW + NUDGE_INCREMENT);
+                    }
+                }
+                saveWeights();
+                renderWeightsDebug();
+            }
+
+            onSpinComplete(students[winnerIdx]);
         }
 
         // --- Winner Sequence & Confetti ---
@@ -773,12 +1220,12 @@
                 confettiParticles.push({
                     x: window.innerWidth / 2,
                     y: window.innerHeight / 2,
-                    vx: (Math.random() - 0.5) * 18,
-                    vy: (Math.random() - 0.7) * 18,
-                    size: Math.random() * 8 + 4,
-                    color: particleColors[Math.floor(Math.random() * particleColors.length)],
-                    rotation: Math.random() * 360,
-                    vRot: (Math.random() - 0.5) * 10,
+                    vx: (getCryptoRandom() - 0.5) * 18,
+                    vy: (getCryptoRandom() - 0.7) * 18,
+                    size: getCryptoRandom() * 8 + 4,
+                    color: particleColors[Math.floor(getCryptoRandom() * particleColors.length)],
+                    rotation: getCryptoRandom() * 360,
+                    vRot: (getCryptoRandom() - 0.5) * 10,
                     life: 1
                 });
             }
@@ -821,11 +1268,24 @@
             colors = generateColors(students.length);
             contestantsInput.value = students.join('\n');
             contestantCount.textContent = students.length;
+
+            const existingWeights = loadWeights();
+            const newWeights = Object.assign({}, existingWeights);
+            students.forEach(name => {
+                if (newWeights[name] === undefined) {
+                    newWeights[name] = BASE_WEIGHT;
+                }
+            });
+            studentWeights = newWeights;
+            saveWeights();
+            renderLuckTab();
+
             drawWheel();
             updatePointerAndTicks();
         }
 
         function openSettings() {
+            renderLuckTab();
             settingsPanel.classList.add('open');
             backdrop.classList.add('active');
         }
@@ -841,12 +1301,33 @@
             const rawNames = contestantsInput.value.split('\n');
             updateRoster(rawNames);
             spinDuration = parseInt(spinDurationInput.value, 10);
+            dynamicFairnessEnabled = dynamicFairnessToggle.checked;
             closeSettings();
         }
+
+        // --- Tab Switching ---
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetTabId = btn.getAttribute('data-tab');
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                btn.classList.add('active');
+                const targetContent = document.getElementById(targetTabId);
+                if (targetContent) targetContent.classList.add('active');
+
+                if (targetTabId === 'tabLuck') {
+                    renderLuckTab();
+                }
+            });
+        });
 
         // --- External Message Listener for Classroom Rosters ---
         window.addEventListener('message', (event) => {
             if (event.data && event.data.type === 'CLASSROOM_ROSTER_UPDATE') {
+                if (event.data.selectedClass) {
+                    currentActiveClassName = event.data.selectedClass;
+                }
                 const studentNames = event.data.roster; // Array of names e.g. ["Alex", "Sam", "Jordan"]
                 console.log("Roster received:", studentNames);
                 if (Array.isArray(studentNames)) {
@@ -872,6 +1353,13 @@
             durationValue.textContent = `${e.target.value}s`;
         });
 
+        dynamicFairnessToggle.addEventListener('change', (e) => {
+            dynamicFairnessEnabled = e.target.checked;
+            renderLuckTab();
+        });
+
+        btnResetWeights.addEventListener('click', resetWeights);
+
         contestantsInput.addEventListener('input', () => {
             const actualCount = contestantsInput.value.split('\n').filter(n => n.trim() !== "").length;
             contestantCount.textContent = actualCount;
@@ -885,14 +1373,14 @@
         btnShuffle.addEventListener('click', () => {
             const rawNames = contestantsInput.value.split('\n').filter(n => n.trim() !== "");
             for (let i = rawNames.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
+                const j = Math.floor(getCryptoRandom() * (i + 1));
                 [rawNames[i], rawNames[j]] = [rawNames[j], rawNames[i]];
             }
             contestantsInput.value = rawNames.join('\n');
         });
 
         btnLoadSample.addEventListener('click', () => {
-            updateRoster(DEFAULT_STUDENTS);
+            updateRoster(SAMPLE_STUDENTS);
         });
 
         btnCloseWinner.addEventListener('click', () => {
@@ -902,8 +1390,16 @@
 
         btnRemoveWinner.addEventListener('click', () => {
             if (lastWinnerIndex >= 0 && lastWinnerIndex < students.length) {
+                // Winner already received the 15 pt floor when spin landed.
+                // We keep their accrued weight in studentWeights/storage and only remove them from the active wheel session.
                 students.splice(lastWinnerIndex, 1);
-                updateRoster(students);
+                colors = generateColors(students.length);
+                contestantsInput.value = students.join('\n');
+                contestantCount.textContent = students.length;
+                saveWeights();
+                renderLuckTab();
+                drawWheel();
+                updatePointerAndTicks();
             }
             winnerModal.classList.remove('active');
             backdrop.classList.remove('active');
@@ -920,7 +1416,8 @@
         window.addEventListener('resize', resizeCanvas);
 
         // --- Initialize App ---
-        updateRoster(DEFAULT_STUDENTS);
+        studentWeights = loadWeights();
+        updateRoster(students);
         resizeCanvas();
     </script>
 </body>

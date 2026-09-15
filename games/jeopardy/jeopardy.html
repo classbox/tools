@@ -597,6 +597,74 @@
             box-shadow: 0 0 8px var(--card-glow);
         }
 
+        /* --- COLLAPSIBLE SETTINGS ACCORDION --- */
+        .settings-accordion-item {
+            border: 1px solid var(--score-border);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+
+        .settings-accordion-item.active {
+            border-color: var(--card-border);
+            background: rgba(0, 0, 0, 0.35);
+        }
+
+        .settings-accordion-header {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+            padding: 11px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: bold;
+            font-family: inherit;
+            text-align: left;
+            user-select: none;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .settings-accordion-header:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--score-active);
+        }
+
+        .settings-accordion-item.active .settings-accordion-header {
+            color: var(--score-active);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .settings-accordion-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .settings-accordion-icon {
+            font-size: 0.8rem;
+            transition: transform 0.2s ease;
+            color: var(--score-active);
+            display: inline-block;
+        }
+
+        .settings-accordion-item.active .settings-accordion-icon {
+            transform: rotate(180deg);
+        }
+
+        .settings-accordion-content {
+            padding: 14px;
+            display: none;
+        }
+
+        .settings-accordion-item.active .settings-accordion-content {
+            display: block;
+        }
+
         /* Fixed-height scrollable containers prevent modal layout shift */
         .scroll-inputs-container {
             display: flex;
@@ -714,43 +782,96 @@
     </div>
     
     <div class="settings-body">
-        <div class="setting-group">
-            <label>Visual Theme</label>
-            <select id="theme-select" onchange="onThemeSelect(this.value)">
-                <option value="stoneage">Stone Age (Prehistoric Flint & Fire)</option>
-                <option value="classic">Classic Studio (Multicolor)</option>
-                <option value="egypt">Sandstone & Gold</option>
-                <option value="cyber">Neon Cyberpunk</option>
-                <option value="space">Deep Space Nebula</option>
-                <option value="forest">Emerald Grove</option>
-            </select>
+        <!-- Tab 1: Teams & Scores (Default Open) -->
+        <div class="settings-accordion-item active" id="tab-teams">
+            <button type="button" class="settings-accordion-header" onclick="toggleSettingsTab('tab-teams')">
+                <span class="settings-accordion-title">👥 Teams & Scores</span>
+                <span class="settings-accordion-icon">▼</span>
+            </button>
+            <div class="settings-accordion-content">
+                <div class="setting-group">
+                    <label>Number of Teams</label>
+                    <input type="number" id="team-count" value="2" min="1" max="6" onchange="renderTeamInputs()">
+                    <div id="team-inputs-container" class="scroll-inputs-container"></div>
+                </div>
+            </div>
         </div>
 
-        <div class="setting-group">
-            <label>Categories</label>
-            <input type="number" id="category-count" value="5" min="1" max="6" onchange="renderCategoryInputs()">
-            <div id="category-inputs-container" class="scroll-inputs-container"></div>
+        <!-- Tab 2: Visual Theme -->
+        <div class="settings-accordion-item" id="tab-theme">
+            <button type="button" class="settings-accordion-header" onclick="toggleSettingsTab('tab-theme')">
+                <span class="settings-accordion-title">🎨 Visual Theme</span>
+                <span class="settings-accordion-icon">▼</span>
+            </button>
+            <div class="settings-accordion-content">
+                <div class="setting-group">
+                    <label>Select Theme</label>
+                    <select id="theme-select" onchange="onThemeSelect(this.value)">
+                        <option value="stoneage">Stone Age (Prehistoric Flint & Fire)</option>
+                        <option value="classic">Classic Studio (Multicolor)</option>
+                        <option value="egypt">Sandstone & Gold</option>
+                        <option value="cyber">Neon Cyberpunk</option>
+                        <option value="space">Deep Space Nebula</option>
+                        <option value="forest">Emerald Grove</option>
+                    </select>
+                </div>
+            </div>
         </div>
 
-        <div class="setting-group">
-            <label>Teams & Scores</label>
-            <input type="number" id="team-count" value="2" min="1" max="6" onchange="renderTeamInputs()">
-            <div id="team-inputs-container" class="scroll-inputs-container"></div>
+        <!-- Tab 3: Categories -->
+        <div class="settings-accordion-item" id="tab-categories">
+            <button type="button" class="settings-accordion-header" onclick="toggleSettingsTab('tab-categories')">
+                <span class="settings-accordion-title">🏷️ Categories</span>
+                <span class="settings-accordion-icon">▼</span>
+            </button>
+            <div class="settings-accordion-content">
+                <div class="setting-group">
+                    <label>Number of Categories</label>
+                    <input type="number" id="category-count" value="5" min="1" max="6" onchange="renderCategoryInputs()">
+                    <div id="category-inputs-container" class="scroll-inputs-container"></div>
+                </div>
+            </div>
         </div>
 
-        <div class="setting-group">
-            <label>Load Questions (.txt)</label>
-            <input type="file" id="file-input" accept=".txt">
-            <small style="display:block; margin-top:4px; color:#aaa; line-height: 1.2;">
-                Note: Loading a file overrides category names & questions above.
-            </small>
+        <!-- Tab 4: Load Questions (.txt) -->
+        <div class="settings-accordion-item" id="tab-questions">
+            <button type="button" class="settings-accordion-header" onclick="toggleSettingsTab('tab-questions')">
+                <span class="settings-accordion-title">📂 Load Questions (.txt)</span>
+                <span class="settings-accordion-icon">▼</span>
+            </button>
+            <div class="settings-accordion-content">
+                <div class="setting-group">
+                    <label>Upload Questions File</label>
+                    <input type="file" id="file-input" accept=".txt">
+                    <small style="display:block; margin-top:4px; color:#aaa; line-height: 1.2;">
+                        Note: Loading a file overrides category names & questions above.
+                    </small>
+                </div>
+            </div>
         </div>
 
-        <div class="setting-group">
-            <label>Presets & Tools</label>
-            <button class="btn-secondary" onclick="loadStoneAgeQuiz(true)">🪨 Load Stone Age Quiz (h_w5_stone_age_game_questions.txt)</button>
-            <button class="btn-secondary" onclick="downloadStoneAgeFile()">📄 Download Stone Age Questions (.TXT)</button>
-            <button class="btn-secondary" onclick="downloadTxtTemplate()">📥 Download Blank Template (.TXT)</button>
+        <!-- Tab 5: Question Sets & Templates -->
+        <div class="settings-accordion-item" id="tab-presets">
+            <button type="button" class="settings-accordion-header" onclick="toggleSettingsTab('tab-presets')">
+                <span class="settings-accordion-title">📚 Question Sets & Templates</span>
+                <span class="settings-accordion-icon">▼</span>
+            </button>
+            <div class="settings-accordion-content">
+                <div class="setting-group">
+                    <label>Choose Question Set</label>
+                    <select id="preset-quiz-select" onchange="onPresetQuizSelect(this.value)">
+                        <option value="" disabled selected>-- Select a Question Set --</option>
+                        <option value="stoneage">History - Stone Age</option>
+                    </select>
+                    <small style="display:block; margin-top:4px; margin-bottom:12px; color:#aaa; line-height: 1.2;">
+                        Selecting a question set loads its categories and questions into the board.
+                    </small>
+                </div>
+                <div class="setting-group">
+                    <label>Templates</label>
+                    <button class="btn-secondary" onclick="downloadTxtTemplate()">📥 Download Blank Template (.TXT)</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1200,6 +1321,21 @@
     }
 
     // --- Settings Modal Logic ---
+    function toggleSettingsTab(tabId) {
+        const targetItem = document.getElementById(tabId);
+        if (!targetItem) return;
+        const isActive = targetItem.classList.contains('active');
+        
+        // Optional accordion behavior: close other tabs and toggle target
+        document.querySelectorAll('.settings-accordion-item').forEach(item => {
+            item.classList.remove('active');
+        });
+
+        if (!isActive) {
+            targetItem.classList.add('active');
+        }
+    }
+
     function openSettings() {
         document.getElementById('theme-select').value = currentThemeKey;
         document.getElementById('category-count').value = gameData.categories.length;
@@ -1207,6 +1343,18 @@
         
         renderCategoryInputs();
         renderTeamInputs();
+
+        // Ensure Teams tab is open and others are collapsed on open
+        document.querySelectorAll('.settings-accordion-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        const teamsTab = document.getElementById('tab-teams');
+        if (teamsTab) teamsTab.classList.add('active');
+
+        // Reset preset quiz dropdown to placeholder
+        const presetSelect = document.getElementById('preset-quiz-select');
+        if (presetSelect) presetSelect.value = '';
+
         document.getElementById('settings-modal').style.display = 'flex';
         const overlay = document.getElementById('settings-overlay');
         if (overlay) overlay.style.display = 'block';
@@ -1258,12 +1406,22 @@
         }
     }
 
+    function updateCategoryHeadersOnly() {
+        const headerElements = document.querySelectorAll('#game-board .category-header');
+        headerElements.forEach((headerEl, idx) => {
+            if (gameData.categories[idx] !== undefined) {
+                headerEl.innerText = gameData.categories[idx];
+            }
+        });
+    }
+
     function saveSettings() {
         // 1. Save Selected Visual Theme
         const selectedTheme = document.getElementById('theme-select').value;
         applyTheme(selectedTheme);
 
         // 2. Save Categories
+        const previousCatCount = gameData.categories.length;
         const catCount = parseInt(document.getElementById('category-count').value) || 5;
         const newCats = [];
         for (let i = 0; i < catCount; i++) {
@@ -1307,8 +1465,14 @@
             };
             reader.readAsText(file);
         } else {
-            initGame(false); // No file uploaded: update settings, keep board progress
-            renderBoard();
+            // If category count changed, we must rebuild the board structure.
+            // Otherwise, keep the board cards & answered state intact!
+            if (previousCatCount !== catCount) {
+                initGame(true);
+            } else {
+                initGame(false);
+                updateCategoryHeadersOnly();
+            }
         }
     }
 
@@ -1495,49 +1659,10 @@ Category: Category 5 Name
         }
     }
 
-    function downloadStoneAgeFile() {
-        const text = 
-`Category: The Stone Age Toolbox
-100: What did Stone Age people use to make sharp tools?
-200: What weapon was made from a long stick with a sharp point?
-300: What tool did people use to chop wood?
-400: What did people use to sew animal skins together?
-500: What did people use like string to tie stones onto sticks?
-
-Category: What's for Dinner?
-100: What small, sweet fruits did people pick from bushes?
-200: What did Stone Age people catch in rivers to eat?
-300: What huge, furry animal had long, curved tusks?
-400: What did early farmers grow to make flour?
-500: How did people crush grain to make flour?
-
-Category: Home Sweet Home
-100: Where could Stone Age people shelter from wind and rain?
-200: What did people wear to keep warm?
-300: What do we call a group of huts where people live together?
-400: What did people put on hut roofs to keep out the rain?
-500: People mixed mud with what to make hut walls?
-
-Category: Then and Now
-100: How did Stone Age people travel?
-200: What did people shape into bowls and pots?
-300: Why did people build their homes near rivers?
-400: Why did farmers build fences around their animals?
-500: Why did hunters move to new places?
-
-Category: The Fire Pit
-100: What did people put on a fire to keep it burning?
-200: What did people carry to see inside dark caves?
-300: How did fire protect people at night?
-400: Why did people cook meat over a fire?
-500: What did Stone Age people use to make black drawings on cave walls?`;
-
-        const a = document.createElement('a');
-        const file = new Blob([text], { type: "text/plain" });
-        a.href = URL.createObjectURL(file);
-        a.download = "h_w5_stone_age_game_questions.txt";
-        a.click();
-        URL.revokeObjectURL(a.href);
+    function onPresetQuizSelect(presetKey) {
+        if (presetKey === 'stoneage') {
+            loadStoneAgeQuiz(true);
+        }
     }
 
     // Start Game

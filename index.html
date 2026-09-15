@@ -434,6 +434,14 @@
             ]
         };
 
+        // Ensure defaults are saved in localStorage so iframes can read them synchronously on load
+        if (!localStorage.getItem('roster_classA')) {
+            localStorage.setItem('roster_classA', JSON.stringify(rosters.classA));
+        }
+        if (!localStorage.getItem('roster_classB')) {
+            localStorage.setItem('roster_classB', JSON.stringify(rosters.classB));
+        }
+
         // --- Sidebar toggle (universal width‑based collapse) ---
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('collapsed');
@@ -449,7 +457,10 @@
 
         // --- Load a tool into the iframe ---
         function loadTool(url, title, element) {
-            document.getElementById('tool-frame').src = url;
+            const iframe = document.getElementById('tool-frame');
+            if (iframe && iframe.getAttribute('src') !== url) {
+                iframe.src = url;
+            }
             document.getElementById('active-tool-title').innerText = title;
 
             const links = document.querySelectorAll('.tool-link');
@@ -498,6 +509,7 @@
         // --- Send roster to iframe ---
         function broadcastRoster() {
             const selectedClass = document.getElementById('class-selector').value;
+            localStorage.setItem('classroom_selected_class', selectedClass);
             const activeRoster = rosters[selectedClass] || [];
             const iframe = document.getElementById('tool-frame');
             if (iframe && iframe.contentWindow) {
@@ -532,9 +544,17 @@
 
         // --- Auto‑load first tool on start ---
         window.addEventListener('DOMContentLoaded', () => {
+            const savedClass = localStorage.getItem('classroom_selected_class');
+            if (savedClass && document.getElementById('class-selector')) {
+                document.getElementById('class-selector').value = savedClass;
+            }
+
             const wheelLink = document.querySelector('.tool-link[onclick*="wheel.html"]');
             if (wheelLink) {
-                wheelLink.click();
+                document.getElementById('active-tool-title').innerText = 'Name Wheel';
+                const links = document.querySelectorAll('.tool-link');
+                links.forEach(link => link.classList.remove('active'));
+                wheelLink.classList.add('active');
             } else {
                 const firstTool = document.querySelector('.tool-link');
                 if (firstTool) firstTool.click();
