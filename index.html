@@ -340,6 +340,9 @@
                 <a class="tool-link" onclick="loadTool('games/parts-of-speech/parts-of-speech_win.html', 'Parts of Speech', this)">
                     <span>✍️</span> Parts of Speech
                 </a>
+                <a class="tool-link" onclick="loadTool('games/instructions/index.html', 'Blind Rover', this)">
+                    <span>🤖</span> Blind Rover
+                </a>
 
                 <div class="category-title">Demos</div>
                 <a class="tool-link" onclick="loadTool('demos/alien-mirror/index.html', 'Alien Mirrors', this)">
@@ -473,7 +476,7 @@
             const query = document.getElementById('search-input').value.toLowerCase();
             const links = document.querySelectorAll('.tool-link');
             links.forEach(link => {
-                const text = link.innerText.toLowerCase();
+                const text = (link.innerText + ' ' + (link.getAttribute('onclick') || '')).toLowerCase();
                 link.style.display = text.includes(query) ? 'flex' : 'none';
             });
         }

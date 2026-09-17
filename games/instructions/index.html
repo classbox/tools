@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blind Rover</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- =========================================================================
+       Main Game Layout (Side Panel + Max-Size Board)
+       ========================================================================= -->
+  <div class="game-container">
+    
+    <!-- Sleek Side Panel -->
+    <aside class="side-panel">
+      <div class="side-top-group">
+        <div class="side-header">
+          <span class="game-logo">🤖</span>
+        </div>
+
+        <!-- Vertical Column of Hearts Under Robot Avatar -->
+        <div class="lives-container" id="lives-container" title="Lives Remaining">
+          <!-- Hearts rendered dynamically by game.js -->
+        </div>
+      </div>
+
+      <!-- Big Prominent Timer -->
+      <div class="timer-box" id="timer-container">
+        <span class="timer-icon">⏱️</span>
+        <span class="timer-digits" id="timer-display">60.0</span>
+      </div>
+
+      <!-- Quick Action Controls -->
+      <div class="side-controls">
+        <button class="btn btn-restart" id="btn-reset" title="Reset (R)">
+          <span>🔄</span> Reset
+        </button>
+        <div class="side-icon-row">
+          <button class="icon-btn" id="btn-sound-toggle" title="Sound">
+            <span id="sound-icon">🔊</span>
+          </button>
+          <button class="icon-btn" id="btn-settings" title="Settings">
+            <span>⚙️</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 6x6 Grid Board (Maximized Size, No Clutter) -->
+    <main class="main-stage">
+      <div class="grid-board" id="grid-board">
+        <!-- 36 clean tiles generated via game.js -->
+      </div>
+    </main>
+
+  </div>
+
+  <!-- =========================================================================
+       Lock Defusal Modal (Arrow Hold & Spelling Challenge)
+       ========================================================================= -->
+  <div class="modal-backdrop" id="defusal-backdrop">
+    <div class="defusal-modal" id="defusal-modal">
+      
+      <!-- View A: Arrow Hold Challenge -->
+      <div id="hold-challenge-view">
+        <div class="lock-icon-huge">🔒</div>
+        <div class="hold-action-title">HOLD KEY!</div>
+        
+        <div class="hold-key-badge" id="target-key-badge">
+          <span class="key-arrow" id="target-key-arrow">⬆️</span>
+          <span class="key-word" id="target-key-name">UP</span>
+        </div>
+        <div class="key-alt-hint" id="target-key-alt">or [W]</div>
+
+        <div class="progress-wrap">
+          <div class="progress-bar" id="hold-progress-fill"></div>
+        </div>
+        <div class="hold-timer-text" id="hold-time-text">HOLD FOR 3 SECONDS!</div>
+      </div>
+
+      <!-- View B: Spelling Lock Challenge -->
+      <div id="spelling-challenge-view" style="display: none;">
+        <div class="lock-icon-huge">🎨</div>
+        <div class="hold-action-title" id="spelling-title">SPELL THE COLOR!</div>
+        
+        <!-- Big letter boxes container -->
+        <div class="spelling-boxes-wrap" id="spelling-boxes-container">
+          <!-- Letter boxes dynamically generated -->
+        </div>
+
+        <div class="spelling-hint" id="spelling-hint">Type each letter on keyboard!</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       Failure / Boom Overlay
+       ========================================================================= -->
+  <div class="overlay-screen overlay-fail" id="overlay-fail">
+    <div class="modal-card fail-card">
+      <div class="big-emoji">💥</div>
+      <h2 class="result-title fail-text">BOOM!</h2>
+      <p class="simple-reason" id="fail-reason-text">Stepped on a bomb!</p>
+      <button class="btn btn-fail-restart" id="btn-retry-fail">
+        🔄 TRY AGAIN [R]
+      </button>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       Victory Overlay (With Rich Score Mode Tally)
+       ========================================================================= -->
+  <div class="overlay-screen overlay-victory" id="overlay-victory">
+    <div class="modal-card victory-card">
+      <div class="big-emoji">🏆</div>
+      <h2 class="result-title win-text">SAFE!</h2>
+      <p class="simple-reason" id="victory-subtitle-text">Reached the exit!</p>
+      
+      <!-- Score Mode Tally Breakdown Screen -->
+      <div class="score-tally-wrap" id="score-tally-wrap" style="display: none;">
+        <div class="total-score-badge">
+          <span class="score-label">MISSION SCORE</span>
+          <span class="score-number" id="tally-total-score">0</span>
+        </div>
+        <div class="tally-rows">
+          <div class="tally-row">
+            <span class="tally-item-label">⚡ Speed:</span>
+            <span class="tally-item-val" id="tally-speed-pts">+0</span>
+          </div>
+          <div class="tally-row">
+            <span class="tally-item-label">⌨️ Typing Speed:</span>
+            <span class="tally-item-val" id="tally-typing-pts">+0</span>
+          </div>
+          <div class="tally-row">
+            <span class="tally-item-label">❤️ Lives Left Bonus:</span>
+            <span class="tally-item-val" id="tally-lives-pts">+0</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-win-restart" id="btn-next-victory">
+        🚀 NEXT ROUND [R]
+      </button>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       Settings Drawer
+       ========================================================================= -->
+  <div class="drawer-backdrop" id="drawer-backdrop"></div>
+  <aside class="settings-drawer" id="settings-drawer">
+    <div class="drawer-header">
+      <h3>⚙️ Settings</h3>
+      <button class="icon-btn" id="btn-close-settings">✕</button>
+    </div>
+
+    <div class="setting-group">
+      <label>Game Mode</label>
+      <div class="toggle-buttons mode-three-way">
+        <button class="toggle-btn" id="mode-countdown">Countdown</button>
+        <button class="toggle-btn" id="mode-countup">Count Up</button>
+        <button class="toggle-btn active" id="mode-score">Score Mode</button>
+      </div>
+    </div>
+
+    <div class="setting-group" id="group-duration">
+      <label for="setting-duration">Time Limit</label>
+      <select id="setting-duration" class="clean-select">
+        <option value="30">30 Seconds (Fast)</option>
+        <option value="45">45 Seconds</option>
+        <option value="60" selected>60 Seconds (Default)</option>
+        <option value="90">90 Seconds (Easy)</option>
+        <option value="120">120 Seconds</option>
+      </select>
+    </div>
+
+    <div class="setting-group">
+      <label for="setting-lives">Rover Lives (Hearts)</label>
+      <input type="number" id="setting-lives" class="clean-input" min="1" max="9" value="3">
+    </div>
+
+    <div class="setting-group">
+      <label>Lock Challenges</label>
+      <div class="split-controls">
+        <div class="sub-control">
+          <span class="sub-label">🎨 Color Speller</span>
+          <select id="setting-spelling-count" class="clean-select">
+            <option value="0">0</option>
+            <option value="1" selected>1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+          </select>
+        </div>
+        <div class="sub-control">
+          <span class="sub-label">🔒 Arrow Hold</span>
+          <select id="setting-hold-count" class="clean-select">
+            <option value="0">0</option>
+            <option value="1" selected>1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <label>Background Music</label>
+      <div class="toggle-buttons">
+        <button class="toggle-btn active" id="music-on">On</button>
+        <button class="toggle-btn" id="music-off">Off</button>
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <label for="setting-volume">Sound Volume</label>
+      <input type="range" id="setting-volume" min="0" max="1" step="0.05" value="0.85">
+    </div>
+
+    <div class="quick-guide">
+      <h4>How to Play:</h4>
+      <p>• <strong>Pilot:</strong> Faces away from screen, uses <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or <kbd>Arrows</kbd>.</p>
+      <p>• <strong>Class:</strong> Calls oral commands ("Move right", "Step down", "Hold UP!").</p>
+      <p>• Press <kbd>R</kbd> anytime to restart.</p>
+    </div>
+  </aside>
+
+  <!-- =========================================================================
+       Splash Screen (Audio Unlock)
+       ========================================================================= -->
+  <div class="splash-modal" id="splash-modal">
+    <div class="splash-card">
+      <div class="splash-icon">🤖</div>
+      <h1 class="splash-title">BLIND ROVER</h1>
+      <p class="splash-subtitle">Guide the blind pilot safely to the exit!</p>
+      <button class="btn btn-start" id="btn-start-mission">
+        ▶ START GAME
+      </button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
