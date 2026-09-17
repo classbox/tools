@@ -838,19 +838,28 @@
       document.getElementById('tabPancakes').classList.toggle('active', key === 'pancakes');
       document.getElementById('storyCard').classList.remove('show');
 
-      // Shuffle cards
-      availableCardOrders = [1, 2, 3, 4, 5];
-      for (let i = availableCardOrders.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [availableCardOrders[i], availableCardOrders[j]] = [availableCardOrders[j], availableCardOrders[i]];
+      // Helper to guarantee thorough shuffling (never identity, never starting with index 0 item)
+      function robustShuffle(arr, forceDifferentFirst = true) {
+        let result = [...arr];
+        let attempts = 0;
+        do {
+          for (let i = result.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [result[i], result[j]] = [result[j], result[i]];
+          }
+          attempts++;
+          const isSorted = result.every((val, idx) => val === arr[idx]);
+          const startsSame = forceDifferentFirst && result[0] === arr[0];
+          if (!isSorted && !startsSame) break;
+        } while (attempts < 100);
+        return result;
       }
 
-      // Shuffle word bank so words are NOT in chronological order!
-      shuffledWords = [...WORDS];
-      for (let i = shuffledWords.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffledWords[i], shuffledWords[j]] = [shuffledWords[j], shuffledWords[i]];
-      }
+      // Thoroughly shuffle candidate cards
+      availableCardOrders = robustShuffle([1, 2, 3, 4, 5], true);
+
+      // Thoroughly shuffle word bank
+      shuffledWords = robustShuffle(WORDS, true);
 
       renderWordRibbon();
       renderSteps();
