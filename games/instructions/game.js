@@ -1409,34 +1409,41 @@
       ? (parseFloat(settings.duration) - timerCurrent).toFixed(1)
       : timerCurrent.toFixed(1);
 
-    // Dynamic scoring formula calibrated for verbal blind classroom instructions:
-    // Realistic oral communication runs range from ~30s (rapid guidance) to 110s+ (cautious guidance)
-    // 1. Mission Speed (Up to 6,000 pts)
+    // Transparent, high-divergence scoring formula:
+    // 1. Mission Speed (1,800 base clear + 55 pts per second under par)
     const elapsedSec = Math.max(1, roundElapsedSec);
-    let speedPts = Math.round(6000 * Math.exp(-elapsedSec / 60));
-    speedPts = Math.max(300, Math.min(6000, speedPts));
+    const parTime = Math.max(60, parseFloat(settings.duration) || 60);
+    let speedPts = 1800;
+    if (elapsedSec <= parTime) {
+      speedPts += Math.round((parTime - elapsedSec) * 55);
+    } else {
+      const overSec = elapsedSec - parTime;
+      speedPts = Math.max(300, Math.round(1800 * Math.exp(-overSec / 35)));
+    }
 
-    // 2. Typing / Defusal Precision Bonus (Up to 1,800 pts)
-    // Calibrated for oral spelling out loud (typically 3s to 10s)
+    // 2. Typing / Defusal Precision Bonus (Up to 1,200 pts)
+    // Sized appropriately so typing variances NEVER drown out life/damage outcomes
     let typingPts = 0;
     if (totalSpellingChallengesCompleted > 0) {
       const avgTypingTime = totalTypingTimeSec / totalSpellingChallengesCompleted;
-      // 3.0s or faster gives ~1,700-1,800 pts, ~5.0s gives ~1,250 pts, ~8.0s gives ~650 pts, 12s+ gives ~150 pts
-      const typingRatio = Math.max(0.1, Math.min(1.0, (12.0 - avgTypingTime) / 9.5));
-      typingPts = Math.round(1800 * Math.pow(typingRatio, 1.2) * totalSpellingChallengesCompleted);
-      typingPts = Math.max(150, typingPts);
+      const typingRatio = Math.max(0, Math.min(1.0, (12.0 - avgTypingTime) / 9.5));
+      typingPts = Math.round((300 + typingRatio * 900) * totalSpellingChallengesCompleted);
     } else {
-      // If no spelling challenge was placed, reward navigation cadence (~0.15 to 0.5 steps/sec)
       const stepRate = safePath.length / elapsedSec;
-      typingPts = Math.max(200, Math.min(1500, Math.round(stepRate * 1800)));
+      typingPts = Math.max(250, Math.min(850, Math.round(stepRate * 1200)));
     }
 
-    // 3. Lives & Flawless Execution Bonus (Up to 2,000 pts)
+    // 3. Lives & Flawless Execution Bonus (Major impact on final score)
+    // Losing a heart is a major tactical error that produces immediate 1,500-2,000 pt divergence
     const startingLives = parseInt(settings.lives, 10) || 3;
     const isFlawless = currentLives >= startingLives;
-    let livesPts = currentLives * 450;
+    const heartsLost = Math.max(0, startingLives - currentLives);
+    let livesPts = currentLives * 750;
     if (isFlawless) {
-      livesPts += 650; // Special flawless clean mission bonus!
+      livesPts += 1000; // Flawless clean mission bonus (+1,000 pts)
+    } else {
+      // Substantial penalty per lost heart so damage is strongly felt
+      livesPts = Math.max(200, livesPts - heartsLost * 300);
     }
 
     const grandTotalScore = speedPts + typingPts + livesPts;
