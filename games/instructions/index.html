@@ -111,32 +111,45 @@
   </div>
 
   <!-- =========================================================================
-       Victory Overlay (With Rich Score Mode Tally)
+       Victory Overlay (With Rich Score Mode Tally & Leaderboard)
        ========================================================================= -->
   <div class="overlay-screen overlay-victory" id="overlay-victory">
     <div class="modal-card victory-card">
-      <div class="big-emoji">🏆</div>
-      <h2 class="result-title win-text">SAFE!</h2>
-      <p class="simple-reason" id="victory-subtitle-text">Reached the exit!</p>
-      
-      <!-- Score Mode Tally Breakdown Screen -->
-      <div class="score-tally-wrap" id="score-tally-wrap" style="display: none;">
-        <div class="total-score-badge">
-          <span class="score-label">MISSION SCORE</span>
-          <span class="score-number" id="tally-total-score">0</span>
+      <!-- Two-Column Layout: Left = Large Point Aggregator, Right = Leaderboard -->
+      <div class="victory-layout">
+        <!-- Left Column: Score Mode Tally Breakdown Screen -->
+        <div class="victory-left-col">
+          <div class="score-tally-wrap" id="score-tally-wrap">
+            <div class="total-score-badge">
+              <span class="score-label">MISSION SCORE</span>
+              <span class="score-number" id="tally-total-score">0</span>
+            </div>
+            <div class="tally-rows">
+              <div class="tally-row">
+                <span class="tally-item-label">⚡ Speed:</span>
+                <span class="tally-item-val" id="tally-speed-pts">+0</span>
+              </div>
+              <div class="tally-row">
+                <span class="tally-item-label">⌨️ Typing Speed:</span>
+                <span class="tally-item-val" id="tally-typing-pts">+0</span>
+              </div>
+              <div class="tally-row">
+                <span class="tally-item-label">❤️ Lives Left Bonus:</span>
+                <span class="tally-item-val" id="tally-lives-pts">+0</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="tally-rows">
-          <div class="tally-row">
-            <span class="tally-item-label">⚡ Speed:</span>
-            <span class="tally-item-val" id="tally-speed-pts">+0</span>
-          </div>
-          <div class="tally-row">
-            <span class="tally-item-label">⌨️ Typing Speed:</span>
-            <span class="tally-item-val" id="tally-typing-pts">+0</span>
-          </div>
-          <div class="tally-row">
-            <span class="tally-item-label">❤️ Lives Left Bonus:</span>
-            <span class="tally-item-val" id="tally-lives-pts">+0</span>
+
+        <!-- Right Column: Leaderboard -->
+        <div class="victory-right-col">
+          <div class="leaderboard-card" id="victory-leaderboard-card">
+            <div class="leaderboard-header">
+              <span class="leaderboard-title">🎖️ MISSION LEADERBOARD</span>
+            </div>
+            <div class="leaderboard-list" id="leaderboard-list">
+              <!-- Dynamically populated rows by game.js -->
+            </div>
           </div>
         </div>
       </div>
@@ -219,6 +232,16 @@
       <input type="range" id="setting-volume" min="0" max="1" step="0.05" value="0.85">
     </div>
 
+    <div class="setting-group">
+      <label>Leaderboard Records</label>
+      <button class="btn btn-reset-records" id="btn-reset-leaderboard">
+        🗑️ Reset Leaderboard
+      </button>
+      <div class="reset-feedback" id="leaderboard-reset-msg" style="display: none;">
+        ✓ Leaderboard records reset!
+      </div>
+    </div>
+
     <div class="quick-guide">
       <h4>How to Play:</h4>
       <p>• <strong>Pilot:</strong> Faces away from screen, uses <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or <kbd>Arrows</kbd>.</p>
@@ -228,13 +251,28 @@
   </aside>
 
   <!-- =========================================================================
-       Splash Screen (Audio Unlock)
+       Splash Screen (Audio Unlock & Pilot Name Input)
        ========================================================================= -->
   <div class="splash-modal" id="splash-modal">
     <div class="splash-card">
       <div class="splash-icon">🤖</div>
       <h1 class="splash-title">BLIND ROVER</h1>
       <p class="splash-subtitle">Guide the blind pilot safely to the exit!</p>
+      
+      <!-- Pilot Name Input Panel -->
+      <div class="pilot-input-panel">
+        <label for="input-pilot-name" class="pilot-input-label">PILOT NAME</label>
+        <input 
+          type="text" 
+          id="input-pilot-name" 
+          class="pilot-name-input" 
+          placeholder="Enter Pilot Name..." 
+          maxlength="16"
+          autocomplete="off"
+          spellcheck="false"
+        />
+      </div>
+
       <button class="btn btn-start" id="btn-start-mission">
         ▶ START GAME
       </button>

@@ -75,6 +75,12 @@
   let roundElapsedSec = 0;
   let scoreRackingAnimId = null;
 
+  // --- Leaderboard & Pilot State ---
+  const LEADERBOARD_STORAGE_KEY = 'blind_rover_leaderboard_v2';
+  const PILOT_NAME_STORAGE_KEY = 'blind_rover_pilot_name';
+
+  let currentPilotName = 'Pilot';
+
   // --- DOM Elements ---
   const gridBoard = document.getElementById('grid-board');
   const timerDisplay = document.getElementById('timer-display');
@@ -84,6 +90,7 @@
   // Modals & Overlays
   const splashModal = document.getElementById('splash-modal');
   const btnStartMission = document.getElementById('btn-start-mission');
+  const inputPilotName = document.getElementById('input-pilot-name');
   const defusalBackdrop = document.getElementById('defusal-backdrop');
 
   // Arrow Hold Elements
@@ -115,6 +122,11 @@
   const tallyTypingPts = document.getElementById('tally-typing-pts');
   const tallyLivesPts = document.getElementById('tally-lives-pts');
 
+  // Leaderboard DOM Elements
+  const leaderboardList = document.getElementById('leaderboard-list');
+  const btnResetLeaderboard = document.getElementById('btn-reset-leaderboard');
+  const leaderboardResetMsg = document.getElementById('leaderboard-reset-msg');
+
   // Controls & Drawer
   const btnReset = document.getElementById('btn-reset');
   const btnSettings = document.getElementById('btn-settings');
@@ -135,6 +147,128 @@
   const musicOffBtn = document.getElementById('music-off');
   const settingDuration = document.getElementById('setting-duration');
   const settingVolume = document.getElementById('setting-volume');
+
+  // =========================================================================
+  // LEADERBOARD & PILOT PROFILE SYSTEM (REAL RUNS ONLY)
+  // =========================================================================
+  function escapeHtml(str) {
+    return String(str || '').replace(/[&<>"']/g, (m) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    })[m]);
+  }
+
+  function loadLeaderboard() {
+    try {
+      const data = localStorage.getItem(LEADERBOARD_STORAGE_KEY);
+      if (data) {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed)) {
+          return parsed;
+        }
+      }
+    } catch (e) {}
+    return [];
+  }
+
+  function saveLeaderboardToStorage(list) {
+    try {
+      localStorage.setItem(LEADERBOARD_STORAGE_KEY, JSON.stringify(list));
+    } catch (e) {}
+  }
+
+  function addLeaderboardScore(name, score, time) {
+    const list = loadLeaderboard();
+    const cleanName = name && name.trim() ? name.trim().slice(0, 16) : 'Rover Pilot';
+    const entry = {
+      name: cleanName,
+      score: Math.max(0, Math.round(score)),
+      time: String(time)
+    };
+
+    list.push(entry);
+    // Sort descending by score; if tied, sort ascending by time
+    list.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return parseFloat(a.time || 999) - parseFloat(b.time || 999);
+    });
+
+    // Retain top 8 highest scores
+    const topList = list.slice(0, 8);
+    saveLeaderboardToStorage(topList);
+
+    // Return the 0-indexed rank of this run if it made top 8
+    return topList.indexOf(entry);
+  }
+
+  function renderLeaderboard(highlightIndex = -1) {
+    if (!leaderboardList) return;
+    const list = loadLeaderboard();
+    leaderboardList.innerHTML = '';
+
+    if (list.length === 0) {
+      leaderboardList.innerHTML = '<div class="empty-leaderboard-msg">No runs recorded yet.<br>Complete a mission to take #1! 🚀</div>';
+      return;
+    }
+
+    list.forEach((entry, idx) => {
+      const row = document.createElement('div');
+      row.className = `leaderboard-row rank-${idx + 1}`;
+      if (idx === highlightIndex) {
+        row.classList.add('current-run-highlight');
+      }
+
+      let medal = `#${idx + 1}`;
+      if (idx === 0) medal = '🥇';
+      else if (idx === 1) medal = '🥈';
+      else if (idx === 2) medal = '🥉';
+
+      const isCurrent = idx === highlightIndex;
+
+      row.innerHTML = `
+        <div class="leaderboard-col-left">
+          <span class="rank-badge">${medal}</span>
+          <span class="player-name" title="${escapeHtml(entry.name)}">${escapeHtml(entry.name)}</span>
+          ${isCurrent ? '<span class="you-tag">YOU</span>' : ''}
+        </div>
+        <div class="leaderboard-col-right">
+          <span class="player-score">${Number(entry.score).toLocaleString()}</span>
+        </div>
+      `;
+
+      leaderboardList.appendChild(row);
+    });
+  }
+
+  function initPilotName() {
+    try {
+      const saved = localStorage.getItem(PILOT_NAME_STORAGE_KEY);
+      if (saved && inputPilotName) {
+        inputPilotName.value = saved;
+        currentPilotName = saved;
+      }
+    } catch (e) {}
+
+    if (inputPilotName) {
+      inputPilotName.addEventListener('input', (e) => {
+        const val = e.target.value;
+        currentPilotName = val.trim() ? val.trim().slice(0, 16) : 'Pilot';
+        try {
+          localStorage.setItem(PILOT_NAME_STORAGE_KEY, val);
+        } catch (err) {}
+      });
+
+      inputPilotName.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          startGame();
+        }
+      });
+    }
+  }
 
   // =========================================================================
   // AUDIO CONTROLLER (CORS-Free Web Audio + HTML5 Audio)
@@ -1196,7 +1330,7 @@
     }
   }
 
-  function startScoreRackingAnimation(speedPts, typingPts, livesPts, grandTotalScore) {
+  function startScoreRackingAnimation(speedPts, typingPts, livesPts, grandTotalScore, isFlawless) {
     stopScoreRacking();
 
     if (!scoreTallyWrap || !tallyTotalScore) return;
@@ -1227,8 +1361,9 @@
       if (tallySpeedPts) tallySpeedPts.textContent = `+${curSpeed.toLocaleString()}`;
       if (tallyTypingPts) tallyTypingPts.textContent = `+${curTyping.toLocaleString()}`;
       if (tallyLivesPts) {
+        const bonusTag = isFlawless ? ' ★ FLAWLESS' : '';
         tallyLivesPts.textContent = progress >= 1.0
-          ? `+${curLives.toLocaleString()} (${currentLives} ❤️)`
+          ? `+${curLives.toLocaleString()} (${currentLives} ❤️${bonusTag})`
           : `+${curLives.toLocaleString()}`;
       }
 
@@ -1246,7 +1381,8 @@
         tallyTotalScore.textContent = grandTotalScore.toLocaleString();
         if (tallySpeedPts) tallySpeedPts.textContent = `+${speedPts.toLocaleString()}`;
         if (tallyTypingPts) tallyTypingPts.textContent = `+${typingPts.toLocaleString()}`;
-        if (tallyLivesPts) tallyLivesPts.textContent = `+${livesPts.toLocaleString()} (${currentLives} ❤️)`;
+        const bonusTag = isFlawless ? ' ★ FLAWLESS' : '';
+        if (tallyLivesPts) tallyLivesPts.textContent = `+${livesPts.toLocaleString()} (${currentLives} ❤️${bonusTag})`;
 
         // Visual bounce bump & celebratory chime
         tallyTotalScore.classList.add('score-bump');
@@ -1273,39 +1409,49 @@
       ? (parseFloat(settings.duration) - timerCurrent).toFixed(1)
       : timerCurrent.toFixed(1);
 
-    if (settings.timerMode === 'score') {
-      // SCORE MODE: calculate rich score breakdown and show dynamic racking tally
-      // 1. Speed: faster mission completion awards higher points (Max 3,000 base)
-      const elapsedSec = Math.max(1, roundElapsedSec);
-      const speedPts = Math.max(200, Math.round(3000 * Math.exp(-elapsedSec / 45)));
+    // Dynamic scoring formula calibrated for verbal blind classroom instructions:
+    // Realistic oral communication runs range from ~30s (rapid guidance) to 110s+ (cautious guidance)
+    // 1. Mission Speed (Up to 6,000 pts)
+    const elapsedSec = Math.max(1, roundElapsedSec);
+    let speedPts = Math.round(6000 * Math.exp(-elapsedSec / 60));
+    speedPts = Math.max(300, Math.min(6000, speedPts));
 
-      // 2. Typing speed points: fast word completion awards bonus points (Up to 1,500 pts)
-      let typingPts = 0;
-      if (totalSpellingChallengesCompleted > 0) {
-        const avgTypingTime = totalTypingTimeSec / totalSpellingChallengesCompleted;
-        // 500 bonus per challenge, reduced if slower than 2 seconds
-        const ptsPerChallenge = Math.max(100, Math.round(750 * Math.max(0.2, (8 - avgTypingTime) / 8)));
-        typingPts = ptsPerChallenge * totalSpellingChallengesCompleted;
-      } else {
-        // If no spelling locks chosen, reward steady navigation bonus
-        typingPts = 500;
-      }
-
-      // 3. Lives remaining contribution: each surviving heart adds +500 pts
-      const livesPts = currentLives * 500;
-
-      const grandTotalScore = speedPts + typingPts + livesPts;
-
-      victorySubtitleText.textContent = `Completed in ${timeTaken}s!`;
-      if (scoreTallyWrap) {
-        scoreTallyWrap.style.display = 'block';
-        startScoreRackingAnimation(speedPts, typingPts, livesPts, grandTotalScore);
-      }
+    // 2. Typing / Defusal Precision Bonus (Up to 1,800 pts)
+    // Calibrated for oral spelling out loud (typically 3s to 10s)
+    let typingPts = 0;
+    if (totalSpellingChallengesCompleted > 0) {
+      const avgTypingTime = totalTypingTimeSec / totalSpellingChallengesCompleted;
+      // 3.0s or faster gives ~1,700-1,800 pts, ~5.0s gives ~1,250 pts, ~8.0s gives ~650 pts, 12s+ gives ~150 pts
+      const typingRatio = Math.max(0.1, Math.min(1.0, (12.0 - avgTypingTime) / 9.5));
+      typingPts = Math.round(1800 * Math.pow(typingRatio, 1.2) * totalSpellingChallengesCompleted);
+      typingPts = Math.max(150, typingPts);
     } else {
-      // Countdown or Countup standard modes
-      if (scoreTallyWrap) scoreTallyWrap.style.display = 'none';
+      // If no spelling challenge was placed, reward navigation cadence (~0.15 to 0.5 steps/sec)
+      const stepRate = safePath.length / elapsedSec;
+      typingPts = Math.max(200, Math.min(1500, Math.round(stepRate * 1800)));
+    }
+
+    // 3. Lives & Flawless Execution Bonus (Up to 2,000 pts)
+    const startingLives = parseInt(settings.lives, 10) || 3;
+    const isFlawless = currentLives >= startingLives;
+    let livesPts = currentLives * 450;
+    if (isFlawless) {
+      livesPts += 650; // Special flawless clean mission bonus!
+    }
+
+    const grandTotalScore = speedPts + typingPts + livesPts;
+
+    if (victorySubtitleText) {
       victorySubtitleText.textContent = `Completed in ${timeTaken}s!`;
     }
+    if (scoreTallyWrap) {
+      scoreTallyWrap.style.display = 'flex';
+      startScoreRackingAnimation(speedPts, typingPts, livesPts, grandTotalScore, isFlawless);
+    }
+
+    // Record entry to leaderboard and render leaderboard with the new entry highlighted
+    const newEntryRank = addLeaderboardScore(currentPilotName, grandTotalScore, timeTaken);
+    renderLeaderboard(newEntryRank);
 
     overlayVictory.classList.add('active');
   }
@@ -1314,16 +1460,22 @@
   // KEYBOARD LISTENER
   // =========================================================================
   window.addEventListener('keydown', (e) => {
-    if (gameState === 'SPLASH' && (e.key === 'Enter' || e.key === ' ')) {
-      e.preventDefault();
-      startGame();
+    if (gameState === 'SPLASH') {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        startGame();
+      }
       return;
     }
 
     // Quick restart key R (ignore if in SPELLING mode so letter 'R' can be typed)
     if ((e.key === 'r' || e.key === 'R') && gameState !== 'SPLASH' && gameState !== 'SPELLING') {
       e.preventDefault();
-      initRound(true);
+      if (gameState === 'WON') {
+        promptNextPilot();
+      } else {
+        initRound(true);
+      }
       return;
     }
 
@@ -1448,6 +1600,14 @@
       e.preventDefault();
       e.stopPropagation();
     }
+    if (inputPilotName && inputPilotName.value.trim()) {
+      currentPilotName = inputPilotName.value.trim().slice(0, 16);
+      try {
+        localStorage.setItem(PILOT_NAME_STORAGE_KEY, currentPilotName);
+      } catch (err) {}
+    } else {
+      currentPilotName = 'Pilot';
+    }
     initAudioContext();
     splashModal.classList.add('hidden');
     initRound(true);
@@ -1455,6 +1615,36 @@
 
   if (btnStartMission) {
     btnStartMission.addEventListener('click', startGame);
+  }
+
+  // Leaderboard Reset in Settings
+  if (btnResetLeaderboard) {
+    btnResetLeaderboard.addEventListener('click', () => {
+      saveLeaderboardToStorage([]);
+      renderLeaderboard(-1);
+      if (leaderboardResetMsg) {
+        leaderboardResetMsg.style.display = 'block';
+        setTimeout(() => {
+          leaderboardResetMsg.style.display = 'none';
+        }, 2500);
+      }
+    });
+  }
+
+  function promptNextPilot() {
+    stopTimer();
+    stopHoldAudio();
+    stopScoreRacking();
+    overlayVictory.classList.remove('active');
+    overlayFail.classList.remove('active');
+    defusalBackdrop.classList.remove('active');
+    gameState = 'SPLASH';
+    splashModal.classList.remove('hidden');
+    if (inputPilotName) {
+      inputPilotName.value = '';
+      setTimeout(() => inputPilotName.focus(), 60);
+    }
+    initRound(false);
   }
 
   btnReset.addEventListener('click', () => {
@@ -1466,7 +1656,7 @@
   });
 
   btnNextVictory.addEventListener('click', () => {
-    initRound(true);
+    promptNextPilot();
   });
 
   // Settings Drawer Toggle
@@ -1566,6 +1756,10 @@
     settings.volume = parseFloat(e.target.value);
     setAudioVolumes();
   });
+
+  // Initialize pilot name and leaderboard
+  initPilotName();
+  renderLeaderboard(-1);
 
   // Pre-render the grid board immediately behind the splash screen
   initRound(false);
