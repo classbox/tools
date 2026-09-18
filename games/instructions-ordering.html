@@ -775,7 +775,7 @@
     /* ==========================================
        DATA: 3 ACTIVITIES
        ========================================== */
-    const WORDS = ['First', 'Next', 'Then', 'After that', 'And', 'Lastly'];
+    const WORDS = ['First', 'Next', 'Then', 'After that', 'Lastly'];
 
     const DATA = {
       slime: {
@@ -1009,7 +1009,7 @@
         slot.dataset.stepIndex = i;
 
         if (word) {
-          slot.innerHTML = `<span>${word}</span> <span class="remove-x" title="Remove word">✕</span>`;
+          slot.innerHTML = `<span>${word},</span> <span class="remove-x" title="Remove word">✕</span>`;
           slot.title = `Click ✕ to return "${word}" to the bank`;
           const removeBtn = slot.querySelector('.remove-x');
           if (removeBtn) {
@@ -1049,9 +1049,10 @@
 
         if (isFilled) {
           const step = placedActions[i];
+          const actionText = word ? (step.text.charAt(0).toLowerCase() + step.text.slice(1)) : step.text;
           textSpan.innerHTML = `
             <div class="emoji-badge">${step.emoji}</div>
-            <span>${step.text}</span>
+            <span>${actionText}</span>
           `;
         } else {
           textSpan.innerText = isActive ? "Select next step..." : "";
@@ -1129,9 +1130,9 @@
         const w = slottedWords[i];
         const action = placedActions[i];
         if (action) {
-          const lower = action.text.charAt(0).toLowerCase() + action.text.slice(1);
-          const wordHtml = w ? `<span class="story-word">${w}</span>, ` : '';
-          parts.push(`<span id="sent-${i}">${wordHtml}${lower}</span>`);
+          const actionText = w ? (action.text.charAt(0).toLowerCase() + action.text.slice(1)) : action.text;
+          const wordHtml = w ? `<span class="story-word">${w},</span> ` : '';
+          parts.push(`<span id="sent-${i}">${wordHtml}${actionText}</span>`);
         }
       }
       p.innerHTML = parts.join(' ');
@@ -1147,10 +1148,10 @@
         const w = slottedWords[i] || '';
         const action = placedActions[i];
         if (action) {
-          const lower = action.text.charAt(0).toLowerCase() + action.text.slice(1);
+          const actionText = w ? (action.text.charAt(0).toLowerCase() + action.text.slice(1)) : action.text;
           sentences.push({
             id: i,
-            text: `${w ? w + ',' : ''} ${lower}`
+            text: `${w ? w + ',' : ''} ${actionText}`.trim()
           });
         }
       }
