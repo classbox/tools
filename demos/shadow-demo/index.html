@@ -949,7 +949,6 @@
        ========================================================================== */
     let scene, camera, renderer;
     let sunLight, sunMeshGroup, moonLight, moonMeshGroup, ambientLight, streetLampLight, streetLampBulb;
-    let mysteryFogGroup;
 
     function init3D() {
       const container = document.getElementById('canvas-container');
@@ -1184,8 +1183,6 @@
       createShrub(-3.5, 0, 4, world);
 
       scene.add(world);
-
-      buildMysteryClouds();
     }
 
     /* --- GROUND COMPASS EMBEDDED IN PLAZA --- */
@@ -1440,24 +1437,6 @@
       parent.add(shrub);
     }
 
-    function buildMysteryClouds() {
-      mysteryFogGroup = new THREE.Group();
-      mysteryFogGroup.visible = false;
-
-      const cloudMat = new THREE.MeshBasicMaterial({ color: 0x94a3b8, transparent: true, opacity: 0.85 });
-      for (let i = 0; i < 20; i++) {
-        const cloud = new THREE.Mesh(new THREE.SphereGeometry(4 + Math.random() * 3, 12, 10), cloudMat);
-        cloud.position.set(
-          (Math.random() - 0.5) * 60,
-          24 + Math.random() * 12,
-          (Math.random() - 0.5) * 60
-        );
-        cloud.scale.set(1.5, 0.5, 1);
-        mysteryFogGroup.add(cloud);
-      }
-      scene.add(mysteryFogGroup);
-    }
-
     /* ==========================================================================
        SMOOTH CONTINUOUS 24-HOUR LIGHT & SKY COLOR GRADIENT
        ========================================================================== */
@@ -1530,8 +1509,8 @@
 
       // Sun mesh smoothly moves along its true continuous 3D arc, sinking under the horizon!
       sunMeshGroup.position.set(sunX, sunY, sunZ);
-      // Visible whenever above horizon (or just dipped beneath) in explore mode
-      sunMeshGroup.visible = (sunY > -8) && (STATE.mode === 'explore' || STATE.game.roundOver);
+      // Visible whenever above horizon (or just dipped beneath)
+      sunMeshGroup.visible = (sunY > -8);
 
       // CONTINUOUS MOON ORBIT (Opposite the Sun by PI radians / 12 hours)
       const lunarAngle = solarAngle + Math.PI;
@@ -1874,7 +1853,6 @@
         gameBtn.classList.remove('active');
         detectiveCard.classList.remove('visible');
         timelapsePanel.classList.remove('disabled-mode');
-        mysteryFogGroup.visible = false;
         sunMeshGroup.visible = true;
         updateClocks();
       } else {
@@ -1898,9 +1876,6 @@
 
       STATE.timeMinutes = secret;
       updateSunAndSky(secret);
-
-      sunMeshGroup.visible = false;
-      mysteryFogGroup.visible = true;
 
       STATE.game.guessHour = 9;
       STATE.game.guessMinute = 0;
@@ -1966,7 +1941,6 @@
       document.getElementById('accuracy-badge').innerText = `Accuracy: ${avgAccuracy}%`;
 
       sunMeshGroup.visible = true;
-      mysteryFogGroup.visible = false;
       updateClocks();
 
       const trueTimeInfo = formatTime(realMins);

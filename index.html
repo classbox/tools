@@ -122,10 +122,16 @@
             text-decoration: none;
             border-radius: 6px;
             font-size: 0.95rem;
+            line-height: 1.35;
             transition: background 0.2s ease;
             margin-bottom: 2px;
             cursor: pointer;
-            white-space: nowrap;
+            white-space: normal;
+            overflow-wrap: break-word;
+        }
+
+        .tool-link span {
+            flex-shrink: 0;
         }
 
         .tool-link:hover {
