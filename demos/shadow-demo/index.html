@@ -1,0 +1,2031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shadow Time Detective - 3D Science Simulation</title>
+  <!-- Google Fonts: Fredoka & Nunito -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@600;800;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+  <!-- Three.js (r128) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    :root {
+      --bg-dark: #090d16;
+      --panel-bg: rgba(15, 23, 42, 0.88);
+      --panel-border: rgba(255, 255, 255, 0.16);
+      --accent-yellow: #f59e0b;
+      --accent-gold: #fbbf24;
+      --accent-blue: #38bdf8;
+      --accent-green: #22c55e;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --radius-lg: 14px;
+      --radius-md: 8px;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg-dark);
+      font-family: 'Fredoka', 'Nunito', sans-serif;
+      color: var(--text-main);
+    }
+
+    #canvas-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+
+
+    /* Move instructions pill: placed at the top under the header, never obscures scrubber! */
+    #walk-hint {
+      position: absolute;
+      top: 68px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.90);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--panel-border);
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #cbd5e1;
+      pointer-events: auto;
+      z-index: 15;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    }
+
+    .btn-dismiss-hint {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0 4px;
+      border-radius: 4px;
+    }
+
+    .btn-dismiss-hint:hover {
+      color: #fff;
+    }
+
+    /* --- UI WRAPPER --- */
+    #ui-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 14px 18px;
+    }
+
+    .interactive {
+      pointer-events: auto;
+    }
+
+    /* --- TOP BAR --- */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      width: 100%;
+      pointer-events: none;
+    }
+
+    .top-right-column {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .top-right-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .cam-selector {
+      display: flex;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      backdrop-filter: blur(14px);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Mode Switcher */
+    .mode-nav {
+      display: flex;
+      background: var(--panel-bg);
+      backdrop-filter: blur(14px);
+      padding: 4px;
+      border-radius: 999px;
+      border: 1px solid var(--panel-border);
+      gap: 4px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    }
+
+    .mode-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .mode-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .mode-btn.active {
+      background: linear-gradient(135deg, #38bdf8, #2563eb);
+      color: #fff;
+      box-shadow: 0 3px 12px rgba(37, 99, 235, 0.4);
+    }
+
+    .mode-btn.active.game-tab {
+      background: linear-gradient(135deg, #f59e0b, #ea580c);
+      box-shadow: 0 3px 12px rgba(234, 88, 12, 0.4);
+    }
+
+    .cam-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 7px 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .cam-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .cam-btn.active {
+      background: #3b82f6;
+      color: #fff;
+    }
+
+    .icon-btn {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      backdrop-filter: blur(14px);
+      color: var(--text-main);
+      padding: 7px 12px;
+      border-radius: var(--radius-md);
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .icon-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+
+    /* --- MIDDLE ROW: CLOCKS & STREAMLINED DETECTIVE CARD --- */
+    .middle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      width: 100%;
+      pointer-events: none;
+    }
+
+    /* Clock Widget */
+    .clock-widget {
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      border: 1.5px solid rgba(255, 255, 255, 0.18);
+      border-radius: var(--radius-lg);
+      padding: 14px 22px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      box-shadow: 0 10px 36px rgba(0, 0, 0, 0.6);
+    }
+
+    .clock-analog-wrap {
+      width: 120px;
+      height: 120px;
+      position: relative;
+    }
+
+    #analog-clock-canvas {
+      width: 120px;
+      height: 120px;
+      display: block;
+    }
+
+    .clock-digital-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .time-period-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 3px 12px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.22);
+      color: var(--accent-blue);
+      width: fit-content;
+    }
+
+    .time-digital-display {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2.6rem;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      color: #fff;
+      line-height: 1.05;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    .time-digital-display.masked {
+      color: var(--accent-yellow);
+      letter-spacing: 4px;
+    }
+
+    #clock-sublabel {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    /* --- MINIMAL STREAMLINED DETECTIVE MODE CARD --- */
+    .detective-card {
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      border: 2px solid rgba(245, 158, 11, 0.45);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      width: 340px;
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5);
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .detective-card.visible {
+      display: flex;
+    }
+
+    .detective-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .detective-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--accent-gold);
+    }
+
+    .detective-percentage-badge {
+      background: rgba(34, 197, 94, 0.2);
+      border: 1px solid var(--accent-green);
+      color: #4ade80;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Large Clean Input Box */
+    .detective-input-box {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--panel-border);
+    }
+
+    .time-input-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .time-spinner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .spin-btn {
+      background: #1e293b;
+      border: 1px solid var(--panel-border);
+      color: #fff;
+      width: 44px;
+      height: 28px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .spin-btn:hover {
+      background: #334155;
+      color: var(--accent-yellow);
+    }
+
+    .time-val-display {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #fff;
+      min-width: 48px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 4px 6px;
+      border-radius: 6px;
+    }
+
+    .time-colon {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin: 0 -2px;
+    }
+
+    .ampm-btn-box {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .ampm-pill {
+      background: #1e293b;
+      border: 1px solid var(--panel-border);
+      color: var(--text-muted);
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .ampm-pill.active {
+      background: var(--accent-yellow);
+      color: #000;
+      font-weight: 800;
+    }
+
+    .btn-submit-check {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      border: none;
+      color: #000;
+      font-family: inherit;
+      font-size: 1.05rem;
+      font-weight: 800;
+      padding: 12px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+      transition: all 0.15s;
+      width: 100%;
+    }
+
+    .btn-submit-check:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    /* Result Box in Detective Mode */
+    .detective-result-box {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--panel-border);
+      text-align: center;
+      animation: popIn 0.25s ease-out;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .score-accuracy-hero {
+      font-size: 1.9rem;
+      font-weight: 900;
+      color: #4ade80;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .score-accuracy-details {
+      font-size: 0.88rem;
+      color: #cbd5e1;
+      line-height: 1.4;
+    }
+
+    .btn-next-challenge {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      border: none;
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 800;
+      padding: 10px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+      transition: all 0.15s;
+    }
+
+    .btn-next-challenge:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    /* --- BOTTOM BAR: TIMELAPSE CONTROLS --- */
+    .bottom-bar {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+      width: 100%;
+      max-width: 880px;
+      margin: 0 auto;
+    }
+
+    .timelapse-panel {
+      width: 100%;
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-lg);
+      padding: 10px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+      transition: all 0.25s ease;
+    }
+
+    .timelapse-panel.disabled-mode {
+      opacity: 0.35;
+      pointer-events: none;
+      filter: grayscale(0.6);
+    }
+
+    .time-scrubber-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .play-pause-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #38bdf8, #2563eb);
+      border: none;
+      color: #fff;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 3px 12px rgba(37, 99, 235, 0.4);
+      transition: all 0.15s;
+    }
+
+    .play-pause-btn:hover {
+      transform: scale(1.06);
+    }
+
+    .slider-track-wrap {
+      flex: 1;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .time-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      background: linear-gradient(to right, 
+        #090d16 0%, 
+        #ea580c 25%, 
+        #fef08a 50%, 
+        #ea580c 75%, 
+        #090d16 100%);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .time-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #fff;
+      border: 3px solid var(--accent-yellow);
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      transition: transform 0.1s;
+    }
+
+    .time-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    .slider-markers {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      padding: 0 2px;
+    }
+
+    .controls-subrow {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .presets-group {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .preset-btn {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid var(--panel-border);
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 4px 9px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .preset-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: #fff;
+    }
+
+    .speed-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 3px 6px;
+      border-radius: 6px;
+      border: 1px solid var(--panel-border);
+    }
+
+    .speed-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-right: 2px;
+    }
+
+    .speed-pill {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 3px 7px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .speed-pill:hover {
+      color: #fff;
+    }
+
+    .speed-pill.active {
+      background: var(--accent-blue);
+      color: #fff;
+    }
+
+    @media (max-width: 768px) {
+      .top-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .brand-badge, .mode-nav {
+        justify-content: center;
+      }
+      .middle-row {
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+      }
+      .detective-card {
+        width: 100%;
+        max-width: 320px;
+      }
+      .presets-group {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 3D Canvas -->
+  <div id="canvas-container"></div>
+  
+  <!-- Walk hint: positioned at the top under the header, never obscures the bottom scrubber! -->
+  <div id="walk-hint">
+    <span>🚶 <b>W, A, S, D</b> Walk &bull; <b>E / F</b> Fly Up/Down &bull; <b>Click &amp; Drag</b> Look</span>
+    <button class="btn-dismiss-hint" onclick="dismissWalkHint()" title="Dismiss">✖</button>
+  </div>
+
+  <!-- UI Overlay -->
+  <div id="ui-overlay">
+
+    <!-- Top Bar: Clock on Left, Camera & Mode Controls on Right -->
+    <header class="top-bar">
+      <!-- Clocks in Top-Left Corner -->
+      <div class="clock-widget interactive" id="clock-widget">
+        <div class="clock-analog-wrap">
+          <canvas id="analog-clock-canvas" width="240" height="240"></canvas>
+        </div>
+        <div class="clock-digital-wrap">
+          <span class="time-period-tag" id="time-period-tag">☀️ MORNING</span>
+          <div class="time-digital-display" id="time-digital-display">08:00 AM</div>
+          <span id="clock-sublabel">Sun climbing in the East</span>
+        </div>
+      </div>
+
+      <!-- Right Column: Camera Bar, Sound, and Mode Switcher Below -->
+      <div class="top-right-column">
+        <div class="top-right-group interactive">
+          <div class="cam-selector" title="Choose View">
+            <button class="cam-btn active" onclick="setViewMode('player', this)">🚶 Walk in World</button>
+            <button class="cam-btn" onclick="setViewMode('iso-south', this)">📐 Look South</button>
+            <button class="cam-btn" onclick="setViewMode('iso-north', this)">📐 Look North</button>
+            <button class="cam-btn" onclick="setViewMode('top', this)">🧭 Top Map</button>
+          </div>
+          <button id="btn-audio" class="icon-btn" onclick="toggleAudio()" title="Sound">
+            <span id="audio-icon">🔊</span>
+          </button>
+        </div>
+
+        <nav class="mode-nav interactive">
+          <button id="btn-mode-explore" class="mode-btn active" onclick="switchMode('explore')">
+            <span>⏱️</span> Timelapse Lab
+          </button>
+          <button id="btn-mode-game" class="mode-btn game-tab" onclick="switchMode('game')">
+            <span>🕵️‍♂️</span> Detective Game
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Middle Row: Right Detective Card -->
+    <div class="middle-row">
+      <!-- Spacer to keep detective card right-aligned -->
+      <div style="flex:1;"></div>
+
+      <!-- Minimal Detective Input & Score Card -->
+      <div class="detective-card interactive" id="detective-card">
+        <div class="detective-header">
+          <span class="detective-title">🕵️ Guess the Time</span>
+          <span class="detective-percentage-badge" id="accuracy-badge">Accuracy: 100%</span>
+        </div>
+
+        <div class="detective-input-box" id="detective-input-box">
+          <div class="time-input-row">
+            <!-- Hour Spinner -->
+            <div class="time-spinner">
+              <button class="spin-btn" onclick="adjustGuessHour(1)">▲</button>
+              <div class="time-val-display" id="guess-hour-display">09</div>
+              <button class="spin-btn" onclick="adjustGuessHour(-1)">▼</button>
+            </div>
+
+            <div class="time-colon">:</div>
+
+            <!-- Minute Spinner -->
+            <div class="time-spinner">
+              <button class="spin-btn" onclick="adjustGuessMin(15)">▲</button>
+              <div class="time-val-display" id="guess-min-display">00</div>
+              <button class="spin-btn" onclick="adjustGuessMin(-15)">▼</button>
+            </div>
+
+            <!-- AM/PM Toggle -->
+            <div class="ampm-btn-box">
+              <button id="btn-am" class="ampm-pill active" onclick="setGuessAMPM('AM')">AM</button>
+              <button id="btn-pm" class="ampm-pill" onclick="setGuessAMPM('PM')">PM</button>
+            </div>
+          </div>
+
+          <button class="btn-submit-check" onclick="submitGuess()">CHECK GUESS</button>
+        </div>
+
+        <!-- Result Box -->
+        <div class="detective-result-box" id="detective-result-box">
+          <div class="score-accuracy-hero" id="result-accuracy">94%</div>
+          <div class="score-accuracy-details" id="result-details">
+            Real Time: <b>9:15 AM</b> &bull; Your Guess: <b>9:00 AM</b>
+          </div>
+          <button class="btn-next-challenge" onclick="nextRound()">Next Shadow ➡️</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Bar: Timelapse Slider & Speed Controls -->
+    <footer class="bottom-bar">
+      <div class="timelapse-panel interactive" id="timelapse-panel">
+        <div class="time-scrubber-row">
+          <button id="btn-play-pause" class="play-pause-btn" onclick="togglePlay()" title="Play / Pause">
+            <span id="play-icon">▶️</span>
+          </button>
+          
+          <div class="slider-track-wrap">
+            <input type="range" id="time-slider" class="time-slider" min="0" max="1440" step="1" value="480" oninput="onSliderTimeChange(this.value)">
+            <div class="slider-markers">
+              <span>12 AM</span>
+              <span>6 AM (Sunrise)</span>
+              <span>12 PM (Noon)</span>
+              <span>6 PM (Sunset)</span>
+              <span>12 AM</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="controls-subrow">
+          <div class="presets-group">
+            <button class="preset-btn" onclick="jumpToTime(360)">🌅 Sunrise (6 AM)</button>
+            <button class="preset-btn" onclick="jumpToTime(540)">🌤️ Morning (9 AM)</button>
+            <button class="preset-btn" onclick="jumpToTime(720)">☀️ Noon (12 PM)</button>
+            <button class="preset-btn" onclick="jumpToTime(900)">⛅ Afternoon (3 PM)</button>
+            <button class="preset-btn" onclick="jumpToTime(1080)">🌇 Sunset (6 PM)</button>
+            <button class="preset-btn" onclick="jumpToTime(1320)">🌙 Night (10 PM)</button>
+          </div>
+
+          <div class="speed-group">
+            <span class="speed-label">Speed:</span>
+            <button class="speed-pill" onclick="setSpeed(0.5, this)">0.5x</button>
+            <button class="speed-pill active" onclick="setSpeed(2, this)">1x</button>
+            <button class="speed-pill" onclick="setSpeed(10, this)">5x</button>
+            <button class="speed-pill" onclick="setSpeed(30, this)">15x</button>
+            <button class="speed-pill" onclick="setSpeed(90, this)">45x</button>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- JavaScript Implementation -->
+  <script>
+    /* ==========================================================================
+       GLOBAL STATE & AUDIO
+       ========================================================================== */
+    const STATE = {
+      mode: 'explore', // 'explore' | 'game'
+      timeMinutes: 480, // 8:00 AM default
+      isPlaying: false,
+      simMinutesPerSec: 2.0, // 1x normal speed = 2 simulation min / sec
+      viewMode: 'player', // 'player' | 'iso-south' | 'iso-north' | 'top'
+      isAudioMuted: false,
+      walkHintDismissed: false,
+      // Detective Game State
+      game: {
+        secretMinutes: 540,
+        guessHour: 9,
+        guessMinute: 0,
+        guessAMPM: 'AM',
+        totalRounds: 0,
+        totalScorePercentage: 0,
+        roundOver: false
+      },
+      // Player Walking State
+      player: {
+        x: 0,
+        y: 1.25, // True 8-year-old child eye level (1.25 meters)
+        z: -6.5,
+        yaw: 0, // facing North
+        pitch: 0.1,
+        speed: 5.5,
+        flySpeed: 5.0,
+        keys: { w: false, a: false, s: false, d: false, e: false, f: false }
+      }
+    };
+
+    let audioCtx = null;
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioClass) audioCtx = new AudioClass();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playTone(freq, duration = 0.12, type = 'sine', gainVal = 0.1) {
+      if (STATE.isAudioMuted) return;
+      initAudio();
+      if (!audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function playFanfare(scorePct) {
+      if (STATE.isAudioMuted) return;
+      if (scorePct >= 85) {
+        playTone(523.25, 0.12, 'triangle', 0.15);
+        setTimeout(() => playTone(659.25, 0.12, 'triangle', 0.15), 100);
+        setTimeout(() => playTone(783.99, 0.12, 'triangle', 0.15), 200);
+        setTimeout(() => playTone(1046.50, 0.3, 'triangle', 0.18), 300);
+      } else {
+        playTone(440, 0.15, 'sine', 0.1);
+        setTimeout(() => playTone(392, 0.25, 'sine', 0.1), 120);
+      }
+    }
+
+    function toggleAudio() {
+      STATE.isAudioMuted = !STATE.isAudioMuted;
+      document.getElementById('audio-icon').innerText = STATE.isAudioMuted ? '🔇' : '🔊';
+      if (!STATE.isAudioMuted) playTone(600, 0.08);
+    }
+
+    function dismissWalkHint() {
+      STATE.walkHintDismissed = true;
+      document.getElementById('walk-hint').style.display = 'none';
+    }
+
+    /* ==========================================================================
+       THREE.JS REALISTIC 3D WORLD
+       ========================================================================== */
+    let scene, camera, renderer;
+    let sunLight, sunMeshGroup, moonLight, moonMeshGroup, ambientLight, streetLampLight, streetLampBulb;
+    let mysteryFogGroup;
+
+    function init3D() {
+      const container = document.getElementById('canvas-container');
+
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x7dd3fc);
+      scene.fog = new THREE.Fog(0x7dd3fc, 45, 115);
+
+      camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 400);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.appendChild(renderer.domElement);
+
+      setupLighting();
+      buildRealisticScene();
+      setupPlayerControls();
+
+      window.addEventListener('resize', onWindowResize, false);
+      updateCameraPose();
+    }
+
+    /* ==========================================================================
+       GLOW TEXTURE BUILDER (Creates radiant celestial glowing halos)
+       ========================================================================== */
+    function createGlowSpriteTexture(r, g, b) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+
+      const gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+      gradient.addColorStop(0.0, `rgba(${r}, ${g}, ${b}, 1.0)`);
+      gradient.addColorStop(0.2, `rgba(${r}, ${g}, ${b}, 0.8)`);
+      gradient.addColorStop(0.5, `rgba(${r}, ${Math.round(g * 0.7)}, ${Math.round(b * 0.2)}, 0.35)`);
+      gradient.addColorStop(0.8, `rgba(${r}, ${Math.round(g * 0.4)}, 0, 0.12)`);
+      gradient.addColorStop(1.0, 'rgba(0, 0, 0, 0.0)');
+
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 256, 256);
+      return new THREE.CanvasTexture(canvas);
+    }
+
+    /* ==========================================================================
+       LIGHTING, GLOWING SUN ORB & MOON
+       ========================================================================== */
+    function setupLighting() {
+      ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
+      scene.add(ambientLight);
+
+      // Main Sun Directional Light
+      sunLight = new THREE.DirectionalLight(0xfff7ed, 1.3);
+      sunLight.castShadow = true;
+      sunLight.shadow.mapSize.width = 2048;
+      sunLight.shadow.mapSize.height = 2048;
+      sunLight.shadow.camera.near = 5;
+      sunLight.shadow.camera.far = 160;
+      const d = 36;
+      sunLight.shadow.camera.left = -d;
+      sunLight.shadow.camera.right = d;
+      sunLight.shadow.camera.top = d;
+      sunLight.shadow.camera.bottom = -d;
+      sunLight.shadow.bias = -0.0003;
+      scene.add(sunLight);
+      scene.add(sunLight.target);
+
+      // GLOWING SUN ORB (Incandescent White-Hot Core + Radiant Additive Glow Flare)
+      sunMeshGroup = new THREE.Group();
+
+      // 1. Incandescent luminous core sphere
+      const sunCoreGeo = new THREE.SphereGeometry(3.2, 32, 32);
+      const sunCoreMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const sunCore = new THREE.Mesh(sunCoreGeo, sunCoreMat);
+      sunMeshGroup.add(sunCore);
+
+      // 2. Soft golden inner envelope
+      const sunInnerGeo = new THREE.SphereGeometry(3.6, 24, 24);
+      const sunInnerMat = new THREE.MeshBasicMaterial({ color: 0xffea00, transparent: true, opacity: 0.85 });
+      const sunInner = new THREE.Mesh(sunInnerGeo, sunInnerMat);
+      sunMeshGroup.add(sunInner);
+
+      // 3. Atmospheric radiant glow flare sprite
+      const sunGlowTex = createGlowSpriteTexture(255, 220, 100);
+      const sunGlowMat = new THREE.SpriteMaterial({
+        map: sunGlowTex,
+        blending: THREE.AdditiveBlending,
+        transparent: true,
+        depthWrite: false
+      });
+      const sunGlowSprite = new THREE.Sprite(sunGlowMat);
+      sunGlowSprite.scale.set(34, 34, 1.0);
+      sunMeshGroup.add(sunGlowSprite);
+
+      scene.add(sunMeshGroup);
+
+      // MOON Directional Light & Soft Moon Orb (Moon shadows DISABLED so night shadows are subtle!)
+      moonLight = new THREE.DirectionalLight(0x93c5fd, 0.25);
+      moonLight.castShadow = false; // NO harsh quasi-sun shadows at night!
+      scene.add(moonLight);
+      scene.add(moonLight.target);
+
+      moonMeshGroup = new THREE.Group();
+      const moonGeo = new THREE.SphereGeometry(2.4, 24, 24);
+      const moonMat = new THREE.MeshBasicMaterial({ color: 0xf1f5f9 });
+      const moonCore = new THREE.Mesh(moonGeo, moonMat);
+      moonMeshGroup.add(moonCore);
+
+      const moonGlowTex = createGlowSpriteTexture(180, 210, 255);
+      const moonGlowMat = new THREE.SpriteMaterial({
+        map: moonGlowTex,
+        blending: THREE.AdditiveBlending,
+        transparent: true,
+        depthWrite: false
+      });
+      const moonGlowSprite = new THREE.Sprite(moonGlowMat);
+      moonGlowSprite.scale.set(16, 16, 1.0);
+      moonMeshGroup.add(moonGlowSprite);
+
+      scene.add(moonMeshGroup);
+
+      // Street Lamp Point Light
+      streetLampLight = new THREE.PointLight(0xfef08a, 0, 18, 1.5);
+      streetLampLight.position.set(0, 4.4, 0);
+      scene.add(streetLampLight);
+
+      createStars();
+    }
+
+    function createStars() {
+      const starGeo = new THREE.BufferGeometry();
+      const count = 250;
+      const positions = new Float32Array(count * 3);
+
+      for (let i = 0; i < count; i++) {
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos((Math.random() * 0.85) + 0.1);
+        const r = 90 + Math.random() * 30;
+        positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+        positions[i * 3 + 1] = r * Math.cos(phi);
+        positions[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+      }
+
+      starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 1.2, transparent: true, opacity: 0 });
+      const starPoints = new THREE.Points(starGeo, starMat);
+      starPoints.name = 'starPoints';
+      scene.add(starPoints);
+    }
+
+    /* ==========================================================================
+       BUILD A LIVED, REALISTIC 3D PARK & STREET SCENE
+       ========================================================================== */
+    function buildRealisticScene() {
+      const world = new THREE.Group();
+
+      // 1. Scaled Ground Plane (120x120 - world ends before sunrise/sunset at X=±72 so they dip cleanly under horizon without clipping!)
+      const groundGeo = new THREE.PlaneGeometry(120, 120);
+      const groundMat = new THREE.MeshLambertMaterial({ color: 0x48bb78 });
+      const ground = new THREE.Mesh(groundGeo, groundMat);
+      ground.rotation.x = -Math.PI / 2;
+      ground.receiveShadow = true;
+      world.add(ground);
+
+      // 2. Asphalt Roadway along Z, positioned safely to the West (West is -X)
+      const roadGeo = new THREE.PlaneGeometry(10, 120);
+      const roadMat = new THREE.MeshLambertMaterial({ color: 0x334155 });
+      const road = new THREE.Mesh(roadGeo, roadMat);
+      road.rotation.x = -Math.PI / 2;
+      road.position.set(-18, 0.02, 0);
+      road.receiveShadow = true;
+      world.add(road);
+
+      // Road Center Dashes
+      for (let z = -55; z < 55; z += 8) {
+        const dashGeo = new THREE.PlaneGeometry(0.3, 4);
+        const dashMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+        const dash = new THREE.Mesh(dashGeo, dashMat);
+        dash.rotation.x = -Math.PI / 2;
+        dash.position.set(-18, 0.03, z);
+        world.add(dash);
+      }
+
+      // Concrete Sidewalk with Curbs along the east side of the road
+      const sidewalkGeo = new THREE.PlaneGeometry(4, 120);
+      const sidewalkMat = new THREE.MeshLambertMaterial({ color: 0x94a3b8 });
+      const sidewalk = new THREE.Mesh(sidewalkGeo, sidewalkMat);
+      sidewalk.rotation.x = -Math.PI / 2;
+      sidewalk.position.set(-11, 0.08, 0);
+      sidewalk.receiveShadow = true;
+      world.add(sidewalk);
+
+      const curbGeo = new THREE.BoxGeometry(0.3, 0.2, 120);
+      const curbMat = new THREE.MeshLambertMaterial({ color: 0x64748b });
+      const curb = new THREE.Mesh(curbGeo, curbMat);
+      curb.position.set(-13, 0.1, 0);
+      curb.receiveShadow = true;
+      world.add(curb);
+
+      // 3. Central Sidewalk Plaza with Compass Inlay
+      const plazaGeo = new THREE.CircleGeometry(6, 32);
+      const plazaMat = new THREE.MeshLambertMaterial({ color: 0xcbd5e1 });
+      const plaza = new THREE.Mesh(plazaGeo, plazaMat);
+      plaza.rotation.x = -Math.PI / 2;
+      plaza.position.set(0, 0.09, 0);
+      plaza.receiveShadow = true;
+      world.add(plaza);
+
+      buildGroundCompassRose(world);
+
+      // 4. Realistic Street Sign Post with Lantern
+      buildRealisticStreetSign(world);
+
+      // 5. Natural 3D Trees (Smooth Geometry) - arranged naturally in grass/park area around plaza
+      createSmoothOakTree(-7.5, 0, 7.5, 1.2, world);
+      createSmoothOakTree(7, 0, 7, 1.0, world);
+      createSmoothOakTree(12, 0, -5, 1.3, world);
+
+      createSmoothPineTree(8, 0, -14, 1.2, world);
+      createSmoothPineTree(-8, 0, -16, 1.1, world);
+      createSmoothPineTree(14, 0, 10, 1.3, world);
+
+      createSmoothBlossomTree(6, 0, -2, 0.9, world);
+
+      createParkBench(2.5, 0, 2.5, -0.6, world);
+      createParkBench(-2.5, 0, -3.5, 2.5, world);
+
+      createShrub(4, 0, 4.5, world);
+      createShrub(5.5, 0, 3, world);
+      createShrub(-3.5, 0, 4, world);
+
+      scene.add(world);
+
+      buildMysteryClouds();
+    }
+
+    /* --- GROUND COMPASS EMBEDDED IN PLAZA --- */
+    function buildGroundCompassRose(parent) {
+      createCompassDecal(+4.2, 0.11, 0, 'E', 0xf59e0b, 'EAST', 'Sunrise 🌅', parent);
+      createCompassDecal(-4.2, 0.11, 0, 'W', 0xf97316, 'WEST', 'Sunset 🌇', parent);
+      createCompassDecal(0, 0.11, -4.2, 'N', 0x38bdf8, 'NORTH', 'Noon Shadow ⬆️', parent);
+      createCompassDecal(0, 0.11, +4.2, 'S', 0x22c55e, 'SOUTH', 'Noon Sun ☀️', parent);
+
+      const ringGeo = new THREE.RingGeometry(3.5, 3.65, 48);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0x475569, side: THREE.DoubleSide });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.rotation.x = -Math.PI / 2;
+      ring.position.set(0, 0.1, 0);
+      parent.add(ring);
+    }
+
+    function createCompassDecal(x, y, z, letter, colorHex, title, subtitle, parent) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 160;
+      canvas.height = 160;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.arc(80, 80, 74, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = '#ffffff';
+      ctx.stroke();
+
+      ctx.font = 'bold 76px Fredoka, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = letter === 'E' ? '#fbbf24' : (letter === 'W' ? '#f97316' : (letter === 'N' ? '#38bdf8' : '#4ade80'));
+      ctx.fillText(letter, 80, 68);
+
+      ctx.font = 'bold 18px Fredoka, sans-serif';
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillText(title, 80, 122);
+
+      ctx.font = 'bold 13px Fredoka, sans-serif';
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText(subtitle, 80, 142);
+
+      const tex = new THREE.CanvasTexture(canvas);
+      const plane = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 1.6), new THREE.MeshBasicMaterial({ map: tex, transparent: true }));
+      plane.rotation.x = -Math.PI / 2;
+      plane.position.set(x, y, z);
+      parent.add(plane);
+    }
+
+    /* --- REALISTIC STREET SIGN & LANTERN POST --- */
+    function buildRealisticStreetSign(parent) {
+      const signGroup = new THREE.Group();
+      signGroup.position.set(0, 0, 0);
+
+      const poleGeo = new THREE.CylinderGeometry(0.08, 0.12, 3.2, 16);
+      const poleMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.3, metalness: 0.8 });
+      const pole = new THREE.Mesh(poleGeo, poleMat);
+      pole.position.y = 1.6;
+      pole.castShadow = true;
+      pole.receiveShadow = true;
+      signGroup.add(pole);
+
+      // Sign Blade 1: "SUNSET WAY ➡️" (Points East/West)
+      const blade1Geo = new THREE.BoxGeometry(1.4, 0.28, 0.04);
+      const blade1Mat = new THREE.MeshLambertMaterial({ color: 0x0284c7 });
+      const blade1 = new THREE.Mesh(blade1Geo, blade1Mat);
+      blade1.position.set(0.5, 2.7, 0);
+      blade1.castShadow = true;
+      blade1.receiveShadow = true;
+      signGroup.add(blade1);
+
+      // Sign Blade 2: "SHADOW AVE ⬆️" (Points North/South)
+      const blade2Geo = new THREE.BoxGeometry(0.04, 0.28, 1.4);
+      const blade2Mat = new THREE.MeshLambertMaterial({ color: 0x0f766e });
+      const blade2 = new THREE.Mesh(blade2Geo, blade2Mat);
+      blade2.position.set(0, 2.35, 0.5);
+      blade2.castShadow = true;
+      blade2.receiveShadow = true;
+      signGroup.add(blade2);
+
+      // Park Lantern Fixture
+      const armGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.6, 8);
+      const arm = new THREE.Mesh(armGeo, poleMat);
+      arm.rotation.x = Math.PI / 2;
+      arm.position.set(0, 3.1, 0.3);
+      signGroup.add(arm);
+
+      const lanternCapGeo = new THREE.ConeGeometry(0.25, 0.2, 4);
+      const lanternCap = new THREE.Mesh(lanternCapGeo, poleMat);
+      lanternCap.position.set(0, 3.25, 0.6);
+      signGroup.add(lanternCap);
+
+      const bulbGeo = new THREE.SphereGeometry(0.12, 12, 12);
+      const bulbMat = new THREE.MeshBasicMaterial({ color: 0xffea00 });
+      streetLampBulb = new THREE.Mesh(bulbGeo, bulbMat);
+      streetLampBulb.position.set(0, 3.05, 0.6);
+      signGroup.add(streetLampBulb);
+
+      streetLampLight.position.set(0, 3.05, 0.6);
+
+      parent.add(signGroup);
+    }
+
+    /* --- SMOOTH ORGANIC 3D TREES --- */
+    function createSmoothOakTree(x, y, z, scale, parent) {
+      const tree = new THREE.Group();
+      tree.position.set(x, y, z);
+      tree.scale.set(scale, scale, scale);
+
+      const trunkGeo = new THREE.CylinderGeometry(0.35, 0.65, 4.0, 12);
+      const trunkMat = new THREE.MeshLambertMaterial({ color: 0x582f0e });
+      const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+      trunk.position.y = 2.0;
+      trunk.castShadow = true;
+      trunk.receiveShadow = true;
+      tree.add(trunk);
+
+      const leafMat1 = new THREE.MeshLambertMaterial({ color: 0x15803d });
+      const leafMat2 = new THREE.MeshLambertMaterial({ color: 0x16a34a });
+      const leafMat3 = new THREE.MeshLambertMaterial({ color: 0x22c55e });
+
+      const clusters = [
+        { x: 0, y: 4.8, z: 0, r: 2.2, mat: leafMat1 },
+        { x: 1.2, y: 4.2, z: 0.8, r: 1.8, mat: leafMat2 },
+        { x: -1.2, y: 4.4, z: -0.6, r: 1.9, mat: leafMat3 },
+        { x: 0.6, y: 4.0, z: -1.2, r: 1.7, mat: leafMat2 },
+        { x: -0.8, y: 4.1, z: 1.1, r: 1.7, mat: leafMat1 },
+        { x: 0, y: 6.2, z: 0, r: 1.6, mat: leafMat3 }
+      ];
+
+      clusters.forEach(c => {
+        const sphereGeo = new THREE.SphereGeometry(c.r, 14, 12);
+        const foliage = new THREE.Mesh(sphereGeo, c.mat);
+        foliage.position.set(c.x, c.y, c.z);
+        foliage.castShadow = true;
+        foliage.receiveShadow = true;
+        tree.add(foliage);
+      });
+
+      parent.add(tree);
+    }
+
+    function createSmoothPineTree(x, y, z, scale, parent) {
+      const pine = new THREE.Group();
+      pine.position.set(x, y, z);
+      pine.scale.set(scale, scale, scale);
+
+      const trunkGeo = new THREE.CylinderGeometry(0.25, 0.45, 5.0, 10);
+      const trunkMat = new THREE.MeshLambertMaterial({ color: 0x3d2616 });
+      const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+      trunk.position.y = 2.5;
+      trunk.castShadow = true;
+      pine.add(trunk);
+
+      const pineMat1 = new THREE.MeshLambertMaterial({ color: 0x14532d });
+      const pineMat2 = new THREE.MeshLambertMaterial({ color: 0x166534 });
+
+      const skirts = [
+        { y: 3.5, r: 2.4, h: 3.0, mat: pineMat1 },
+        { y: 5.2, r: 2.0, h: 2.8, mat: pineMat2 },
+        { y: 6.8, r: 1.6, h: 2.5, mat: pineMat1 },
+        { y: 8.2, r: 1.2, h: 2.2, mat: pineMat2 },
+        { y: 9.4, r: 0.7, h: 1.8, mat: pineMat1 }
+      ];
+
+      skirts.forEach(s => {
+        const coneGeo = new THREE.ConeGeometry(s.r, s.h, 14);
+        const skirt = new THREE.Mesh(coneGeo, s.mat);
+        skirt.position.y = s.y;
+        skirt.castShadow = true;
+        skirt.receiveShadow = true;
+        pine.add(skirt);
+      });
+
+      parent.add(pine);
+    }
+
+    function createSmoothBlossomTree(x, y, z, scale, parent) {
+      const tree = new THREE.Group();
+      tree.position.set(x, y, z);
+      tree.scale.set(scale, scale, scale);
+
+      const trunkGeo = new THREE.CylinderGeometry(0.25, 0.4, 3.0, 10);
+      const trunkMat = new THREE.MeshLambertMaterial({ color: 0x78350f });
+      const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+      trunk.position.y = 1.5;
+      trunk.castShadow = true;
+      tree.add(trunk);
+
+      const blossomMat = new THREE.MeshLambertMaterial({ color: 0xf472b6 });
+      const greenMat = new THREE.MeshLambertMaterial({ color: 0x4ade80 });
+
+      const canopy1 = new THREE.Mesh(new THREE.SphereGeometry(1.6, 12, 10), greenMat);
+      canopy1.position.set(0, 3.2, 0);
+      canopy1.castShadow = true;
+      tree.add(canopy1);
+
+      const blossom1 = new THREE.Mesh(new THREE.SphereGeometry(1.3, 12, 10), blossomMat);
+      blossom1.position.set(0.6, 3.4, 0.4);
+      blossom1.castShadow = true;
+      tree.add(blossom1);
+
+      const blossom2 = new THREE.Mesh(new THREE.SphereGeometry(1.2, 12, 10), blossomMat);
+      blossom2.position.set(-0.6, 3.5, -0.4);
+      blossom2.castShadow = true;
+      tree.add(blossom2);
+
+      parent.add(tree);
+    }
+
+    function createParkBench(x, y, z, rotY, parent) {
+      const bench = new THREE.Group();
+      bench.position.set(x, y, z);
+      bench.rotation.y = rotY;
+
+      const ironMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.4, metalness: 0.8 });
+      const woodMat = new THREE.MeshLambertMaterial({ color: 0x9a3412 });
+
+      const leg1 = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.5, 0.6), ironMat);
+      leg1.position.set(-0.8, 0.25, 0);
+      leg1.castShadow = true;
+      bench.add(leg1);
+
+      const leg2 = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.5, 0.6), ironMat);
+      leg2.position.set(0.8, 0.25, 0);
+      leg2.castShadow = true;
+      bench.add(leg2);
+
+      const seat = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.06, 0.5), woodMat);
+      seat.position.set(0, 0.48, 0);
+      seat.castShadow = true;
+      bench.add(seat);
+
+      const back = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.4, 0.06), woodMat);
+      back.position.set(0, 0.85, -0.22);
+      back.castShadow = true;
+      bench.add(back);
+
+      parent.add(bench);
+    }
+
+    function createShrub(x, y, z, parent) {
+      const shrubGeo = new THREE.SphereGeometry(0.7, 10, 8);
+      const shrubMat = new THREE.MeshLambertMaterial({ color: 0x15803d });
+      const shrub = new THREE.Mesh(shrubGeo, shrubMat);
+      shrub.position.set(x, 0.4, z);
+      shrub.scale.set(1, 0.7, 1);
+      shrub.castShadow = true;
+      parent.add(shrub);
+    }
+
+    function buildMysteryClouds() {
+      mysteryFogGroup = new THREE.Group();
+      mysteryFogGroup.visible = false;
+
+      const cloudMat = new THREE.MeshBasicMaterial({ color: 0x94a3b8, transparent: true, opacity: 0.85 });
+      for (let i = 0; i < 20; i++) {
+        const cloud = new THREE.Mesh(new THREE.SphereGeometry(4 + Math.random() * 3, 12, 10), cloudMat);
+        cloud.position.set(
+          (Math.random() - 0.5) * 60,
+          24 + Math.random() * 12,
+          (Math.random() - 0.5) * 60
+        );
+        cloud.scale.set(1.5, 0.5, 1);
+        mysteryFogGroup.add(cloud);
+      }
+      scene.add(mysteryFogGroup);
+    }
+
+    /* ==========================================================================
+       SMOOTH CONTINUOUS 24-HOUR LIGHT & SKY COLOR GRADIENT
+       ========================================================================== */
+    const STOPS = [
+      { m: 0,    sky: 0x050714, fog: 0x050714, sunC: 0xff8844, sunInt: 0.0,  ambC: 0x0f172a, ambInt: 0.22, lamp: 1.0 },
+      { m: 270,  sky: 0x070c1e, fog: 0x070c1e, sunC: 0xff7733, sunInt: 0.0,  ambC: 0x131b2e, ambInt: 0.24, lamp: 1.0 },
+      { m: 330,  sky: 0x1e1b4b, fog: 0x2e1065, sunC: 0xff6622, sunInt: 0.15, ambC: 0x2e1065, ambInt: 0.32, lamp: 0.8 },
+      { m: 360,  sky: 0xd97706, fog: 0x78350f, sunC: 0xff7733, sunInt: 0.75, ambC: 0x78350f, ambInt: 0.45, lamp: 0.3 }, // Sunrise
+      { m: 420,  sky: 0xfbbf24, fog: 0xfde047, sunC: 0xfbbf24, sunInt: 1.05, ambC: 0xfef08a, ambInt: 0.52, lamp: 0.0 },
+      { m: 540,  sky: 0x60a5fa, fog: 0x7dd3fc, sunC: 0xfffbeb, sunInt: 1.25, ambC: 0xffffff, ambInt: 0.56, lamp: 0.0 }, // 9 AM
+      { m: 720,  sky: 0x38bdf8, fog: 0x7dd3fc, sunC: 0xffffff, sunInt: 1.35, ambC: 0xffffff, ambInt: 0.58, lamp: 0.0 }, // Noon
+      { m: 900,  sky: 0x60a5fa, fog: 0x7dd3fc, sunC: 0xfffbeb, sunInt: 1.25, ambC: 0xffffff, ambInt: 0.56, lamp: 0.0 }, // 3 PM
+      { m: 1020, sky: 0xf97316, fog: 0xfdba74, sunC: 0xfbbf24, sunInt: 1.05, ambC: 0xfde68a, ambInt: 0.50, lamp: 0.2 },
+      { m: 1080, sky: 0xc2410c, fog: 0x581c87, sunC: 0xea580c, sunInt: 0.65, ambC: 0x581c87, ambInt: 0.42, lamp: 0.7 }, // Sunset
+      { m: 1140, sky: 0x1e1b4b, fog: 0x1e1b4b, sunC: 0x9333ea, sunInt: 0.1,  ambC: 0x1e1b4b, ambInt: 0.30, lamp: 1.0 },
+      { m: 1200, sky: 0x0a0e1a, fog: 0x0a0e1a, sunC: 0x38bdf8, sunInt: 0.0,  ambC: 0x0f172a, ambInt: 0.22, lamp: 1.0 },
+      { m: 1440, sky: 0x050714, fog: 0x050714, sunC: 0xff8844, sunInt: 0.0,  ambC: 0x0f172a, ambInt: 0.22, lamp: 1.0 }
+    ];
+
+    function evaluateDayCycle(minutes) {
+      const m = (minutes % 1440 + 1440) % 1440;
+      let i = 0;
+      while (i < STOPS.length - 1 && STOPS[i + 1].m <= m) i++;
+      const s0 = STOPS[i];
+      const s1 = STOPS[i + 1] || STOPS[0];
+
+      const span = s1.m - s0.m;
+      const linearT = span > 0 ? (m - s0.m) / span : 0;
+      const t = 0.5 - 0.5 * Math.cos(linearT * Math.PI); // Cosine smooth interpolation
+
+      const skyColor = new THREE.Color(s0.sky).lerp(new THREE.Color(s1.sky), t);
+      const fogColor = new THREE.Color(s0.fog).lerp(new THREE.Color(s1.fog), t);
+      const sunColor = new THREE.Color(s0.sunC).lerp(new THREE.Color(s1.sunC), t);
+      const ambColor = new THREE.Color(s0.ambC).lerp(new THREE.Color(s1.ambC), t);
+      const sunInt = s0.sunInt + (s1.sunInt - s0.sunInt) * t;
+      const ambInt = s0.ambInt + (s1.ambInt - s0.ambInt) * t;
+      const lampInt = s0.lamp + (s1.lamp - s0.lamp) * t;
+
+      return { skyColor, fogColor, sunColor, ambColor, sunInt, ambInt, lampInt };
+    }
+
+    function updateSunAndSky(minutes) {
+      const { skyColor, fogColor, sunColor, ambColor, sunInt, ambInt, lampInt } = evaluateDayCycle(minutes);
+
+      scene.background = skyColor;
+      scene.fog.color.copy(fogColor);
+      ambientLight.color.copy(ambColor);
+      ambientLight.intensity = ambInt;
+
+      // CONTINUOUS 24-HOUR SUN ORBIT:
+      // Sun smoothly dips below the horizon (Y < 0) at sunset and travels beneath the ground during night!
+      // Solar angle: 0 at 6:00 AM (Sunrise in East), PI/2 at 12:00 PM (Noon), PI at 6:00 PM (Sunset in West), 3*PI/2 at Midnight
+      const solarAngle = ((minutes - 360) / 1440) * Math.PI * 2;
+
+      const sunX = 72 * Math.cos(solarAngle);
+      // At Noon (angle=PI/2): sin=1 -> Y = 70. At Sunset (angle=PI): sin=0 -> Y = 0 (horizon).
+      // At 6:30 PM (angle>PI): sin<0 -> Y dips smoothly beneath horizon!
+      const sunY = 70 * Math.sin(solarAngle);
+      const sunZ = Math.max(0, 18 * Math.sin(solarAngle));
+
+      sunLight.position.set(sunX, Math.max(0.1, sunY), sunZ);
+      sunLight.target.position.set(0, 0, 0);
+      sunLight.target.updateMatrixWorld();
+
+      // Only cast shadows when the sun is actually above the horizon!
+      const sunAboveHorizon = (sunY > 0.5);
+      sunLight.castShadow = sunAboveHorizon;
+      sunLight.color.copy(sunColor);
+      sunLight.intensity = sunInt;
+
+      // Sun mesh smoothly moves along its true continuous 3D arc, sinking under the horizon!
+      sunMeshGroup.position.set(sunX, sunY, sunZ);
+      // Visible whenever above horizon (or just dipped beneath) in explore mode
+      sunMeshGroup.visible = (sunY > -8) && (STATE.mode === 'explore' || STATE.game.roundOver);
+
+      // CONTINUOUS MOON ORBIT (Opposite the Sun by PI radians / 12 hours)
+      const lunarAngle = solarAngle + Math.PI;
+      const moonX = 72 * Math.cos(lunarAngle);
+      const moonY = 55 * Math.sin(lunarAngle);
+      const moonZ = Math.max(0, 18 * Math.sin(lunarAngle));
+
+      moonLight.position.set(moonX, Math.max(0.1, moonY), moonZ);
+      moonLight.target.position.set(0, 0, 0);
+      moonLight.target.updateMatrixWorld();
+      moonLight.intensity = Math.max(0, (moonY / 55) * 0.28);
+
+      moonMeshGroup.position.set(moonX, moonY, moonZ);
+      moonMeshGroup.visible = (moonY > -6);
+
+      const stars = scene.getObjectByName('starPoints');
+      if (stars) {
+        // Stars smoothly fade in as night deepens
+        stars.material.opacity = Math.max(0, Math.min(1.0, -sunY / 15));
+      }
+
+      streetLampLight.intensity = lampInt * 2.2;
+      const bulbGlow = new THREE.Color(0x334155).lerp(new THREE.Color(0xffea00), lampInt);
+      streetLampBulb.material.color.copy(bulbGlow);
+    }
+
+    /* ==========================================================================
+       PLAYER WALKING & CAMERA MODES
+       ========================================================================== */
+    function setViewMode(mode, btn) {
+      STATE.viewMode = mode;
+      document.querySelectorAll('.cam-btn').forEach(el => el.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+
+      const isWalk = (mode === 'player');
+      
+      // Only display walk hint if not explicitly dismissed
+      if (isWalk && !STATE.walkHintDismissed) {
+        document.getElementById('walk-hint').style.display = 'flex';
+      } else {
+        document.getElementById('walk-hint').style.display = 'none';
+      }
+
+      playTone(520, 0.05);
+      updateCameraPose();
+    }
+
+    let isPointerDragging = false;
+    let prevMouseX = 0, prevMouseY = 0;
+
+    function setupPlayerControls() {
+      const container = document.getElementById('canvas-container');
+
+      // Mouse drag to look around
+      container.addEventListener('pointerdown', (e) => {
+        if (STATE.viewMode === 'player') {
+          isPointerDragging = true;
+          prevMouseX = e.clientX;
+          prevMouseY = e.clientY;
+        }
+      });
+
+      window.addEventListener('pointermove', (e) => {
+        if (isPointerDragging && STATE.viewMode === 'player') {
+          const dx = e.clientX - prevMouseX;
+          const dy = e.clientY - prevMouseY;
+          prevMouseX = e.clientX;
+          prevMouseY = e.clientY;
+
+          STATE.player.yaw -= dx * 0.004;
+          // Dragging mouse downward (dy > 0) pitches camera upward, dragging upward (dy < 0) pitches downward
+          STATE.player.pitch -= dy * 0.003;
+          // Allow truly free upward view up to the sky zenith (+1.53 rad ≈ 88°) and down to feet (-1.45 rad ≈ -83°)
+          STATE.player.pitch = Math.max(-1.45, Math.min(1.53, STATE.player.pitch));
+        }
+      });
+
+      window.addEventListener('pointerup', () => {
+        isPointerDragging = false;
+      });
+
+      // Keyboard Walking & Flying (WASD & Arrows, E = Fly Up, F = Fly Down)
+      window.addEventListener('keydown', (e) => {
+        const k = e.key.toLowerCase();
+        if (k === 'w' || e.key === 'ArrowUp') STATE.player.keys.w = true;
+        if (k === 's' || e.key === 'ArrowDown') STATE.player.keys.s = true;
+        if (k === 'a' || e.key === 'ArrowLeft') STATE.player.keys.a = true;
+        if (k === 'd' || e.key === 'ArrowRight') STATE.player.keys.d = true;
+        if (k === 'e') STATE.player.keys.e = true;
+        if (k === 'f') STATE.player.keys.f = true;
+
+        if (e.code === 'Space' && STATE.mode === 'explore') {
+          e.preventDefault();
+          togglePlay();
+        }
+      });
+
+      window.addEventListener('keyup', (e) => {
+        const k = e.key.toLowerCase();
+        if (k === 'w' || e.key === 'ArrowUp') STATE.player.keys.w = false;
+        if (k === 's' || e.key === 'ArrowDown') STATE.player.keys.s = false;
+        if (k === 'a' || e.key === 'ArrowLeft') STATE.player.keys.a = false;
+        if (k === 'd' || e.key === 'ArrowRight') STATE.player.keys.d = false;
+        if (k === 'e') STATE.player.keys.e = false;
+        if (k === 'f') STATE.player.keys.f = false;
+      });
+    }
+
+    function updatePlayerWalking(dt) {
+      if (STATE.viewMode !== 'player') return;
+
+      const p = STATE.player;
+
+      // Forward vector based on yaw (ignoring vertical pitch so walking is on horizontal ground plane)
+      const fwdX = -Math.sin(p.yaw);
+      const fwdZ = -Math.cos(p.yaw);
+
+      // Right strafe vector is perpendicular to forward vector (rotate 90 degrees right: (fwdZ, -fwdX))
+      const rightX = -fwdZ; // which is Math.cos(p.yaw)
+      const rightZ = fwdX;  // which is -Math.sin(p.yaw)
+
+      let moveX = 0, moveZ = 0;
+
+      if (p.keys.w) { moveX += fwdX; moveZ += fwdZ; }
+      if (p.keys.s) { moveX -= fwdX; moveZ -= fwdZ; }
+      if (p.keys.d) { moveX += rightX; moveZ += rightZ; }
+      if (p.keys.a) { moveX -= rightX; moveZ -= rightZ; }
+
+      const len = Math.sqrt(moveX * moveX + moveZ * moveZ);
+      if (len > 0) {
+        p.x += (moveX / len) * p.speed * dt;
+        p.z += (moveZ / len) * p.speed * dt;
+
+        p.x = Math.max(-25, Math.min(25, p.x));
+        p.z = Math.max(-25, Math.min(25, p.z));
+      }
+
+      // Vertical Flying (E = Up, F = Down)
+      if (p.keys.e) {
+        p.y += p.flySpeed * dt;
+      }
+      if (p.keys.f) {
+        p.y -= p.flySpeed * dt;
+      }
+      // Keep eye elevation between ground eye-level (1.25m) and birds-eye flight (25m)
+      p.y = Math.max(1.25, Math.min(25, p.y));
+    }
+
+    function updateCameraPose() {
+      if (STATE.viewMode === 'player') {
+        const p = STATE.player;
+        camera.position.set(p.x, p.y, p.z);
+        const lookDir = new THREE.Vector3(
+          -Math.sin(p.yaw) * Math.cos(p.pitch),
+          Math.sin(p.pitch),
+          -Math.cos(p.yaw) * Math.cos(p.pitch)
+        );
+        camera.lookAt(p.x + lookDir.x, p.y + lookDir.y, p.z + lookDir.z);
+      } else if (STATE.viewMode === 'iso-south') {
+        camera.position.set(0, 16, -24);
+        camera.lookAt(0, 2, 2);
+      } else if (STATE.viewMode === 'iso-north') {
+        camera.position.set(0, 16, 24);
+        camera.lookAt(0, 2, -2);
+      } else if (STATE.viewMode === 'top') {
+        camera.position.set(0, 32, 0.1);
+        camera.lookAt(0, 0, 0);
+      }
+    }
+
+    /* ==========================================================================
+       CLOCKS & SCRUBBER
+       ========================================================================== */
+    function formatTime(totalMinutes) {
+      let m = Math.floor(totalMinutes) % 1440;
+      if (m < 0) m += 1440;
+      let hours24 = Math.floor(m / 60);
+      let mins = m % 60;
+      let ampm = hours24 >= 12 ? 'PM' : 'AM';
+      let hours12 = hours24 % 12;
+      if (hours12 === 0) hours12 = 12;
+
+      let hh = hours12 < 10 ? '0' + hours12 : hours12;
+      let mm = mins < 10 ? '0' + mins : mins;
+      return { formatted: `${hh}:${mm} ${ampm}`, hours24, hours12, mins, ampm };
+    }
+
+    function renderAnalogClock(totalMinutes) {
+      const canvas = document.getElementById('analog-clock-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      const r = w / 2;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Dial Outer Ring
+      ctx.beginPath();
+      ctx.arc(r, r, r - 6, 0, 2 * Math.PI);
+      ctx.fillStyle = '#0f172a';
+      ctx.fill();
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = '#38bdf8';
+      ctx.stroke();
+
+      // Numbers 1 to 12
+      ctx.font = 'bold 22px Fredoka, sans-serif';
+      ctx.fillStyle = '#f8fafc';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      for (let num = 1; num <= 12; num++) {
+        const ang = (num * Math.PI) / 6;
+        const nx = r + Math.sin(ang) * (r - 28);
+        const ny = r - Math.cos(ang) * (r - 28);
+        ctx.fillText(num.toString(), nx, ny);
+      }
+
+      if (STATE.mode === 'game' && !STATE.game.roundOver) {
+        ctx.font = 'bold 54px Fredoka, sans-serif';
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText('?', r, r + 4);
+        return;
+      }
+
+      const { hours12, mins } = formatTime(totalMinutes);
+
+      // Hour Hand
+      const hourAngle = ((hours12 % 12) + mins / 60) * (Math.PI / 6);
+      ctx.beginPath();
+      ctx.lineWidth = 7;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = '#38bdf8';
+      ctx.moveTo(r, r);
+      ctx.lineTo(r + Math.sin(hourAngle) * (r * 0.48), r - Math.cos(hourAngle) * (r * 0.48));
+      ctx.stroke();
+
+      // Minute Hand
+      const minAngle = mins * (Math.PI / 30);
+      ctx.beginPath();
+      ctx.lineWidth = 5;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = '#f59e0b';
+      ctx.moveTo(r, r);
+      ctx.lineTo(r + Math.sin(minAngle) * (r * 0.72), r - Math.cos(minAngle) * (r * 0.72));
+      ctx.stroke();
+
+      // Center Pin
+      ctx.beginPath();
+      ctx.arc(r, r, 6, 0, 2 * Math.PI);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+    }
+
+    function updateClocks() {
+      const timeInfo = formatTime(STATE.timeMinutes);
+      const isGameMasked = (STATE.mode === 'game' && !STATE.game.roundOver);
+
+      const digitalElem = document.getElementById('time-digital-display');
+      const periodElem = document.getElementById('time-period-tag');
+      const sublabelElem = document.getElementById('clock-sublabel');
+
+      if (isGameMasked) {
+        digitalElem.innerText = '? ? : ? ?';
+        digitalElem.classList.add('masked');
+        periodElem.innerText = '🔍 DETECTIVE';
+        sublabelElem.innerText = 'Look at the shadow direction & length!';
+      } else {
+        digitalElem.innerText = timeInfo.formatted;
+        digitalElem.classList.remove('masked');
+
+        const m = STATE.timeMinutes;
+        if (m >= 330 && m < 660) {
+          periodElem.innerText = '🌅 MORNING';
+          periodElem.style.color = '#38bdf8';
+          sublabelElem.innerText = 'Sun rising in East (Shadow points West)';
+        } else if (m >= 660 && m <= 780) {
+          periodElem.innerText = '☀️ HIGH NOON';
+          periodElem.style.color = '#fde047';
+          sublabelElem.innerText = 'Sun overhead (Shadow is super short)';
+        } else if (m > 780 && m <= 1080) {
+          periodElem.innerText = '🌇 AFTERNOON';
+          periodElem.style.color = '#f97316';
+          sublabelElem.innerText = 'Sun in West (Shadow points East)';
+        } else {
+          periodElem.innerText = '🌙 NIGHT';
+          periodElem.style.color = '#a855f7';
+          sublabelElem.innerText = 'Moon & street lantern illuminated';
+        }
+      }
+
+      renderAnalogClock(STATE.timeMinutes);
+
+      if (STATE.mode === 'explore') {
+        const slider = document.getElementById('time-slider');
+        if (slider && document.activeElement !== slider) {
+          slider.value = Math.floor(STATE.timeMinutes);
+        }
+      }
+    }
+
+    function onSliderTimeChange(val) {
+      STATE.timeMinutes = parseFloat(val);
+      updateSunAndSky(STATE.timeMinutes);
+      updateClocks();
+    }
+
+    function jumpToTime(minutes) {
+      STATE.timeMinutes = minutes;
+      updateSunAndSky(STATE.timeMinutes);
+      updateClocks();
+      playTone(400, 0.08);
+    }
+
+    function togglePlay() {
+      STATE.isPlaying = !STATE.isPlaying;
+      document.getElementById('play-icon').innerText = STATE.isPlaying ? '⏸️' : '▶️';
+      playTone(STATE.isPlaying ? 520 : 380, 0.08);
+    }
+
+    function setSpeed(simMinPerSec, btn) {
+      STATE.simMinutesPerSec = simMinPerSec;
+      document.querySelectorAll('.speed-pill').forEach(el => el.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      playTone(480, 0.05);
+    }
+
+    /* ==========================================================================
+       CLEAN STREAMLINED DETECTIVE MODE (LARGE INPUT & PERCENTAGE SCORE)
+       ========================================================================== */
+    function switchMode(newMode) {
+      STATE.mode = newMode;
+      const exploreBtn = document.getElementById('btn-mode-explore');
+      const gameBtn = document.getElementById('btn-mode-game');
+      const detectiveCard = document.getElementById('detective-card');
+      const timelapsePanel = document.getElementById('timelapse-panel');
+
+      if (newMode === 'explore') {
+        exploreBtn.classList.add('active');
+        gameBtn.classList.remove('active');
+        detectiveCard.classList.remove('visible');
+        timelapsePanel.classList.remove('disabled-mode');
+        mysteryFogGroup.visible = false;
+        sunMeshGroup.visible = true;
+        updateClocks();
+      } else {
+        gameBtn.classList.add('active');
+        exploreBtn.classList.remove('active');
+        detectiveCard.classList.add('visible');
+        timelapsePanel.classList.add('disabled-mode');
+        STATE.isPlaying = false;
+        document.getElementById('play-icon').innerText = '▶️';
+        startNewDetectiveRound();
+      }
+      playTone(600, 0.08);
+    }
+
+    function startNewDetectiveRound() {
+      STATE.game.roundOver = false;
+
+      const times = [420, 450, 480, 540, 600, 660, 720, 780, 840, 900, 960, 1020];
+      const secret = times[Math.floor(Math.random() * times.length)];
+      STATE.game.secretMinutes = secret;
+
+      STATE.timeMinutes = secret;
+      updateSunAndSky(secret);
+
+      sunMeshGroup.visible = false;
+      mysteryFogGroup.visible = true;
+
+      STATE.game.guessHour = 9;
+      STATE.game.guessMinute = 0;
+      STATE.game.guessAMPM = 'AM';
+      updateGuessUI();
+
+      document.getElementById('detective-input-box').style.display = 'flex';
+      document.getElementById('detective-result-box').style.display = 'none';
+
+      updateClocks();
+    }
+
+    function adjustGuessHour(delta) {
+      let h = STATE.game.guessHour + delta;
+      if (h > 12) h = 1;
+      if (h < 1) h = 12;
+      STATE.game.guessHour = h;
+      updateGuessUI();
+      playTone(450, 0.04);
+    }
+
+    function adjustGuessMin(delta) {
+      let m = STATE.game.guessMinute + delta;
+      if (m >= 60) m = 0;
+      if (m < 0) m = 45;
+      STATE.game.guessMinute = m;
+      updateGuessUI();
+      playTone(480, 0.04);
+    }
+
+    function setGuessAMPM(ampm) {
+      STATE.game.guessAMPM = ampm;
+      document.getElementById('btn-am').classList.toggle('active', ampm === 'AM');
+      document.getElementById('btn-pm').classList.toggle('active', ampm === 'PM');
+      playTone(520, 0.04);
+    }
+
+    function updateGuessUI() {
+      const hh = STATE.game.guessHour < 10 ? '0' + STATE.game.guessHour : STATE.game.guessHour;
+      const mm = STATE.game.guessMinute < 10 ? '0' + STATE.game.guessMinute : STATE.game.guessMinute;
+      document.getElementById('guess-hour-display').innerText = hh;
+      document.getElementById('guess-min-display').innerText = mm;
+    }
+
+    function submitGuess() {
+      if (STATE.game.roundOver) return;
+      STATE.game.roundOver = true;
+
+      let h = STATE.game.guessHour % 12;
+      if (STATE.game.guessAMPM === 'PM') h += 12;
+      const guessMins = h * 60 + STATE.game.guessMinute;
+      const realMins = STATE.game.secretMinutes;
+
+      const diff = Math.abs(guessMins - realMins);
+
+      let roundAccuracy = Math.max(10, Math.round(100 - (diff / 360) * 80));
+      if (diff === 0) roundAccuracy = 100;
+
+      STATE.game.totalRounds++;
+      STATE.game.totalScorePercentage += roundAccuracy;
+      const avgAccuracy = Math.round(STATE.game.totalScorePercentage / STATE.game.totalRounds);
+
+      document.getElementById('accuracy-badge').innerText = `Accuracy: ${avgAccuracy}%`;
+
+      sunMeshGroup.visible = true;
+      mysteryFogGroup.visible = false;
+      updateClocks();
+
+      const trueTimeInfo = formatTime(realMins);
+      const guessTimeInfo = formatTime(guessMins);
+
+      document.getElementById('result-accuracy').innerText = `${roundAccuracy}% Accuracy`;
+      document.getElementById('result-details').innerHTML = `
+        Real Time: <b>${trueTimeInfo.formatted}</b> &bull; Your Guess: <b>${guessTimeInfo.formatted}</b>
+      `;
+
+      document.getElementById('detective-input-box').style.display = 'none';
+      document.getElementById('detective-result-box').style.display = 'flex';
+
+      playFanfare(roundAccuracy);
+    }
+
+    function nextRound() {
+      startNewDetectiveRound();
+      playTone(500, 0.06);
+    }
+
+    /* ==========================================================================
+       ANIMATION LOOP
+       ========================================================================== */
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    let lastFrame = performance.now();
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const now = performance.now();
+      const dt = Math.min((now - lastFrame) / 1000, 0.1);
+      lastFrame = now;
+
+      // Timelapse Progression
+      if (STATE.mode === 'explore' && STATE.isPlaying) {
+        STATE.timeMinutes = (STATE.timeMinutes + STATE.simMinutesPerSec * dt) % 1440;
+        updateSunAndSky(STATE.timeMinutes);
+        updateClocks();
+      }
+
+      // Player Movement & Camera Update
+      updatePlayerWalking(dt);
+      updateCameraPose();
+
+      renderer.render(scene, camera);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      init3D();
+      updateSunAndSky(STATE.timeMinutes);
+      updateClocks();
+      animate();
+    });
+  </script>
+</body>
+</html>
