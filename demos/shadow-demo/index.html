@@ -1643,9 +1643,6 @@
       if (len > 0) {
         p.x += (moveX / len) * p.speed * dt;
         p.z += (moveZ / len) * p.speed * dt;
-
-        p.x = Math.max(-25, Math.min(25, p.x));
-        p.z = Math.max(-25, Math.min(25, p.z));
       }
 
       // Vertical Flying (E = Up, F = Down)
@@ -1655,8 +1652,8 @@
       if (p.keys.f) {
         p.y -= p.flySpeed * dt;
       }
-      // Keep eye elevation between ground eye-level (1.25m) and birds-eye flight (25m)
-      p.y = Math.max(1.25, Math.min(25, p.y));
+      // Keep eye elevation at or above ground level (minimum 1.25m)
+      p.y = Math.max(1.25, p.y);
     }
 
     function updateCameraPose() {
