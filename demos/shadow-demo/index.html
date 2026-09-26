@@ -880,13 +880,13 @@
         totalScorePercentage: 0,
         roundOver: false
       },
-      // Player Walking State
+      // Player Walking State (Defaults to elevated isometric viewpoint overlooking plaza & road)
       player: {
-        x: 0,
-        y: 1.25, // True 8-year-old child eye level (1.25 meters)
-        z: -6.5,
-        yaw: 0, // facing North
-        pitch: 0.1,
+        x: -6,
+        y: 11,
+        z: 21,
+        yaw: -0.266, // angle towards center plaza (-15.2°)
+        pitch: -0.413, // look down towards plaza center (-23.7°)
         speed: 5.5,
         flySpeed: 5.0,
         keys: { w: false, a: false, s: false, d: false, e: false, f: false }
@@ -1864,10 +1864,28 @@
       playTone(600, 0.08);
     }
 
+    function resetPlayerPose() {
+      STATE.player.x = -6;
+      STATE.player.y = 11;
+      STATE.player.z = 21;
+      STATE.player.yaw = -0.266;
+      STATE.player.pitch = -0.413;
+    }
+
     function startNewDetectiveRound() {
       STATE.game.roundOver = false;
 
-      const times = [420, 450, 480, 540, 600, 660, 720, 780, 840, 900, 960, 1020];
+      // Ensure view is player mode and reset camera to requested isometric viewpoint
+      const playerCamBtn = document.querySelector('.cam-btn[onclick*="player"]');
+      setViewMode('player', playerCamBtn);
+      resetPlayerPose();
+      updateCameraPose();
+
+      // 15-minute resolution from 6:30 AM (390m) to 5:30 PM (1050m)
+      const times = [];
+      for (let m = 390; m <= 1050; m += 15) {
+        times.push(m);
+      }
       const secret = times[Math.floor(Math.random() * times.length)];
       STATE.game.secretMinutes = secret;
 
