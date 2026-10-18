@@ -1,184 +1,1977 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Inside Our Earth – 3D Layers Explorer</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Inside Our Earth — Interactive 3D Model</title>
+  <!-- Load Google Fonts: Lexend & Nunito for early readers -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css">
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-    }
-  }
-  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700;800&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+  <!-- Three.js CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    :root {
+      --font-main: 'Lexend', 'Nunito', system-ui, 'Arial Rounded MT Bold', sans-serif;
+      --bg-panel: rgba(10, 17, 32, 0.84);
+      --border-panel: rgba(255, 255, 255, 0.18);
+      --text-white: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #020611;
+      font-family: var(--font-main);
+      color: var(--text-white);
+      touch-action: none;
+    }
+
+    #canvas-container {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      cursor: grab;
+    }
+
+    #canvas-container.panning {
+      cursor: move;
+    }
+
+    #canvas-container:active:not(.panning) {
+      cursor: grabbing;
+    }
+
+    /* Compact Top Bar */
+    .top-bar {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .title-pill {
+      pointer-events: auto;
+      background: var(--bg-panel);
+      backdrop-filter: blur(10px);
+      border: 1.5px solid var(--border-panel);
+      border-radius: 16px;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .title-pill h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.01em;
+    }
+
+    .top-actions {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ui-btn {
+      font-family: var(--font-main);
+      font-size: 15px;
+      font-weight: 700;
+      color: #ffffff;
+      background: var(--bg-panel);
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(125, 211, 252, 0.5);
+      border-radius: 14px;
+      padding: 9px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .ui-btn:hover {
+      transform: translateY(-1px);
+      background: rgba(14, 165, 233, 0.3);
+      border-color: #7dd3fc;
+    }
+
+    .ui-btn:active {
+      transform: translateY(1px);
+    }
+
+    /* Compact, Collapsible Left Legend Drawer */
+    .legend-wrapper {
+      position: absolute;
+      left: 16px;
+      top: 72px;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .legend-toggle {
+      pointer-events: auto;
+      font-family: var(--font-main);
+      font-size: 14px;
+      font-weight: 700;
+      color: #e0f2fe;
+      background: var(--bg-panel);
+      backdrop-filter: blur(10px);
+      border: 1.5px solid var(--border-panel);
+      border-radius: 12px;
+      padding: 7px 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .legend-toggle:hover {
+      background: rgba(30, 41, 59, 0.95);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    .legend-panel {
+      pointer-events: auto;
+      background: var(--bg-panel);
+      backdrop-filter: blur(12px);
+      border: 1.5px solid var(--border-panel);
+      border-radius: 18px;
+      padding: 10px;
+      width: 196px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.6);
+      transform-origin: top left;
+      transition: transform 0.22s ease, opacity 0.2s ease;
+    }
+
+    .legend-panel.collapsed {
+      transform: scale(0.9) translateX(-220px);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .legend-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .legend-btn {
+      font-family: var(--font-main);
+      width: 100%;
+      background: rgba(30, 41, 59, 0.75);
+      border: 2px solid rgba(255, 255, 255, 0.14);
+      border-radius: 12px;
+      padding: 7px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      color: #ffffff;
+      text-align: left;
+      transition: all 0.15s ease;
+    }
+
+    .legend-btn:hover {
+      background: rgba(51, 65, 85, 0.92);
+      border-color: rgba(255, 255, 255, 0.45);
+    }
+
+    .legend-btn.active {
+      border-color: #fde047;
+      background: rgba(56, 189, 248, 0.24);
+      box-shadow: 0 0 12px rgba(253, 224, 71, 0.35);
+    }
+
+    .legend-left {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .swatch {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      border: 2px solid rgba(255, 255, 255, 0.85);
+    }
+
+    .swatch-crust {
+      background: linear-gradient(135deg, #3b82f6 0%, #22c55e 50%, #a16207 100%);
+    }
+    .swatch-mantle {
+      background: radial-gradient(circle at 35% 35%, #f97316, #dc2626 70%, #7f1d1d 100%);
+    }
+    .swatch-outerCore {
+      background: radial-gradient(circle at 35% 35%, #fff066, #fbbf24 60%, #f59e0b 100%);
+      box-shadow: 0 0 6px rgba(251, 191, 36, 0.5);
+    }
+    .swatch-innerCore {
+      background: radial-gradient(circle at 40% 40%, #ffffff, #fef08a 65%, #facc15 100%);
+    }
+
+    .legend-name {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .proportion-box {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .proportion-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #93c5fd;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .proportion-bar {
+      height: 10px;
+      width: 100%;
+      border-radius: 6px;
+      overflow: hidden;
+      display: flex;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+    }
+
+    .prop-seg {
+      height: 100%;
+    }
+
+    /* Slim Single-Row Bottom Controls Bar */
+    .controls-dock {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      background: var(--bg-panel);
+      backdrop-filter: blur(12px);
+      border: 1.5px solid var(--border-panel);
+      border-radius: 20px;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65);
+      white-space: nowrap;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .control-divider {
+      width: 1.5px;
+      height: 32px;
+      background: rgba(255, 255, 255, 0.16);
+    }
+
+    .control-label {
+      font-size: 15px;
+      font-weight: 700;
+      color: #f8fafc;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .control-badge {
+      font-size: 12px;
+      font-weight: 800;
+      min-width: 40px;
+      text-align: center;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.2);
+      border: 1px solid rgba(56, 189, 248, 0.6);
+      color: #e0f2fe;
+    }
+
+    .wedge-toggle-btn {
+      font-family: var(--font-main);
+      font-size: 15px;
+      font-weight: 800;
+      padding: 8px 16px;
+      border-radius: 12px;
+      border: 2px solid #f59e0b;
+      background: rgba(217, 119, 6, 0.85);
+      color: #ffffff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+    }
+
+    .wedge-toggle-btn.active {
+      border-color: #fde047;
+      background: rgba(22, 163, 74, 0.9);
+      box-shadow: 0 0 16px rgba(34, 197, 94, 0.45);
+    }
+
+    input[type="range"].touch-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 140px;
+      height: 12px;
+      border-radius: 999px;
+      background: #1e293b;
+      border: 1.5px solid rgba(255, 255, 255, 0.3);
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"].touch-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #38bdf8;
+      border: 3px solid #ffffff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+    }
+
+    input[type="range"].touch-slider::-moz-range-thumb {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #38bdf8;
+      border: 3px solid #ffffff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+    }
+
+    /* Fact Pop-Up Card (Right Side - Compact & Clean) */
+    .fact-card {
+      position: absolute;
+      right: 16px;
+      top: 72px;
+      z-index: 20;
+      width: clamp(280px, 24vw, 350px);
+      background: rgba(12, 20, 38, 0.92);
+      backdrop-filter: blur(14px);
+      border: 3px solid #38bdf8;
+      border-radius: 22px;
+      padding: 16px 18px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8);
+      transform: translateX(120%);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease;
+    }
+
+    .fact-card.open {
+      transform: translateX(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .fact-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1.5px solid rgba(255, 255, 255, 0.14);
+    }
+
+    .fact-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .fact-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid #ffffff;
+      flex-shrink: 0;
+    }
+
+    .fact-title {
+      margin: 0;
+      font-size: 23px;
+      font-weight: 800;
+    }
+
+    .close-btn {
+      font-family: var(--font-main);
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(255, 255, 255, 0.35);
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .close-btn:hover {
+      background: #ef4444;
+      border-color: #ffffff;
+    }
+
+    .fact-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .fact-pill {
+      background: rgba(30, 41, 59, 0.85);
+      border: 1.5px solid rgba(255, 255, 255, 0.14);
+      border-radius: 12px;
+      padding: 8px 12px;
+    }
+
+    .fact-pill-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #93c5fd;
+      font-weight: 800;
+      display: block;
+    }
+
+    .fact-pill-value {
+      font-size: 16px;
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .fact-know-heading {
+      font-size: 13px;
+      font-weight: 800;
+      color: #fde047;
+      margin: 0 0 6px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .fact-list {
+      margin: 0;
+      padding: 0 0 0 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .fact-list li {
+      font-size: 15px;
+      line-height: 1.38;
+      font-weight: 600;
+      color: #f8fafc;
+    }
+
+    /* 3D Floating Layer Labels (Explode Pieces mode) */
+    #labels-container {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 5;
+      overflow: hidden;
+    }
+
+    .floating-label {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      background: rgba(10, 17, 32, 0.92);
+      border: 2.5px solid #ffffff;
+      border-radius: 12px;
+      padding: 5px 13px;
+      font-size: 15px;
+      font-weight: 800;
+      color: #ffffff;
+      white-space: nowrap;
+      pointer-events: auto;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
+      transition: opacity 0.2s ease, transform 0.15s ease;
+    }
+
+    .floating-label:hover {
+      transform: translate(-50%, -50%) scale(1.08);
+    }
+
+    @media (max-width: 900px) {
+      .controls-dock {
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 8px 12px;
+        gap: 10px;
+      }
+      .control-divider {
+        display: none;
+      }
+    }
+  </style>
 </head>
-<body data-mode="welcome">
+<body>
 
-  <div id="scene"></div>
+  <!-- 3D WebGL Canvas Container -->
+  <div id="canvas-container"></div>
 
-  <!-- ===== Top Navigation Bar ===== -->
-  <header id="topbar">
-    <div class="brand">
-      <span class="brand-emoji">🌍</span>
-      <span>Inside Our Earth</span>
+  <!-- 3D Floating Labels for Explode Pieces Mode -->
+  <div id="labels-container"></div>
+
+  <!-- Top Bar -->
+  <header class="top-bar">
+    <div class="title-pill">
+      <span style="font-size:24px;">🌍</span>
+      <h1>Inside Our Earth</h1>
     </div>
 
-    <nav class="tabs">
-      <button class="tab" data-mode="explore">
-        <span class="tab-emoji">🔍</span>
-        <span>Explore</span>
-      </button>
-      <button class="tab" data-mode="quiz">
-        <span class="tab-emoji">🎯</span>
-        <span>Quiz</span>
-      </button>
-    </nav>
-
-    <div class="tools">
-      <button class="icon-btn" id="btnSound" title="Sound effects">
-        <span class="tool-emoji" id="soundEmoji">🔊</span>
-      </button>
-      <button class="icon-btn" id="btnFull" title="Fullscreen (F)">
-        <span class="tool-emoji">⛶</span>
-      </button>
-      <button class="icon-btn" id="btnHelp" title="Teacher Help">
-        <span class="tool-emoji">❔</span>
+    <div class="top-actions">
+      <button id="reset-view-btn" class="ui-btn" title="Reset Camera & View">
+        <span>🧭</span>
+        <span>Reset View</span>
       </button>
     </div>
   </header>
 
-  <!-- ===== Explore Side Tools ===== -->
-  <div id="sideTools">
-    <button class="side-btn" id="btnPeel">
-      <span class="side-emoji">🧅</span>
-      <span class="t">Peel</span>
+  <!-- Left Collapsible Layer Legend -->
+  <div class="legend-wrapper">
+    <button id="legend-toggle-btn" class="legend-toggle" type="button">
+      <span>🪨</span>
+      <span id="legend-toggle-text">Hide Layers</span>
     </button>
-    <button class="side-btn" id="btnPeach">
-      <span class="side-emoji">🍑</span>
-      <span class="t">Compare</span>
-    </button>
-    <button class="side-btn" id="btnHome">
-      <span class="side-emoji">🎯</span>
-      <span class="t">Reset</span>
-    </button>
+
+    <aside id="legend-panel" class="legend-panel" aria-label="Earth Layers Legend">
+      <div class="legend-list">
+        <button class="legend-btn" data-layer="crust">
+          <div class="legend-left">
+            <span class="swatch swatch-crust"></span>
+            <span class="legend-name">Crust</span>
+          </div>
+          <span>›</span>
+        </button>
+
+        <button class="legend-btn" data-layer="mantle">
+          <div class="legend-left">
+            <span class="swatch swatch-mantle"></span>
+            <span class="legend-name">Mantle</span>
+          </div>
+          <span>›</span>
+        </button>
+
+        <button class="legend-btn" data-layer="outerCore">
+          <div class="legend-left">
+            <span class="swatch swatch-outerCore"></span>
+            <span class="legend-name">Outer Core</span>
+          </div>
+          <span>›</span>
+        </button>
+
+        <button class="legend-btn" data-layer="innerCore">
+          <div class="legend-left">
+            <span class="swatch swatch-innerCore"></span>
+            <span class="legend-name">Inner Core</span>
+          </div>
+          <span>›</span>
+        </button>
+      </div>
+
+      <div class="proportion-box">
+        <div class="proportion-label">
+          <span>Core</span>
+          <span>Scale</span>
+          <span>Crust</span>
+        </div>
+        <div class="proportion-bar" title="Inner Core 19% | Outer Core 34% | Mantle 46% | Crust 1%">
+          <div class="prop-seg" style="width:19%; background:#fef08a;"></div>
+          <div class="prop-seg" style="width:34%; background:#f97316;"></div>
+          <div class="prop-seg" style="width:45%; background:#ef4444;"></div>
+          <div class="prop-seg" style="width:2%; background:#38bdf8;"></div>
+        </div>
+      </div>
+    </aside>
   </div>
 
-  <!-- ===== Bottom Layer Bar ===== -->
-  <nav id="layerBar"></nav>
-
-  <!-- ===== Layer Info Panel ===== -->
-  <aside id="infoPanel" class="panel">
-    <div class="panel-head" id="infoHead">
-      <div class="badge-num" id="infoBadgeNum">1</div>
-      <div class="head-text">
-        <div class="kicker" id="infoKicker">Layer 1 of 4</div>
-        <h2 id="infoName">Crust</h2>
+  <!-- Right Pop-up Fact Card -->
+  <section id="fact-card" class="fact-card" aria-live="polite">
+    <div class="fact-header">
+      <div class="fact-title-group">
+        <div id="fact-dot" class="fact-dot swatch-crust"></div>
+        <h2 id="fact-title" class="fact-title">Crust</h2>
       </div>
-      <button class="close-btn" id="infoClose" title="Close (Esc)">✕</button>
+      <button id="fact-close-btn" class="close-btn" aria-label="Close Fact Card">✕</button>
     </div>
-    <div class="panel-body" id="infoBody"></div>
-    <div class="panel-foot">
-      <button class="btn" id="infoPrev">◀ Previous</button>
-      <button class="btn" id="infoNext">Next ▶</button>
-    </div>
-  </aside>
 
-  <!-- ===== Quiz Panel ===== -->
-  <aside id="quizPanel" class="panel">
-    <div class="panel-head">
-      <div class="badge-num">🎯</div>
-      <div class="head-text">
-        <div class="kicker" id="qKicker">Question 1</div>
-        <div class="q-progress" id="qProgress"></div>
+    <div class="fact-grid">
+      <div class="fact-pill">
+        <span class="fact-pill-label">What it is</span>
+        <span id="fact-what" class="fact-pill-value">Solid rock</span>
+      </div>
+      <div class="fact-pill">
+        <span class="fact-pill-label">How thick</span>
+        <span id="fact-thick" class="fact-pill-value">About 5 to 70 km (the thinnest layer)</span>
       </div>
     </div>
-    <div class="panel-body" id="qBody"></div>
-    <div class="panel-foot" id="qFoot">
-      <button class="btn primary big" id="qNext">Next Question ▶</button>
-    </div>
-  </aside>
 
-  <!-- ===== Welcome Screen ===== -->
-  <div id="welcome">
-    <div>
-      <div class="w-kicker">🔬 Grade 2 Science</div>
-      <h1>What's Inside the Earth?</h1>
-      <p>Explore the 4 concentric layers of our planet in real 3D!</p>
-    </div>
-    <div class="w-btns">
-      <button class="btn w-btn go1" data-go="explore">
-        <span>🔍 Start Exploring</span>
+    <h3 class="fact-know-heading">⭐ What to know:</h3>
+    <ul id="fact-list" class="fact-list"></ul>
+  </section>
+
+  <!-- Slim Single-Row Bottom Controls Dock -->
+  <nav class="controls-dock" aria-label="Cutaway and Demonstration Controls">
+    <!-- 1. Wedge Cutout -->
+    <div class="control-group">
+      <button id="wedge-btn" class="wedge-toggle-btn active" type="button">
+        <span>🍰</span>
+        <span id="wedge-text">Wedge Cutout: ON</span>
       </button>
-      <button class="btn w-btn go3" data-go="quiz">
-        <span>🎯 Take the Quiz</span>
-      </button>
     </div>
-  </div>
 
-  <!-- ===== Comparison Modal (Peach & Egg) ===== -->
-  <div id="peachModal" class="modal hidden">
-    <div class="modal-card">
-      <button class="close-btn" data-close>✕</button>
-      <h2>🍑 How the Earth Compares to a Peach</h2>
-      <div class="peach-row">
-        <svg viewBox="0 0 300 310" aria-label="Peach cross section">
-          <rect x="146" y="8" width="9" height="24" rx="3" fill="#6b3518"/>
-          <path d="M154 26 q34 -26 66 -6 q-30 24 -66 6z" fill="#40c057"/>
-          <circle cx="150" cy="165" r="138" fill="#ff7b54"/>
-          <circle cx="150" cy="165" r="126" fill="#ffd38a"/>
-          <ellipse cx="150" cy="165" rx="58" ry="72" fill="#8a4b2a"/>
-          <path d="M150 100 q-16 32 0 65 q16 33 0 65" stroke="#5c2e14" stroke-width="6" fill="none"/>
-          <path d="M120 125 q-8 40 4 80 M180 125 q8 40 -4 80" stroke="#6b3518" stroke-width="4" fill="none"/>
-        </svg>
-        <div class="eq">=</div>
-        <svg viewBox="0 0 300 310" aria-label="Earth cross section">
-          <circle cx="150" cy="165" r="138" fill="#8B5A2B"/>
-          <circle cx="150" cy="165" r="126" fill="#D9480F"/>
-          <circle cx="150" cy="165" r="74" fill="#F59F00"/>
-          <circle cx="150" cy="165" r="30" fill="#FFF066"/>
-          <circle cx="150" cy="165" r="138" fill="none" stroke="#2563eb" stroke-width="5"/>
-        </svg>
-      </div>
-      <div class="match">
-        <div class="l">Thin Peach Skin</div><div class="m">=</div><div><span class="pill" style="--c:#8B5A2B;--t:#fff">1 · 🏔️ Crust</span></div>
-        <div class="l">Thick Juicy Fruit</div><div class="m">=</div><div><span class="pill" style="--c:#D9480F;--t:#fff">2 · 🌋 Mantle</span></div>
-        <div class="l">Hard Pit in the Middle</div><div class="m">=</div><div><span class="pill" style="--c:#F59F00;--t:#1e1302">3 & 4 · 🧲 Core</span></div>
-      </div>
-      <div class="egg-note">🥚 A hard-boiled egg works too! Shell = Crust, White = Mantle, Yolk = Core.</div>
+    <div class="control-divider"></div>
+
+    <!-- 2. Slicing Plane -->
+    <div class="control-group">
+      <span class="control-label">🔪 Slicing Plane</span>
+      <input id="slice-slider" class="touch-slider" type="range" min="0" max="100" value="0" aria-label="Slicing Plane Slider" />
+      <span id="slice-badge" class="control-badge">0%</span>
     </div>
-  </div>
 
-  <!-- ===== Teacher Controls Modal ===== -->
-  <div id="helpModal" class="modal hidden">
-    <div class="modal-card">
-      <button class="close-btn" data-close>✕</button>
-      <h2>👩‍🏫 Teacher & Classroom Controls</h2>
-      <div class="help-list">
-        <div><kbd>1</kbd>–<kbd>4</kbd> Select layer or answer quiz</div>
-        <div><kbd>Left Drag</kbd> Spin Earth smoothly (turntable)</div>
-        <div><kbd>Middle Drag / Wheel Click</kbd> Pan canvas position</div>
-        <div><kbd>Scroll / Pinch</kbd> Zoom in & out</div>
-        <div><kbd>←</kbd> <kbd>→</kbd> Previous / Next layer</div>
-        <div><kbd>Space</kbd> Next quiz question</div>
-        <div><kbd>P</kbd> Peel layers with wide separation</div>
-        <div><kbd>E</kbd> Explore · <kbd>Q</kbd> Quiz</div>
-        <div><kbd>F</kbd> Fullscreen · <kbd>Esc</kbd> Close</div>
-      </div>
-      <div class="teacher-note">The crust is scaled slightly thicker on the 3D model so students can see it clearly from the back of the room. In reality, the crust is as thin as an apple skin!</div>
+    <div class="control-divider"></div>
+
+    <!-- 3. Explode Pieces -->
+    <div class="control-group">
+      <span class="control-label">💥 Explode Pieces</span>
+      <input id="explode-slider" class="touch-slider" type="range" min="0" max="100" value="0" aria-label="Explode Pieces Slider" />
+      <span id="explode-badge" class="control-badge">0%</span>
     </div>
-  </div>
+  </nav>
 
-  <div id="toast"></div>
-  <canvas id="confetti"></canvas>
-  <div id="loading"><div class="load-box"><div class="spin-ring"></div><br>Preparing 3D Earth…</div></div>
+  <script>
+    // Prevent annoying browser right-click context menu anywhere on the page
+    window.addEventListener('contextmenu', (e) => e.preventDefault());
 
-  <script src="js/data.js"></script>
-  <script src="js/app.js"></script>
+    // =========================================================================
+    // 1. GRADE 2 ESL LAYER FACT DATA
+    // =========================================================================
+    const LAYER_DATA = {
+      crust: {
+        id: 'crust',
+        name: 'Crust',
+        whatItIs: 'Solid rock',
+        howThick: 'About 5 to 70 km (the thinnest layer)',
+        whatToKnow: [
+          'The cool, hard rock shell where we walk and swim.',
+          'It is broken into giant puzzle pieces.',
+          'It is thin under deep oceans and thick under tall mountains.'
+        ],
+        borderColor: '#38bdf8',
+        swatchClass: 'swatch-crust'
+      },
+      mantle: {
+        id: 'mantle',
+        name: 'Mantle',
+        whatItIs: 'Hot, heavy rock',
+        howThick: 'About 2,900 km thick (the thickest layer)',
+        whatToKnow: [
+          'Earth’s biggest layer—made of dark, heavy rock.',
+          'Deep down, the rock is so hot it moves slowly like thick mud.',
+          'When this melted rock leaks out of the ground, we call it volcano lava.'
+        ],
+        borderColor: '#ef4444',
+        swatchClass: 'swatch-mantle'
+      },
+      outerCore: {
+        id: 'outerCore',
+        name: 'Outer Core',
+        whatItIs: 'Liquid metal',
+        howThick: 'About 2,200 km thick',
+        whatToKnow: [
+          'A bubbling, yellow-hot sea of melted iron.',
+          'It is so hot the metal stays runny like soup.',
+          'The moving liquid metal turns the whole Earth into a giant magnet to keep space radiation away.'
+        ],
+        borderColor: '#f97316',
+        swatchClass: 'swatch-outerCore'
+      },
+      innerCore: {
+        id: 'innerCore',
+        name: 'Inner Core',
+        whatItIs: 'Solid metal ball',
+        howThick: 'A ball about the size of the Moon',
+        whatToKnow: [
+          'A heavy metal ball right in the middle of Earth.',
+          'It is as hot as the surface of the Sun.',
+          'It stays hard and solid because the whole Earth pushes down and squashes it tight.'
+        ],
+        borderColor: '#fef08a',
+        swatchClass: 'swatch-innerCore'
+      }
+    };
+
+    // =========================================================================
+    // 2. PLANETARY PROPORTIONS & RADII
+    //    Inner Core: ~19%, Outer Core: ~34%, Mantle: ~46%, Crust: ~1% (exaggerated slightly)
+    // =========================================================================
+    const EARTH_RADIUS = 3.0;
+    const RADII = {
+      innerCore: 0.19 * EARTH_RADIUS,   // 0.57
+      outerCore: 0.53 * EARTH_RADIUS,   // 1.59
+      mantle:    0.975 * EARTH_RADIUS,  // 2.925
+      crust:     1.00 * EARTH_RADIUS    // 3.00
+    };
+
+    // =========================================================================
+    // 3. REAL SATELLITE EARTH TEXTURES
+    // =========================================================================
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.setCrossOrigin('anonymous');
+
+    function loadEarthTextures() {
+      const baseUrl = 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/';
+      const dayTex = textureLoader.load(baseUrl + 'earth_atmos_2048.jpg');
+      const specTex = textureLoader.load(baseUrl + 'earth_specular_2048.jpg');
+      const nightTex = textureLoader.load(baseUrl + 'earth_lights_2048.png');
+
+      [dayTex, specTex, nightTex].forEach(t => {
+        t.wrapS = THREE.RepeatWrapping;
+        t.wrapT = THREE.ClampToEdgeWrapping;
+      });
+
+      return { dayTex, nightTex, specTex };
+    }
+
+    // Helper: Remap UVs of a partial SphereGeometry(r, wSeg, hSeg, phiStart, phiLength)
+    // so that equirectangular textures map to their true global longitude without cramming!
+    function remapPartialSphereUVs(geometry, phiStart, phiLength) {
+      const uvAttr = geometry.attributes.uv;
+      const startU = phiStart / (Math.PI * 2);
+      const spanU = phiLength / (Math.PI * 2);
+      for (let i = 0; i < uvAttr.count; i++) {
+        const localU = uvAttr.getX(i);
+        uvAttr.setX(i, startU + localU * spanU);
+      }
+      uvAttr.needsUpdate = true;
+      return geometry;
+    }
+
+    // =========================================================================
+    // 4. THREE.JS SCENE, CAMERA, LIGHTING & STARFIELD
+    // =========================================================================
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(
+      40,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      250
+    );
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.localClippingEnabled = true;
+    container.appendChild(renderer.domElement);
+
+    function createStarfield() {
+      const starGeo = new THREE.BufferGeometry();
+      const count = 800;
+      const positions = new Float32Array(count * 3);
+      const colors = new Float32Array(count * 3);
+
+      for (let i = 0; i < count; i++) {
+        const r = 60 + Math.random() * 60;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+        positions[i * 3]     = r * Math.sin(phi) * Math.cos(theta);
+        positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+        positions[i * 3 + 2] = r * Math.cos(phi);
+
+        const b = 0.4 + Math.random() * 0.45;
+        colors[i * 3]     = b * 0.9;
+        colors[i * 3 + 1] = b * 0.95;
+        colors[i * 3 + 2] = b;
+      }
+
+      starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      starGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      const starMat = new THREE.PointsMaterial({
+        size: 0.22,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.6
+      });
+      scene.add(new THREE.Points(starGeo, starMat));
+    }
+    createStarfield();
+
+    const sunDir = new THREE.Vector3(1.1, 0.4, 0.85).normalize();
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.15);
+    dirLight.position.copy(sunDir).multiplyScalar(30);
+    scene.add(dirLight);
+
+    const ambientLight = new THREE.AmbientLight(0x475569, 0.75);
+    scene.add(ambientLight);
+
+    const sliceClippingPlane = new THREE.Plane(new THREE.Vector3(0, 0, -1), EARTH_RADIUS * 2.5);
+
+    // =========================================================================
+    // 5. SHADERS:
+    //    - Exterior Satellite Globe Shader
+    //    - Rich Multi-Octave 3D Geological & Thermal Interior Shaders
+    //      (Used across both 3D spherical shells and flat cross-section faces
+    //       so veins, magma convection cells, and liquid metal swirls match seamlessly!)
+    // =========================================================================
+    const { dayTex, nightTex, specTex } = loadEarthTextures();
+
+    function createExteriorGlobeMaterial(clipPlanes) {
+      return new THREE.ShaderMaterial({
+        clipping: true,
+        clippingPlanes: clipPlanes,
+        side: THREE.FrontSide,
+        uniforms: {
+          uDayTex: { value: dayTex },
+          uNightTex: { value: nightTex },
+          uSpecTex: { value: specTex },
+          uSunDir: { value: sunDir },
+          uHighlight: { value: 0.0 }
+        },
+        vertexShader: `
+          #include <clipping_planes_pars_vertex>
+          varying vec2 vUv;
+          varying vec3 vNormalWorld;
+          varying vec3 vPosWorld;
+          void main() {
+            #include <begin_vertex>
+            vUv = uv;
+            vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+            vPosWorld = worldPosition.xyz;
+            vNormalWorld = normalize(mat3(modelMatrix) * normal);
+            #include <project_vertex>
+            #include <clipping_planes_vertex>
+          }
+        `,
+        fragmentShader: `
+          #include <clipping_planes_pars_fragment>
+          uniform sampler2D uDayTex;
+          uniform sampler2D uNightTex;
+          uniform sampler2D uSpecTex;
+          uniform vec3 uSunDir;
+          uniform float uHighlight;
+          varying vec2 vUv;
+          varying vec3 vNormalWorld;
+          varying vec3 vPosWorld;
+
+          void main() {
+            #include <clipping_planes_fragment>
+            vec3 N = normalize(vNormalWorld);
+            vec3 L = normalize(uSunDir);
+            vec3 V = normalize(cameraPosition - vPosWorld);
+
+            float ndotl = dot(N, L);
+            float dayFactor = smoothstep(-0.2, 0.25, ndotl);
+
+            vec3 dayColor = texture2D(uDayTex, vUv).rgb;
+            vec3 nightLights = texture2D(uNightTex, vUv).rgb;
+            float specMask = texture2D(uSpecTex, vUv).r;
+
+            vec3 H = normalize(L + V);
+            float spec = pow(max(dot(N, H), 0.0), 32.0) * specMask * 0.4 * dayFactor;
+
+            vec3 litDay = dayColor * (0.28 + 0.85 * max(ndotl, 0.0)) + vec3(spec);
+            vec3 darkSide = dayColor * 0.1 + nightLights * vec3(1.0, 0.82, 0.45) * 1.6;
+            vec3 color = mix(darkSide, litDay, dayFactor);
+
+            color = mix(color, vec3(0.35, 0.85, 1.0), uHighlight * 0.35);
+
+            gl_FragColor = vec4(color, 1.0);
+          }
+        `
+      });
+    }
+
+    // Shared GLSL 3D FBM, Domain Warping & CellularMagma functions for rich interior textures
+    const INTERIOR_NOISE_GLSL = `
+      float hash(vec3 p) {
+        p = fract(p * 0.3183099 + 0.1);
+        p *= 17.0;
+        return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+      }
+
+      float noise(vec3 x) {
+        vec3 i = floor(x);
+        vec3 f = fract(x);
+        f = f * f * (3.0 - 2.0 * f);
+        return mix(
+          mix(mix(hash(i + vec3(0,0,0)), hash(i + vec3(1,0,0)), f.x),
+              mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x), f.y),
+          mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x),
+              mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y), f.z
+        );
+      }
+
+      // 4-Octave Fractal Brownian Motion
+      float fbm(vec3 p) {
+        float v = 0.0;
+        float a = 0.5;
+        vec3 shift = vec3(100.0);
+        for (int i = 0; i < 4; i++) {
+          v += a * noise(p);
+          p = p * 2.05 + shift;
+          a *= 0.5;
+        }
+        return v;
+      }
+
+      // Ridge noise for glowing magma veins & crystalline metallic facets
+      float ridgedFbm(vec3 p) {
+        float v = 0.0;
+        float a = 0.5;
+        for (int i = 0; i < 4; i++) {
+          float n = 1.0 - abs(noise(p) * 2.0 - 1.0);
+          v += a * n * n;
+          p = p * 2.15 + vec3(31.7, 17.3, 53.1);
+          a *= 0.5;
+        }
+        return v;
+      }
+
+      // Evaluate rich geological color for any 3D point in planet coordinates
+      vec3 evaluateInteriorColor(vec3 pos, float rNorm, float time, out int layerId) {
+        vec3 col = vec3(0.0);
+        layerId = -1;
+
+        if (rNorm <= 0.19) {
+          // 4. INNER CORE (~19%): Crystalline white-hot solid metallic iron-nickel ball
+          layerId = 0;
+          float t = clamp(rNorm / 0.19, 0.0, 1.0);
+          // Faceted metallic crystal grain + intense solar incandescence
+          float crystal = ridgedFbm(pos * 11.0 + vec3(time * 0.08));
+          float fineGrain = fbm(pos * 24.0);
+          vec3 coreCenter = vec3(1.0, 1.0, 0.96);
+          vec3 coreMid    = vec3(1.0, 0.93, 0.48);
+          vec3 coreEdge   = vec3(0.98, 0.72, 0.15);
+          col = mix(coreCenter, coreMid, smoothstep(0.0, 0.75, t));
+          col = mix(col, coreEdge, smoothstep(0.65, 1.0, t) * (1.0 - crystal * 0.65));
+          // Glowing crystal facet veins
+          col += vec3(0.28, 0.25, 0.15) * pow(crystal, 2.0);
+          col -= vec3(0.12, 0.16, 0.22) * (1.0 - fineGrain) * (0.25 + 0.5 * t);
+        }
+        else if (rNorm <= 0.53) {
+          // 3. OUTER CORE (~34%): Luminous, swirling molten liquid gold and amber metal sea
+          layerId = 1;
+          float t = clamp((rNorm - 0.19) / (0.53 - 0.19), 0.0, 1.0);
+
+          // Liquid geodynamo fluid dynamics: swirling azimuthal vortices & turbulent currents
+          float ang = atan(pos.z, pos.x);
+          vec3 flowP = pos * 3.4;
+          flowP.x += sin(ang * 4.0 + pos.y * 3.0 + time * 0.9) * 0.65;
+          flowP.z += cos(ang * 4.0 - pos.y * 2.5 + time * 0.8) * 0.65;
+          flowP.y += time * 0.35;
+
+          // Multi-scale fluid stream bands and bubbling convection rolls
+          float stream1 = fbm(flowP * 1.6 + vec3(time * 0.4, -time * 0.25, time * 0.35));
+          float stream2 = sin(pos.y * 26.0 + ang * 14.0 + stream1 * 6.5 + time * 1.8);
+          float liquidEddies = ridgedFbm(pos * 6.2 + vec3(stream1 * 1.8));
+          float convectionRolls = fbm(pos * 4.8 + vec3(0.0, time * 0.3, 0.0));
+
+          // Distinct molten liquid gold & electric amber palette (never dark crimson/brown rock!)
+          vec3 liquidWhiteGold = vec3(1.0, 0.98, 0.85);
+          vec3 liquidSunGold   = vec3(1.0, 0.88, 0.26);
+          vec3 moltenAmber     = vec3(1.0, 0.68, 0.08);
+          vec3 radiantOrange   = vec3(0.96, 0.48, 0.03);
+
+          // Base liquid temperature: brighter & hotter toward Inner Core, glowing amber toward Mantle
+          vec3 baseFluid = mix(liquidSunGold, moltenAmber, smoothstep(0.1, 0.85, t));
+          col = mix(radiantOrange, baseFluid, smoothstep(0.2, 0.75, convectionRolls));
+
+          // Swirling metallic filaments & bright liquid stream ribbons
+          col = mix(col, liquidWhiteGold, pow(liquidEddies, 2.0) * (0.85 - 0.35 * t));
+          // Fine shimmering liquid surface ripples
+          col += vec3(0.16, 0.14, 0.03) * pow(max(0.0, stream2), 2.5);
+
+          // Crisp glowing boundary ring at Inner Core interface
+          if (abs(rNorm - 0.19) < 0.007) col = vec3(1.0, 1.0, 0.9);
+          // Crisp luminous interface at Mantle boundary (Gutenberg Discontinuity)
+          if (abs(rNorm - 0.53) < 0.006) col = vec3(1.0, 0.92, 0.45);
+        }
+        else if (rNorm <= 0.975) {
+          // 2. MANTLE (~46%): Heavy dark silicate rock with glowing convective lava plumes & veins
+          layerId = 2;
+          float t = clamp((rNorm - 0.53) / (0.975 - 0.53), 0.0, 1.0);
+
+          // Rising thermal plume domain warping
+          vec3 warp = vec3(
+            fbm(pos * 2.1 + vec3(0.0, -time * 0.12, 0.0)),
+            fbm(pos * 2.1 + vec3(3.4, -time * 0.16, 2.7)),
+            fbm(pos * 2.1 + vec3(6.1, -time * 0.10, 4.9))
+          );
+          float plumes = fbm(pos * 2.8 + 1.8 * warp);
+          float magmaVeins = ridgedFbm(pos * 4.6 + 1.3 * warp);
+          float rockGrain = fbm(pos * 14.0);
+
+          // Temperature colors from hot lower mantle to dark heavy upper mantle rock
+          vec3 hotPlume   = vec3(1.0, 0.58, 0.10);
+          vec3 warmMagma  = vec3(0.88, 0.20, 0.06);
+          vec3 heavyRock  = vec3(0.46, 0.07, 0.06);
+          vec3 cooledRock = vec3(0.24, 0.05, 0.05);
+
+          vec3 radialBase = mix(hotPlume, warmMagma, smoothstep(0.0, 0.45, t));
+          radialBase = mix(radialBase, heavyRock, smoothstep(0.4, 0.95, t));
+
+          // Combine dark heavy rock chunks with glowing convective plumes
+          col = mix(cooledRock, radialBase, smoothstep(0.25, 0.75, plumes));
+          // Add bright magma fissures/veins coursing through the rock
+          float veinStrength = pow(magmaVeins, 3.0) * (1.0 - 0.5 * t);
+          col = mix(col, vec3(1.0, 0.72, 0.18), clamp(veinStrength * 0.9, 0.0, 1.0));
+          // Subtle rocky granulation texture
+          col *= (0.82 + 0.32 * rockGrain);
+
+          // Crisp boundary ring at the Outer Core interface
+          if (abs(rNorm - 0.53) < 0.006) col = vec3(1.0, 0.65, 0.14);
+        }
+        else {
+          // 1. CRUST (~1% exaggerated boundary): Stratified rocky lithosphere skin
+          layerId = 3;
+          float strata = fbm(pos * 18.0);
+          vec3 basalt = vec3(0.32, 0.22, 0.15);
+          vec3 granite = vec3(0.62, 0.45, 0.30);
+          col = mix(basalt, granite, strata);
+          if (rNorm > 0.992) col = vec3(0.22, 0.65, 0.95);
+          if (abs(rNorm - 0.975) < 0.005) col = vec3(0.18, 0.10, 0.07);
+        }
+
+        return col;
+      }
+    `;
+
+    // 3D Spherical Surface Shader for Interior Layers (Inner Core, Outer Core, Mantle, & Inner Cavities)
+    function createInteriorShellMaterial(fixedRadiusNorm, isBackSide, clipPlanes = []) {
+      return new THREE.ShaderMaterial({
+        clipping: clipPlanes.length > 0,
+        clippingPlanes: clipPlanes,
+        side: isBackSide ? THREE.BackSide : THREE.FrontSide,
+        uniforms: {
+          uRadiusNorm: { value: fixedRadiusNorm },
+          uTime: { value: 0 },
+          uSunDir: { value: sunDir },
+          uIsCavity: { value: isBackSide ? 1 : 0 },
+          uSelected: { value: 0.0 }
+        },
+        vertexShader: `
+          #include <clipping_planes_pars_vertex>
+          varying vec3 vLocalPos;
+          varying vec3 vNormalWorld;
+          varying vec3 vPosWorld;
+          void main() {
+            #include <begin_vertex>
+            vLocalPos = position;
+            vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+            vPosWorld = worldPosition.xyz;
+            vNormalWorld = normalize(mat3(modelMatrix) * normal);
+            #include <project_vertex>
+            #include <clipping_planes_vertex>
+          }
+        `,
+        fragmentShader: `
+          #include <clipping_planes_pars_fragment>
+          uniform float uRadiusNorm;
+          uniform float uTime;
+          uniform vec3 uSunDir;
+          uniform int uIsCavity;
+          uniform float uSelected;
+          varying vec3 vLocalPos;
+          varying vec3 vNormalWorld;
+          varying vec3 vPosWorld;
+
+          ${INTERIOR_NOISE_GLSL}
+
+          void main() {
+            #include <clipping_planes_fragment>
+            int dummyId;
+            vec3 col = evaluateInteriorColor(vLocalPos, uRadiusNorm, uTime, dummyId);
+
+            // Add 3D spherical shading & rim warmth so the curved shells have unmistakable 3D form
+            vec3 N = normalize(vNormalWorld) * (uIsCavity == 1 ? -1.0 : 1.0);
+            vec3 L = normalize(uSunDir);
+            vec3 V = normalize(cameraPosition - vPosWorld);
+
+            float ndotl = max(dot(N, L), 0.0);
+            float rim = pow(1.0 - max(dot(N, V), 0.0), 2.2);
+
+            if (uIsCavity == 1) {
+              // Darken inner hollow cavity slightly so outer cut rings pop clearly
+              col *= (0.52 + 0.28 * ndotl);
+            } else {
+              col *= (0.78 + 0.32 * ndotl);
+              col += col * rim * 0.35;
+            }
+
+            col += vec3(0.2, 0.2, 0.2) * uSelected;
+            gl_FragColor = vec4(col, 1.0);
+          }
+        `
+      });
+    }
+
+    // Cross-Section Shader for Flat Wedge Walls
+    function createCrossSectionMaterial(minRadiusNorm, maxRadiusNorm, clipPlanes = []) {
+      return new THREE.ShaderMaterial({
+        clipping: clipPlanes.length > 0,
+        clippingPlanes: clipPlanes,
+        side: THREE.DoubleSide,
+        uniforms: {
+          uEarthRadius: { value: EARTH_RADIUS },
+          uMinR: { value: minRadiusNorm },
+          uMaxR: { value: maxRadiusNorm },
+          uTime: { value: 0 },
+          uSelectedLayer: { value: -1 }
+        },
+        vertexShader: `
+          #include <clipping_planes_pars_vertex>
+          varying vec3 vLocalPos;
+          void main() {
+            #include <begin_vertex>
+            vLocalPos = position;
+            #include <project_vertex>
+            #include <clipping_planes_vertex>
+          }
+        `,
+        fragmentShader: `
+          #include <clipping_planes_pars_fragment>
+          uniform float uEarthRadius;
+          uniform float uMinR;
+          uniform float uMaxR;
+          uniform float uTime;
+          uniform int uSelectedLayer;
+          varying vec3 vLocalPos;
+
+          ${INTERIOR_NOISE_GLSL}
+
+          void main() {
+            #include <clipping_planes_fragment>
+            float r = length(vLocalPos) / uEarthRadius;
+            if (r < uMinR || r > uMaxR) discard;
+
+            int layerId = -1;
+            vec3 col = evaluateInteriorColor(vLocalPos, r, uTime, layerId);
+
+            if (uSelectedLayer == layerId) {
+              col += vec3(0.18, 0.18, 0.18) * (0.6 + 0.4 * sin(uTime * 5.0));
+            }
+
+            gl_FragColor = vec4(col, 1.0);
+          }
+        `
+      });
+    }
+
+    // =========================================================================
+    // 6. BUILD NESTED LAYER GEOMETRIES
+    // =========================================================================
+    const planetRoot = new THREE.Group();
+    scene.add(planetRoot);
+
+    const layerGroups = {
+      innerCore: new THREE.Group(),
+      outerCore: new THREE.Group(),
+      mantle: new THREE.Group(),
+      crust: new THREE.Group()
+    };
+
+    Object.values(layerGroups).forEach(g => planetRoot.add(g));
+
+    function createSemiAnnulusGeometry(innerR, outerR, radialSegments, thetaSegments) {
+      const geo = new THREE.BufferGeometry();
+      const positions = [];
+      const uvs = [];
+      const indices = [];
+
+      for (let j = 0; j <= thetaSegments; j++) {
+        const v = j / thetaSegments;
+        const theta = -Math.PI / 2 + v * Math.PI;
+        const cosT = Math.cos(theta);
+        const sinT = Math.sin(theta);
+
+        for (let i = 0; i <= radialSegments; i++) {
+          const u = i / radialSegments;
+          const r = innerR + u * (outerR - innerR);
+          positions.push(r * cosT, r * sinT, 0);
+          uvs.push(u, v);
+        }
+      }
+
+      const ringStride = radialSegments + 1;
+      for (let j = 0; j < thetaSegments; j++) {
+        for (let i = 0; i < radialSegments; i++) {
+          const a = j * ringStride + i;
+          const b = a + 1;
+          const c = (j + 1) * ringStride + i;
+          const d = c + 1;
+          indices.push(a, b, d);
+          indices.push(a, d, c);
+        }
+      }
+
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+      geo.setIndex(indices);
+      geo.computeVertexNormals();
+      return geo;
+    }
+
+    const animatedMaterials = [];
+    const crossSectionMaterials = [];
+
+    // 1. INNER CORE (3D Crystalline White-Hot Metallic Ball)
+    const innerCoreMat = createInteriorShellMaterial(0.16, false, [sliceClippingPlane]);
+    animatedMaterials.push(innerCoreMat);
+
+    const innerCoreMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(RADII.innerCore, 64, 48),
+      innerCoreMat
+    );
+    innerCoreMesh.userData = { layerId: 'innerCore' };
+    layerGroups.innerCore.add(innerCoreMesh);
+
+    // Radiant Temperature Halo around Inner Core
+    const coreHaloGeo = new THREE.SphereGeometry(RADII.innerCore * 1.24, 32, 32);
+    const coreHaloMat = new THREE.MeshBasicMaterial({
+      color: 0xfef08a,
+      transparent: true,
+      opacity: 0.26,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      clippingPlanes: [sliceClippingPlane]
+    });
+    const innerCoreGlow = new THREE.Mesh(coreHaloGeo, coreHaloMat);
+    layerGroups.innerCore.add(innerCoreGlow);
+
+    // 2. CONCENTRIC SHELLS: Outer Core, Mantle, Crust
+    const shellSpecs = [
+      {
+        id: 'outerCore',
+        innerR: RADII.innerCore,
+        outerR: RADII.outerCore,
+        minNorm: 0.19,
+        maxNorm: 0.53,
+        outerShellNorm: 0.50,
+        cavityNorm: 0.22
+      },
+      {
+        id: 'mantle',
+        innerR: RADII.outerCore,
+        outerR: RADII.mantle,
+        minNorm: 0.53,
+        maxNorm: 0.975,
+        outerShellNorm: 0.88,
+        cavityNorm: 0.56
+      },
+      {
+        id: 'crust',
+        innerR: RADII.mantle,
+        outerR: RADII.crust,
+        minNorm: 0.975,
+        maxNorm: 1.00,
+        isExterior: true,
+        cavityNorm: 0.98
+      }
+    ];
+
+    const shellParts = {};
+
+    shellSpecs.forEach(spec => {
+      const group = layerGroups[spec.id];
+
+      const sphereMat = spec.isExterior
+        ? createExteriorGlobeMaterial([sliceClippingPlane])
+        : createInteriorShellMaterial(spec.outerShellNorm, false, [sliceClippingPlane]);
+
+      if (!spec.isExterior) animatedMaterials.push(sphereMat);
+
+      // A) 75% Sphere (phiStart = PI, phiLength = 1.5 * PI) with remapped true global UVs!
+      const main75Geo = remapPartialSphereUVs(
+        new THREE.SphereGeometry(spec.outerR, 64, 48, Math.PI, Math.PI * 1.5),
+        Math.PI,
+        Math.PI * 1.5
+      );
+      const main75Mesh = new THREE.Mesh(main75Geo, sphereMat);
+      main75Mesh.userData = { layerId: spec.id };
+      group.add(main75Mesh);
+
+      // B) Remaining 25% Quarter Wedge Sphere (phiStart = 0.5 * PI, phiLength = 0.5 * PI)
+      //    with remapped true global UVs so it joins seamlessly with zero texture cramming!
+      const wedge25Geo = remapPartialSphereUVs(
+        new THREE.SphereGeometry(spec.outerR, 32, 48, Math.PI * 0.5, Math.PI * 0.5),
+        Math.PI * 0.5,
+        Math.PI * 0.5
+      );
+      const wedge25Mesh = new THREE.Mesh(wedge25Geo, sphereMat);
+      wedge25Mesh.userData = { layerId: spec.id };
+      group.add(wedge25Mesh);
+
+      // C) Inner Cavity Wall (textured interior surface when shells are exploded)
+      const cavityMat = createInteriorShellMaterial(spec.cavityNorm, true, [sliceClippingPlane]);
+      animatedMaterials.push(cavityMat);
+
+      const cavity75Geo = new THREE.SphereGeometry(spec.innerR, 48, 36, Math.PI, Math.PI * 1.5);
+      const cavity75Mesh = new THREE.Mesh(cavity75Geo, cavityMat);
+      cavity75Mesh.userData = { layerId: spec.id };
+      group.add(cavity75Mesh);
+
+      // D) Two Flat 90° Wedge Cut Faces (at +X and +Z)
+      const cutMat = createCrossSectionMaterial(spec.minNorm, spec.maxNorm, [sliceClippingPlane]);
+      crossSectionMaterials.push(cutMat);
+      animatedMaterials.push(cutMat);
+
+      const wallGeo = createSemiAnnulusGeometry(spec.innerR, spec.outerR, 20, 48);
+
+      const wallX = new THREE.Mesh(wallGeo, cutMat);
+      wallX.userData = { layerId: spec.id };
+      group.add(wallX);
+
+      // Note: For wallZ (which is rotated -90 deg around Y so +X maps to +Z),
+      // bake the rotation directly into a cloned geometry so vLocalPos is in true 3D layer coordinates!
+      const wallZGeo = wallGeo.clone();
+      wallZGeo.rotateY(-Math.PI / 2);
+      const wallZ = new THREE.Mesh(wallZGeo, cutMat);
+      wallZ.userData = { layerId: spec.id };
+      group.add(wallZ);
+
+      shellParts[spec.id] = {
+        sphereMat,
+        main75Mesh,
+        wedge25Mesh,
+        cavity75Mesh,
+        wallX,
+        wallZ,
+        cutMat
+      };
+    });
+
+    // =========================================================================
+    // 7. PROJECTED SLICING PLANE & CROSS-SECTION CAP
+    // =========================================================================
+    const slicePlaneGroup = new THREE.Group();
+    slicePlaneGroup.visible = false;
+    scene.add(slicePlaneGroup);
+
+    const sliceCapMat = new THREE.ShaderMaterial({
+      side: THREE.DoubleSide,
+      uniforms: {
+        uEarthRadius: { value: EARTH_RADIUS },
+        uWedgeActive: { value: 1 },
+        uTime: { value: 0 },
+        uSelectedLayer: { value: -1 }
+      },
+      vertexShader: `
+        varying vec3 vWorldPos;
+        void main() {
+          vec4 wp = modelMatrix * vec4(position, 1.0);
+          vWorldPos = wp.xyz;
+          gl_Position = projectionMatrix * viewMatrix * wp;
+        }
+      `,
+      fragmentShader: `
+        uniform float uEarthRadius;
+        uniform int uWedgeActive;
+        uniform float uTime;
+        uniform int uSelectedLayer;
+        varying vec3 vWorldPos;
+
+        ${INTERIOR_NOISE_GLSL}
+
+        void main() {
+          float r = length(vWorldPos) / uEarthRadius;
+          if (r > 1.0) discard;
+
+          if (uWedgeActive == 1 && r > 0.19 && vWorldPos.x > 0.0 && vWorldPos.z > 0.0) {
+            discard;
+          }
+
+          int layerId = -1;
+          vec3 col = evaluateInteriorColor(vWorldPos, r, uTime, layerId);
+
+          if (uSelectedLayer == layerId) {
+            col += vec3(0.18, 0.18, 0.18) * (0.6 + 0.4 * sin(uTime * 5.0));
+          }
+
+          gl_FragColor = vec4(col, 1.0);
+        }
+      `
+    });
+    crossSectionMaterials.push(sliceCapMat);
+    animatedMaterials.push(sliceCapMat);
+
+    const sliceCapMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(EARTH_RADIUS * 2.1, EARTH_RADIUS * 2.1),
+      sliceCapMat
+    );
+    sliceCapMesh.userData = { isSliceCap: true };
+    slicePlaneGroup.add(sliceCapMesh);
+
+    // Projected Laser Frame & Translucent Glass Guide Plane
+    const frameSize = EARTH_RADIUS * 2.35;
+    const frameGlassGeo = new THREE.PlaneGeometry(frameSize, frameSize);
+    const frameGlassMat = new THREE.ShaderMaterial({
+      transparent: true,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      uniforms: {
+        uEarthRadius: { value: EARTH_RADIUS }
+      },
+      vertexShader: `
+        varying vec3 vWorldPos;
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          vec4 wp = modelMatrix * vec4(position, 1.0);
+          vWorldPos = wp.xyz;
+          gl_Position = projectionMatrix * viewMatrix * wp;
+        }
+      `,
+      fragmentShader: `
+        uniform float uEarthRadius;
+        varying vec3 vWorldPos;
+        varying vec2 vUv;
+        void main() {
+          float r = length(vWorldPos) / uEarthRadius;
+          if (r < 1.0) discard;
+          float edgeX = min(vUv.x, 1.0 - vUv.x);
+          float edgeY = min(vUv.y, 1.0 - vUv.y);
+          float border = smoothstep(0.025, 0.0, min(edgeX, edgeY));
+          float ring = smoothstep(1.03, 1.00, r);
+          float alpha = max(border * 0.85, ring * 0.7) + 0.08;
+          gl_FragColor = vec4(0.22, 0.74, 0.98, alpha);
+        }
+      `
+    });
+    const frameGlassMesh = new THREE.Mesh(frameGlassGeo, frameGlassMat);
+    slicePlaneGroup.add(frameGlassMesh);
+
+    // =========================================================================
+    // 8. FLOATING 3D LABELS FOR "EXPLODE PIECES" MODE
+    // =========================================================================
+    const labelsContainer = document.getElementById('labels-container');
+    const floatingLabels = {};
+
+    ['innerCore', 'outerCore', 'mantle', 'crust'].forEach(id => {
+      const info = LAYER_DATA[id];
+      const el = document.createElement('button');
+      el.className = 'floating-label';
+      el.style.borderColor = info.borderColor;
+      el.textContent = info.name;
+      el.style.opacity = '0';
+      el.style.pointerEvents = 'none';
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectLayer(id);
+      });
+      labelsContainer.appendChild(el);
+      floatingLabels[id] = el;
+    });
+
+    // =========================================================================
+    // 9. DEMONSTRATION MODES STATE & SYNCHRONIZATION
+    // =========================================================================
+    const state = {
+      wedgeOn: true,
+      slicePercent: 0,
+      explodePercent: 0,
+      selectedLayer: null,
+      lon: 0.62,
+      lat: 0.25,
+      targetLon: 0.62,
+      targetLat: 0.25,
+      distance: 9.8,
+      targetDistance: 9.8,
+      // Camera target (supports both Explode centering & Middle/Right-Click viewport panning!)
+      baseLookAtX: 0,
+      panOffset: new THREE.Vector3(0, 0, 0),
+      targetPanOffset: new THREE.Vector3(0, 0, 0),
+      sliceSpawned: false,
+      sliceNormal: new THREE.Vector3(0, 0, 1)
+    };
+
+    const wedgeBtn = document.getElementById('wedge-btn');
+    const wedgeText = document.getElementById('wedge-text');
+    const sliceSlider = document.getElementById('slice-slider');
+    const sliceBadge = document.getElementById('slice-badge');
+    const explodeSlider = document.getElementById('explode-slider');
+    const explodeBadge = document.getElementById('explode-badge');
+
+    const EXPLODE_MAX_X = {
+      innerCore: -8.6,
+      outerCore: -5.0,
+      mantle:     1.0,
+      crust:      8.5
+    };
+
+    function updateModelState() {
+      const tExplode = state.explodePercent / 100;
+      const tSlice = state.slicePercent / 100;
+
+      const showCutout = state.wedgeOn || tExplode > 0.01;
+
+      ['outerCore', 'mantle', 'crust'].forEach(id => {
+        const parts = shellParts[id];
+        parts.wedge25Mesh.visible = !showCutout;
+        parts.wallX.visible = showCutout;
+        parts.wallZ.visible = showCutout;
+        parts.cavity75Mesh.visible = tExplode > 0.01;
+      });
+
+      wedgeBtn.classList.toggle('active', state.wedgeOn);
+      wedgeText.textContent = state.wedgeOn ? 'Wedge Cutout: ON' : 'Wedge Cutout: OFF';
+
+      // Slicing Plane: projected along state.sliceNormal when first spawned
+      if (tSlice > 0.005 && tExplode < 0.01) {
+        if (!state.sliceSpawned) {
+          state.sliceNormal.set(
+            Math.cos(state.lat) * Math.sin(state.lon),
+            Math.sin(state.lat) * 0.25,
+            Math.cos(state.lat) * Math.cos(state.lon)
+          ).normalize();
+          state.sliceSpawned = true;
+        }
+
+        const distFromCenter = EARTH_RADIUS * (1.0 - tSlice * 1.15);
+        sliceClippingPlane.normal.copy(state.sliceNormal).negate();
+        sliceClippingPlane.constant = distFromCenter;
+
+        slicePlaneGroup.position.copy(state.sliceNormal).multiplyScalar(distFromCenter - 0.003);
+        slicePlaneGroup.lookAt(
+          slicePlaneGroup.position.x + state.sliceNormal.x,
+          slicePlaneGroup.position.y + state.sliceNormal.y,
+          slicePlaneGroup.position.z + state.sliceNormal.z
+        );
+        slicePlaneGroup.visible = true;
+      } else {
+        state.sliceSpawned = false;
+        sliceClippingPlane.normal.set(0, 0, -1);
+        sliceClippingPlane.constant = EARTH_RADIUS * 3.0;
+        slicePlaneGroup.visible = false;
+      }
+
+      // Explode Pieces: separate nested shells along X axis
+      Object.keys(layerGroups).forEach(id => {
+        layerGroups[id].position.x = EXPLODE_MAX_X[id] * tExplode;
+        const labelEl = floatingLabels[id];
+        if (tExplode > 0.06) {
+          labelEl.style.opacity = '1';
+          labelEl.style.pointerEvents = 'auto';
+        } else {
+          labelEl.style.opacity = '0';
+          labelEl.style.pointerEvents = 'none';
+        }
+      });
+
+      state.baseLookAtX = 0.8 * tExplode;
+
+      sliceBadge.textContent = `${Math.round(state.slicePercent)}%`;
+      explodeBadge.textContent = `${Math.round(state.explodePercent)}%`;
+    }
+
+    // Collapsible Left Legend Handler
+    const legendToggleBtn = document.getElementById('legend-toggle-btn');
+    const legendToggleText = document.getElementById('legend-toggle-text');
+    const legendPanel = document.getElementById('legend-panel');
+    let legendOpen = true;
+
+    legendToggleBtn.addEventListener('click', () => {
+      legendOpen = !legendOpen;
+      legendPanel.classList.toggle('collapsed', !legendOpen);
+      legendToggleText.textContent = legendOpen ? 'Hide Layers' : 'Show Layers';
+    });
+
+    // 1. Wedge Cutout Toggle
+    wedgeBtn.addEventListener('click', () => {
+      state.wedgeOn = !state.wedgeOn;
+      updateModelState();
+    });
+
+    // 2. Slicing Plane Slider
+    sliceSlider.addEventListener('input', (e) => {
+      state.slicePercent = parseFloat(e.target.value);
+      if (state.slicePercent > 0 && state.explodePercent > 0) {
+        state.explodePercent = 0;
+        explodeSlider.value = 0;
+        state.targetDistance = 9.8;
+      }
+      updateModelState();
+    });
+
+    // 3. Explode Pieces Slider
+    explodeSlider.addEventListener('input', (e) => {
+      state.explodePercent = parseFloat(e.target.value);
+      if (state.explodePercent > 0 && state.slicePercent > 0) {
+        state.slicePercent = 0;
+        sliceSlider.value = 0;
+      }
+      const tExplode = state.explodePercent / 100;
+      state.targetDistance = 9.8 + tExplode * 14.5;
+      if (tExplode > 0.05) {
+        state.targetLon = 0.52;
+        state.targetLat = 0.18;
+      }
+      updateModelState();
+    });
+
+    // Reset View Button
+    document.getElementById('reset-view-btn').addEventListener('click', () => {
+      state.targetLon = 0.62;
+      state.targetLat = 0.25;
+      state.targetDistance = 9.8;
+      state.baseLookAtX = 0;
+      state.targetPanOffset.set(0, 0, 0);
+      state.slicePercent = 0;
+      sliceSlider.value = 0;
+      state.explodePercent = 0;
+      explodeSlider.value = 0;
+      state.wedgeOn = true;
+      updateModelState();
+    });
+
+    // =========================================================================
+    // 10. GOOGLE EARTH STYLE CAMERA ORBIT + MIDDLE/RIGHT-CLICK PANNING
+    //     - Left-click drag: Orbit longitude & latitude (North Pole always up)
+    //     - Middle-click or Right-click drag: Smoothly pan across the viewport!
+    // =========================================================================
+    let dragMode = null; // 'orbit' | 'pan' | null
+    let pointerDownPos = { x: 0, y: 0 };
+    let lastPointerPos = { x: 0, y: 0 };
+    let activePointers = new Map();
+    let initialPinchDist = null;
+    let initialPinchZoom = null;
+
+    const MAX_LAT = THREE.MathUtils.degToRad(82);
+    const camRight = new THREE.Vector3();
+    const camUp = new THREE.Vector3();
+
+    container.addEventListener('pointerdown', (e) => {
+      activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      if (activePointers.size === 1) {
+        pointerDownPos = { x: e.clientX, y: e.clientY };
+        lastPointerPos = { x: e.clientX, y: e.clientY };
+
+        // Middle mouse button (1) or Right mouse button (2) triggers viewport panning
+        if (e.button === 1 || e.button === 2) {
+          dragMode = 'pan';
+          container.classList.add('panning');
+        } else {
+          dragMode = 'orbit';
+          container.classList.remove('panning');
+        }
+      } else if (activePointers.size === 2) {
+        dragMode = null;
+        container.classList.remove('panning');
+        const pts = Array.from(activePointers.values());
+        initialPinchDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+        initialPinchZoom = state.targetDistance;
+      }
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      if (!activePointers.has(e.pointerId)) return;
+      activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      if (activePointers.size === 2 && initialPinchDist) {
+        const pts = Array.from(activePointers.values());
+        const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+        const scale = initialPinchDist / Math.max(dist, 20);
+        state.targetDistance = THREE.MathUtils.clamp(initialPinchZoom * scale, 4.5, 32.0);
+        return;
+      }
+
+      if (!dragMode || activePointers.size !== 1) return;
+
+      const dx = e.clientX - lastPointerPos.x;
+      const dy = e.clientY - lastPointerPos.y;
+      lastPointerPos = { x: e.clientX, y: e.clientY };
+
+      if (dragMode === 'pan') {
+        // Pan in the camera's screen plane proportional to camera distance
+        const panScale = state.distance * 0.0014;
+        camRight.setFromMatrixColumn(camera.matrixWorld, 0);
+        camUp.setFromMatrixColumn(camera.matrixWorld, 1);
+        state.targetPanOffset.addScaledVector(camRight, -dx * panScale);
+        state.targetPanOffset.addScaledVector(camUp, dy * panScale);
+      } else if (dragMode === 'orbit') {
+        const rotateSpeed = 0.0065;
+        state.targetLon -= dx * rotateSpeed;
+        state.targetLat = THREE.MathUtils.clamp(
+          state.targetLat + dy * rotateSpeed,
+          -MAX_LAT,
+          MAX_LAT
+        );
+      }
+    });
+
+    window.addEventListener('pointerup', (e) => {
+      activePointers.delete(e.pointerId);
+      if (activePointers.size < 2) {
+        initialPinchDist = null;
+      }
+      if (dragMode) {
+        const movedDist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
+        const wasOrbit = dragMode === 'orbit';
+        dragMode = null;
+        container.classList.remove('panning');
+        // Left-click tap without dragging selects a 3D layer
+        if (wasOrbit && e.button === 0 && movedDist < 7) {
+          handleCanvasTap(e.clientX, e.clientY);
+        }
+      }
+    });
+
+    container.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const zoomFactor = 1 + e.deltaY * 0.0011;
+      state.targetDistance = THREE.MathUtils.clamp(
+        state.targetDistance * zoomFactor,
+        4.5,
+        32.0
+      );
+    }, { passive: false });
+
+    // =========================================================================
+    // 11. RAYCASTING & LAYER FACT POP-UP INTERACTION
+    // =========================================================================
+    const raycaster = new THREE.Raycaster();
+    const mouseNDC = new THREE.Vector2();
+
+    function getLayerFromRadius(rNorm) {
+      if (rNorm <= 0.19) return 'innerCore';
+      if (rNorm <= 0.53) return 'outerCore';
+      if (rNorm <= 0.975) return 'mantle';
+      return 'crust';
+    }
+
+    function handleCanvasTap(clientX, clientY) {
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouseNDC.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+      mouseNDC.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycaster.setFromCamera(mouseNDC, camera);
+
+      const candidates = [];
+      if (slicePlaneGroup.visible) candidates.push(sliceCapMesh);
+      planetRoot.traverse(obj => {
+        if (obj.isMesh && obj.visible && obj !== innerCoreGlow) {
+          candidates.push(obj);
+        }
+      });
+
+      const hits = raycaster.intersectObjects(candidates, false);
+
+      for (const hit of hits) {
+        const pt = hit.point;
+
+        if (sliceClippingPlane.distanceToPoint(pt) < -0.01) {
+          continue;
+        }
+
+        if (hit.object.userData.isSliceCap) {
+          const rNorm = pt.length() / EARTH_RADIUS;
+          if (rNorm > 1.0) continue;
+          if (state.wedgeOn && rNorm > 0.19 && pt.x > 0 && pt.z > 0) continue;
+          selectLayer(getLayerFromRadius(rNorm));
+          return;
+        }
+
+        if (hit.object.userData.layerId) {
+          selectLayer(hit.object.userData.layerId);
+          return;
+        }
+      }
+    }
+
+    const factCard = document.getElementById('fact-card');
+    const factDot = document.getElementById('fact-dot');
+    const factTitle = document.getElementById('fact-title');
+    const factWhat = document.getElementById('fact-what');
+    const factThick = document.getElementById('fact-thick');
+    const factList = document.getElementById('fact-list');
+    const legendBtns = document.querySelectorAll('.legend-btn');
+
+    const layerIndexMap = {
+      innerCore: 0,
+      outerCore: 1,
+      mantle: 2,
+      crust: 3
+    };
+
+    function selectLayer(layerId) {
+      const info = LAYER_DATA[layerId];
+      if (!info) return;
+
+      state.selectedLayer = layerId;
+
+      legendBtns.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.layer === layerId);
+      });
+
+      const idx = layerIndexMap[layerId];
+      crossSectionMaterials.forEach(mat => {
+        mat.uniforms.uSelectedLayer.value = idx;
+      });
+      shellParts.crust.sphereMat.uniforms.uHighlight.value = layerId === 'crust' ? 1.0 : 0.0;
+      shellParts.mantle.sphereMat.uniforms.uSelected.value = layerId === 'mantle' ? 1.0 : 0.0;
+      shellParts.outerCore.sphereMat.uniforms.uSelected.value = layerId === 'outerCore' ? 1.0 : 0.0;
+      innerCoreMat.uniforms.uSelected.value = layerId === 'innerCore' ? 1.0 : 0.0;
+
+      factCard.style.borderColor = info.borderColor;
+      factDot.className = `fact-dot ${info.swatchClass}`;
+      factTitle.textContent = info.name;
+      factWhat.textContent = info.whatItIs;
+      factThick.textContent = info.howThick;
+
+      factList.innerHTML = '';
+      info.whatToKnow.forEach(sentence => {
+        const li = document.createElement('li');
+        li.textContent = sentence;
+        factList.appendChild(li);
+      });
+
+      factCard.classList.add('open');
+    }
+
+    function closeFactCard() {
+      state.selectedLayer = null;
+      factCard.classList.remove('open');
+      legendBtns.forEach(btn => btn.classList.remove('active'));
+      crossSectionMaterials.forEach(mat => {
+        mat.uniforms.uSelectedLayer.value = -1;
+      });
+      shellParts.crust.sphereMat.uniforms.uHighlight.value = 0.0;
+      shellParts.mantle.sphereMat.uniforms.uSelected.value = 0.0;
+      shellParts.outerCore.sphereMat.uniforms.uSelected.value = 0.0;
+      innerCoreMat.uniforms.uSelected.value = 0.0;
+    }
+
+    document.getElementById('fact-close-btn').addEventListener('click', closeFactCard);
+
+    legendBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectLayer(btn.dataset.layer);
+      });
+    });
+
+    // =========================================================================
+    // 12. ANIMATION LOOP & RESPONSIVE RESIZE
+    // =========================================================================
+    updateModelState();
+
+    const clock = new THREE.Clock();
+    const tempVec = new THREE.Vector3();
+    const lookTarget = new THREE.Vector3();
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const elapsed = clock.getElapsedTime();
+
+      // Smoothly damp camera orbit angles, zoom, and pan offset
+      state.lon += (state.targetLon - state.lon) * 0.14;
+      state.lat += (state.targetLat - state.lat) * 0.14;
+      state.distance += (state.targetDistance - state.distance) * 0.14;
+      state.panOffset.lerp(state.targetPanOffset, 0.16);
+
+      lookTarget.set(
+        state.baseLookAtX + state.panOffset.x,
+        state.panOffset.y,
+        state.panOffset.z
+      );
+
+      // Google Earth Orbit around lookTarget with North Pole (+Y) strictly upward
+      const camX = lookTarget.x + state.distance * Math.cos(state.lat) * Math.sin(state.lon);
+      const camY = lookTarget.y + state.distance * Math.sin(state.lat);
+      const camZ = lookTarget.z + state.distance * Math.cos(state.lat) * Math.cos(state.lon);
+
+      camera.position.set(camX, camY, camZ);
+      camera.up.set(0, 1, 0);
+      camera.lookAt(lookTarget);
+
+      sliceCapMat.uniforms.uWedgeActive.value = state.wedgeOn ? 1 : 0;
+
+      animatedMaterials.forEach(mat => {
+        mat.uniforms.uTime.value = elapsed;
+      });
+
+      // Update 2D screen positions of floating labels in Explode Pieces Mode
+      if (state.explodePercent > 6) {
+        const labelHeights = {
+          innerCore: RADII.innerCore + 0.55,
+          outerCore: RADII.outerCore + 0.55,
+          mantle: RADII.mantle + 0.55,
+          crust: RADII.crust + 0.55
+        };
+
+        Object.keys(layerGroups).forEach(id => {
+          tempVec.set(layerGroups[id].position.x, labelHeights[id], 0);
+          tempVec.project(camera);
+
+          const x = (tempVec.x * 0.5 + 0.5) * window.innerWidth;
+          const y = (-tempVec.y * 0.5 + 0.5) * window.innerHeight;
+
+          const el = floatingLabels[id];
+          el.style.left = `${x}px`;
+          el.style.top = `${y}px`;
+        });
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
 </body>
 </html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inside Our Earth – 3D Layers Explorer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body data-mode="welcome">
+
+  <div id="scene"></div>
+
+  <!-- ===== Top Navigation Bar ===== -->
+  <header id="topbar">
+    <div class="brand">
+      <span class="brand-emoji">🌍</span>
+      <span>Inside Our Earth</span>
+    </div>
+
+    <nav class="tabs">
+      <button class="tab" data-mode="explore">
+        <span class="tab-emoji">🔍</span>
+        <span>Explore</span>
+      </button>
+      <button class="tab" data-mode="quiz">
+        <span class="tab-emoji">🎯</span>
+        <span>Quiz</span>
+      </button>
+    </nav>
+
+    <div class="tools">
+      <button class="icon-btn" id="btnSound" title="Sound effects">
+        <span class="tool-emoji" id="soundEmoji">🔊</span>
+      </button>
+      <button class="icon-btn" id="btnFull" title="Fullscreen (F)">
+        <span class="tool-emoji">⛶</span>
+      </button>
+      <button class="icon-btn" id="btnHelp" title="Teacher Help">
+        <span class="tool-emoji">❔</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ===== Explore Side Tools ===== -->
+  <div id="sideTools">
+    <button class="side-btn" id="btnPeel">
+      <span class="side-emoji">🧅</span>
+      <span class="t">Peel</span>
+    </button>
+    <button class="side-btn" id="btnPeach">
+      <span class="side-emoji">🍑</span>
+      <span class="t">Compare</span>
+    </button>
+    <button class="side-btn" id="btnHome">
+      <span class="side-emoji">🎯</span>
+      <span class="t">Reset</span>
+    </button>
+  </div>
+
+  <!-- ===== Bottom Layer Bar ===== -->
+  <nav id="layerBar"></nav>
+
+  <!-- ===== Layer Info Panel ===== -->
+  <aside id="infoPanel" class="panel">
+    <div class="panel-head" id="infoHead">
+      <div class="badge-num" id="infoBadgeNum">1</div>
+      <div class="head-text">
+        <div class="kicker" id="infoKicker">Layer 1 of 4</div>
+        <h2 id="infoName">Crust</h2>
+      </div>
+      <button class="close-btn" id="infoClose" title="Close (Esc)">✕</button>
+    </div>
+    <div class="panel-body" id="infoBody"></div>
+    <div class="panel-foot">
+      <button class="btn" id="infoPrev">◀ Previous</button>
+      <button class="btn" id="infoNext">Next ▶</button>
+    </div>
+  </aside>
+
+  <!-- ===== Quiz Panel ===== -->
+  <aside id="quizPanel" class="panel">
+    <div class="panel-head">
+      <div class="badge-num">🎯</div>
+      <div class="head-text">
+        <div class="kicker" id="qKicker">Question 1</div>
+        <div class="q-progress" id="qProgress"></div>
+      </div>
+    </div>
+    <div class="panel-body" id="qBody"></div>
+    <div class="panel-foot" id="qFoot">
+      <button class="btn primary big" id="qNext">Next Question ▶</button>
+    </div>
+  </aside>
+
+  <!-- ===== Welcome Screen ===== -->
+  <div id="welcome">
+    <div>
+      <div class="w-kicker">🔬 Grade 2 Science</div>
+      <h1>What's Inside the Earth?</h1>
+      <p>Explore the 4 concentric layers of our planet in real 3D!</p>
+    </div>
+    <div class="w-btns">
+      <button class="btn w-btn go1" data-go="explore">
+        <span>🔍 Start Exploring</span>
+      </button>
+      <button class="btn w-btn go3" data-go="quiz">
+        <span>🎯 Take the Quiz</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== Comparison Modal (Peach & Egg) ===== -->
+  <div id="peachModal" class="modal hidden">
+    <div class="modal-card">
+      <button class="close-btn" data-close>✕</button>
+      <h2>🍑 How the Earth Compares to a Peach</h2>
+      <div class="peach-row">
+        <svg viewBox="0 0 300 310" aria-label="Peach cross section">
+          <rect x="146" y="8" width="9" height="24" rx="3" fill="#6b3518"/>
+          <path d="M154 26 q34 -26 66 -6 q-30 24 -66 6z" fill="#40c057"/>
+          <circle cx="150" cy="165" r="138" fill="#ff7b54"/>
+          <circle cx="150" cy="165" r="126" fill="#ffd38a"/>
+          <ellipse cx="150" cy="165" rx="58" ry="72" fill="#8a4b2a"/>
+          <path d="M150 100 q-16 32 0 65 q16 33 0 65" stroke="#5c2e14" stroke-width="6" fill="none"/>
+          <path d="M120 125 q-8 40 4 80 M180 125 q8 40 -4 80" stroke="#6b3518" stroke-width="4" fill="none"/>
+        </svg>
+        <div class="eq">=</div>
+        <svg viewBox="0 0 300 310" aria-label="Earth cross section">
+          <circle cx="150" cy="165" r="138" fill="#8B5A2B"/>
+          <circle cx="150" cy="165" r="126" fill="#D9480F"/>
+          <circle cx="150" cy="165" r="74" fill="#F59F00"/>
+          <circle cx="150" cy="165" r="30" fill="#FFF066"/>
+          <circle cx="150" cy="165" r="138" fill="none" stroke="#2563eb" stroke-width="5"/>
+        </svg>
+      </div>
+      <div class="match">
+        <div class="l">Thin Peach Skin</div><div class="m">=</div><div><span class="pill" style="--c:#8B5A2B;--t:#fff">1 · 🏔️ Crust</span></div>
+        <div class="l">Thick Juicy Fruit</div><div class="m">=</div><div><span class="pill" style="--c:#D9480F;--t:#fff">2 · 🌋 Mantle</span></div>
+        <div class="l">Hard Pit in the Middle</div><div class="m">=</div><div><span class="pill" style="--c:#F59F00;--t:#1e1302">3 & 4 · 🧲 Core</span></div>
+      </div>
+      <div class="egg-note">🥚 A hard-boiled egg works too! Shell = Crust, White = Mantle, Yolk = Core.</div>
+    </div>
+  </div>
+
+  <!-- ===== Teacher Controls Modal ===== -->
+  <div id="helpModal" class="modal hidden">
+    <div class="modal-card">
+      <button class="close-btn" data-close>✕</button>
+      <h2>👩‍🏫 Teacher & Classroom Controls</h2>
+      <div class="help-list">
+        <div><kbd>1</kbd>–<kbd>4</kbd> Select layer or answer quiz</div>
+        <div><kbd>Left Drag</kbd> Spin Earth smoothly (turntable)</div>
+        <div><kbd>Middle Drag / Wheel Click</kbd> Pan canvas position</div>
+        <div><kbd>Scroll / Pinch</kbd> Zoom in & out</div>
+        <div><kbd>←</kbd> <kbd>→</kbd> Previous / Next layer</div>
+        <div><kbd>Space</kbd> Next quiz question</div>
+        <div><kbd>P</kbd> Peel layers with wide separation</div>
+        <div><kbd>E</kbd> Explore · <kbd>Q</kbd> Quiz</div>
+        <div><kbd>F</kbd> Fullscreen · <kbd>Esc</kbd> Close</div>
+      </div>
+      <div class="teacher-note">The crust is scaled slightly thicker on the 3D model so students can see it clearly from the back of the room. In reality, the crust is as thin as an apple skin!</div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+  <canvas id="confetti"></canvas>
+  <div id="loading"><div class="load-box"><div class="spin-ring"></div><br>Preparing 3D Earth…</div></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
