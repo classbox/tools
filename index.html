@@ -406,7 +406,7 @@
                     <button class="btn-action" onclick="openRosterModal()">⚙️ Manage Students</button>
                 </div>
             </div>
-            <iframe id="tool-frame" src="pickers/wheel/wheel.html" onload="broadcastRoster()"></iframe>
+            <iframe id="tool-frame" onload="broadcastRoster()"></iframe>
         </main>
 
     </div>
@@ -473,8 +473,11 @@
             }
         }
 
-        // --- Load a tool into the iframe ---
-        function loadTool(url, title, element) {
+        let currentToolUrl = '';
+
+        // --- Load a tool into the iframe and sync URL ---
+        function loadTool(url, title, element, historyMode = true) {
+            currentToolUrl = url;
             const iframe = document.getElementById('tool-frame');
             if (iframe && iframe.getAttribute('src') !== url) {
                 iframe.src = url;
@@ -485,9 +488,94 @@
             links.forEach(link => link.classList.remove('active'));
             if (element) element.classList.add('active');
 
+            // Synchronize with the browser address bar without reloading
+            if (historyMode === true) {
+                if (window.location.hash.slice(1) !== url) {
+                    history.pushState(null, '', '#' + url);
+                }
+            } else if (historyMode === 'replace') {
+                history.replaceState(null, '', '#' + url);
+            }
+
             // Auto‑collapse sidebar after selecting a tool
             collapseSidebar();
         }
+
+        // --- URL Routing Helpers ---
+        function getTargetFromUrl() {
+            if (window.location.hash) {
+                return window.location.hash.slice(1);
+            }
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('tool')) {
+                return params.get('tool');
+            }
+            return '';
+        }
+
+        function findToolLink(query) {
+            if (!query) return null;
+            const clean = decodeURIComponent(query).replace(/^[#/]+/, '').trim().toLowerCase();
+            if (!clean) return null;
+
+            const links = Array.from(document.querySelectorAll('.tool-link'));
+
+            // 1. Exact match on URL (e.g. "games/proper-nouns.html")
+            let match = links.find(link => {
+                const onclick = link.getAttribute('onclick') || '';
+                const m = onclick.match(/loadTool\(\s*['"]([^'"]+)['"]/);
+                return m && m[1].toLowerCase() === clean;
+            });
+            if (match) return match;
+
+            // 2. Match on filename or slug (e.g. "proper-nouns" or "proper-nouns.html")
+            match = links.find(link => {
+                const onclick = link.getAttribute('onclick') || '';
+                const m = onclick.match(/loadTool\(\s*['"]([^'"]+)['"]/);
+                if (!m) return false;
+                const toolUrl = m[1].toLowerCase();
+                const fileName = toolUrl.split('/').pop();
+                const slug = fileName.replace(/\.html$/, '');
+                return fileName === clean || slug === clean || toolUrl.endsWith('/' + clean);
+            });
+            if (match) return match;
+
+            // 3. Substring match on URL
+            match = links.find(link => {
+                const onclick = link.getAttribute('onclick') || '';
+                const m = onclick.match(/loadTool\(\s*['"]([^'"]+)['"]/);
+                return m && m[1].toLowerCase().includes(clean);
+            });
+            if (match) return match;
+
+            // 4. Text title match (e.g. "Proper Nouns")
+            match = links.find(link => link.innerText.toLowerCase().includes(clean));
+            return match || null;
+        }
+
+        function loadToolFromUrl(isInitial = false) {
+            const target = getTargetFromUrl();
+            const link = findToolLink(target);
+            const defaultLink = document.querySelector('.tool-link[onclick*="wheel.html"]') || document.querySelector('.tool-link');
+            const activeLink = link || defaultLink;
+
+            if (activeLink) {
+                const onclick = activeLink.getAttribute('onclick') || '';
+                const m = onclick.match(/loadTool\(\s*['"]([^'"]+)['"]\s*,\s*['"]([^'"]+)['"]/);
+                if (m) {
+                    if (isInitial || m[1] !== currentToolUrl) {
+                        loadTool(m[1], m[2], activeLink, isInitial ? 'replace' : false);
+                    }
+                } else {
+                    activeLink.click();
+                }
+            }
+        }
+
+        // --- Handle Back / Forward browser navigation ---
+        window.addEventListener('popstate', () => {
+            loadToolFromUrl(false);
+        });
 
         // --- Search filter ---
         function filterTools() {
@@ -560,26 +648,22 @@
             });
         }
 
-        // --- Auto‑load first tool on start ---
-        window.addEventListener('DOMContentLoaded', () => {
+        // --- Initialize App & Auto‑load tool ---
+        function initApp() {
             const savedClass = localStorage.getItem('classroom_selected_class');
             if (savedClass && document.getElementById('class-selector')) {
                 document.getElementById('class-selector').value = savedClass;
             }
 
-            const wheelLink = document.querySelector('.tool-link[onclick*="wheel.html"]');
-            if (wheelLink) {
-                document.getElementById('active-tool-title').innerText = 'Name Wheel';
-                const links = document.querySelectorAll('.tool-link');
-                links.forEach(link => link.classList.remove('active'));
-                wheelLink.classList.add('active');
-            } else {
-                const firstTool = document.querySelector('.tool-link');
-                if (firstTool) firstTool.click();
-            }
-
+            loadToolFromUrl(true);
             setupAutoCollapse();
-        });
+        }
+
+        if (document.readyState === 'loading') {
+            window.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
     </script>
 </body>
 </html>

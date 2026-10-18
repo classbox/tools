@@ -584,12 +584,12 @@
                 <label for="dynamicFairnessToggle" style="margin-bottom: 0.25rem;">
                     <span style="display:flex; align-items:center; gap:0.4rem; font-weight:700;">🍀 Dynamic Luck Engine</span>
                     <label class="toggle-switch">
-                        <input type="checkbox" id="dynamicFairnessToggle" checked>
+                        <input type="checkbox" id="dynamicFairnessToggle">
                         <span class="toggle-slider"></span>
                     </label>
                 </label>
                 <p id="luckStatusDesc" style="font-size: 0.8rem; color: #64748b; line-height: 1.35; margin-top: 0.25rem;">
-                    <span style="color:#15803d; font-weight:700;">Active:</span> Winners drop to 15 pts, unpicked gain +15 pts per roll.
+                    <span style="color:#b91c1c; font-weight:700;">Temporarily Suspended:</span> Spins are currently 100% equal odds.
                 </p>
                 <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
                     <button id="btnResetWeights" type="button" class="btn-small" style="background: #e2e8f0; color: #334155; padding: 0.45rem 0.85rem; width: 100%;">
@@ -712,7 +712,7 @@
         const MIN_WEIGHT = 15;        // Floor weight for recent winners (greatly reduces back-to-back repeats)
         const NUDGE_INCREMENT = 15;   // Points added to unpicked students on every roll
         const MAX_WEIGHT = 300;       // Max weight ceiling for long-unpicked students
-        let dynamicFairnessEnabled = true;
+        let dynamicFairnessEnabled = false;
         let currentActiveClassName = localStorage.getItem('classroom_selected_class') || 'classA';
         let studentWeights = {};
 
