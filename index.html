@@ -302,20 +302,6 @@
         .btn-save:hover {
             filter: brightness(1.1);
         }
-
-        /* --- MOBILE RESPONSIVE TWEAKS --- */
-        @media (max-width: 640px) {
-            .top-right-controls label {
-                display: none;
-            }
-            .top-right-controls .btn-action {
-                padding: 6px 8px;
-                font-size: 0.8rem;
-            }
-            #active-tool-title {
-                max-width: 140px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -333,11 +319,6 @@
             </div>
 
             <nav class="nav-list" id="nav-list">
-                <div class="category-title">Schedule</div>
-                <a class="tool-link" onclick="loadTool('ptc/index.html', 'PTC Tracker', this)" data-keywords="parent teacher conference schedule arrival tracker">
-                    <span>📅</span> PTC Tracker
-                </a>
-
                 <div class="category-title">Competition</div>
                 <a class="tool-link" onclick="loadTool('competition/Tourney.html', 'Live Tournament Bracket', this)">
                     <span>🏆</span> Tournament Bracket
@@ -553,11 +534,9 @@
                 const m = onclick.match(/loadTool\(\s*['"]([^'"]+)['"]/);
                 if (!m) return false;
                 const toolUrl = m[1].toLowerCase();
-                const parts = toolUrl.split('/');
-                const fileName = parts.pop() || '';
-                const dirName = parts.pop() || '';
+                const fileName = toolUrl.split('/').pop();
                 const slug = fileName.replace(/\.html$/, '');
-                return fileName === clean || slug === clean || dirName === clean || toolUrl.endsWith('/' + clean);
+                return fileName === clean || slug === clean || toolUrl.endsWith('/' + clean);
             });
             if (match) return match;
 
@@ -569,13 +548,8 @@
             });
             if (match) return match;
 
-            // 4. Text title or keyword match (e.g. "Proper Nouns" or "ptc_tracker")
-            const cleanNorm = clean.replace(/[-_]/g, ' ');
-            match = links.find(link => {
-                const title = link.innerText.toLowerCase();
-                const keywords = (link.getAttribute('data-keywords') || '').toLowerCase();
-                return title.includes(clean) || title.includes(cleanNorm) || keywords.includes(clean) || keywords.includes(cleanNorm);
-            });
+            // 4. Text title match (e.g. "Proper Nouns")
+            match = links.find(link => link.innerText.toLowerCase().includes(clean));
             return match || null;
         }
 
@@ -608,7 +582,7 @@
             const query = document.getElementById('search-input').value.toLowerCase();
             const links = document.querySelectorAll('.tool-link');
             links.forEach(link => {
-                const text = (link.innerText + ' ' + (link.getAttribute('onclick') || '') + ' ' + (link.getAttribute('data-keywords') || '')).toLowerCase();
+                const text = (link.innerText + ' ' + (link.getAttribute('onclick') || '')).toLowerCase();
                 link.style.display = text.includes(query) ? 'flex' : 'none';
             });
         }
