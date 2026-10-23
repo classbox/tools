@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PTC Arrival Schedule Table — G2C & G2D (Oct 23–24, 2026)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Kantumruy+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #eef2f6;
+      --surface: #ffffff;
+      --grid-border: #94a3b8;
+      --grid-border-outer: #334155;
+      --header-bg: #d1e3d8; /* Paper schedule sage green header tint */
+      --header-text: #0f172a;
+      --text: #0f172a;
+      --text-secondary: #334155;
+      --text-muted: #64748b;
+
+      /* Empty Free Slot Row */
+      --empty-row-bg: #f8fafc;
+      --empty-lunch-bg: #f1f5f9;
+
+      /* Status Row Fills */
+      --done-bg: #bbf7d0;
+      --done-text: #14532d;
+
+      --active-bg: #fef08a;
+      --active-text: #713f12;
+
+      --overdue-bg: #fed7aa;
+      --overdue-text: #7c2d12;
+
+      --critical-bg: #fecaca;
+      --critical-text: #7f1d1d;
+
+      --scrubber: #dc2626;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', 'Kantumruy Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 16px 20px 60px;
+      line-height: 1.35;
+    }
+
+    .container {
+      max-width: 1380px;
+      margin: 0 auto;
+    }
+
+    /* Sheet Header Banner */
+    .sheet-banner {
+      background: var(--surface);
+      border: 2px solid var(--grid-border-outer);
+      padding: 12px 18px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .banner-left h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      color: var(--text);
+    }
+
+    .banner-left .meta {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      margin-top: 3px;
+    }
+
+    .banner-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .live-clock {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.2rem;
+      font-weight: 700;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 6px 14px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      animation: blink 1.5s infinite;
+    }
+
+    .live-dot.sim {
+      background: #f59e0b;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
+    }
+
+    .btn {
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 6px 11px;
+      border: 1px solid var(--grid-border-outer);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .btn:hover {
+      background: #e2e8f0;
+    }
+
+    .btn.active-toggle {
+      background: #dbeafe;
+      border-color: #1d4ed8;
+      color: #1e3a8a;
+    }
+
+    /* Controls Bar: Day Tabs + Status Legend */
+    .controls-row {
+      display: flex;
+      align-items: stretch;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .day-tabs {
+      display: flex;
+      gap: 0;
+      border: 2px solid var(--grid-border-outer);
+      background: var(--surface);
+    }
+
+    .tab-btn {
+      border: none;
+      border-right: 1px solid var(--grid-border-outer);
+      background: #e2e8f0;
+      padding: 8px 20px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tab-btn:last-child {
+      border-right: none;
+    }
+
+    .tab-btn.active {
+      background: #0f172a;
+      color: #ffffff;
+    }
+
+    .tab-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.76rem;
+      padding: 1px 6px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+    }
+
+    .tab-btn:not(.active) .tab-count {
+      background: #cbd5e1;
+      color: #0f172a;
+    }
+
+    .legend-strip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 6px 10px;
+      border: 1px solid var(--grid-border-outer);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-item.done { background: var(--done-bg); color: var(--done-text); }
+    .legend-item.active { background: var(--active-bg); color: var(--active-text); }
+    .legend-item.overdue { background: var(--overdue-bg); color: var(--overdue-text); }
+    .legend-item.critical { background: var(--critical-bg); color: var(--critical-text); }
+    .legend-item.free-slot { background: var(--empty-row-bg); color: var(--text-secondary); }
+
+    /* Simulator Bar */
+    .sim-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      background: #fffbeb;
+      border: 2px solid #d97706;
+      padding: 8px 14px;
+      margin-bottom: 10px;
+      font-size: 0.82rem;
+      color: #92400e;
+    }
+
+    .sim-bar.visible {
+      display: flex;
+    }
+
+    .sim-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      max-width: 620px;
+    }
+
+    .sim-slider {
+      flex: 1;
+      accent-color: #d97706;
+      cursor: pointer;
+    }
+
+    /* True Bordered Table Container */
+    .table-container {
+      position: relative;
+      background: var(--surface);
+      border: 2px solid var(--grid-border-outer);
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+    }
+
+    table.ptc-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 0.85rem;
+    }
+
+    table.ptc-table th,
+    table.ptc-table td {
+      border: 1px solid var(--grid-border);
+      padding: 7px 8px;
+      vertical-align: middle;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    table.ptc-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 15;
+      background-color: var(--header-bg);
+      color: var(--header-text);
+      font-weight: 700;
+      font-size: 0.78rem;
+      text-align: center;
+      border-bottom: 2px solid var(--grid-border-outer);
+      white-space: nowrap;
+      padding: 9px 6px;
+    }
+
+    /* Column Widths */
+    col.col-slot   { width: 42px; }
+    col.col-done   { width: 52px; }
+    col.col-entime { width: 128px; }
+    col.col-late   { width: 108px; }
+    col.col-encls  { width: 54px; }
+    col.col-khcls  { width: 54px; }
+    col.col-khname { width: 175px; }
+    col.col-enname { width: 195px; }
+    col.col-sex    { width: 52px; }
+    col.col-khtime { width: 120px; }
+    col.col-conf   { width: 68px; }
+    col.col-notes  { width: auto; }
+
+    .center { text-align: center; }
+
+    /* Uniform row height */
+    table.ptc-table tbody tr {
+      height: 40px;
+    }
+
+    /* Scheduled Row States */
+    tr.row-scheduled {
+      background-color: #ffffff;
+    }
+
+    tr.row-scheduled:hover td {
+      filter: brightness(0.97);
+    }
+
+    /* Empty Free Slot Row */
+    tr.row-empty {
+      background-color: var(--empty-row-bg);
+      color: var(--text-muted);
+    }
+
+    tr.row-empty td {
+      border-color: #cbd5e1;
+    }
+
+    tr.row-empty.active-free-slot td {
+      background-color: #e0f2fe;
+      color: #0369a1;
+    }
+
+    .free-slot-label {
+      font-size: 0.76rem;
+      font-style: italic;
+      color: #64748b;
+      letter-spacing: 0.02em;
+    }
+
+    /* Merged Big Lunch Break Cell */
+    td.lunch-merged-cell {
+      background-color: var(--empty-lunch-bg) !important;
+      text-align: center !important;
+      vertical-align: middle !important;
+      border: 1px solid var(--grid-border) !important;
+      border-left: 2px solid var(--grid-border-outer) !important;
+      border-right: 2px solid var(--grid-border-outer) !important;
+      padding: 20px 24px !important;
+    }
+
+    .lunch-merged-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .lunch-big-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      color: #1e293b;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .lunch-big-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #475569;
+      background: #ffffff;
+      padding: 4px 14px;
+      border-radius: 4px;
+      border: 1px solid #cbd5e1;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+
+    /* Status Colors */
+    tr.state-done td {
+      background-color: var(--done-bg) !important;
+      color: var(--done-text);
+      opacity: 0.55;
+    }
+
+    tr.state-done:hover td {
+      opacity: 0.85;
+    }
+
+    tr.state-done .en-name-text,
+    tr.state-done .kh-name-text {
+      text-decoration: line-through;
+    }
+
+    tr.state-active td {
+      background-color: var(--active-bg) !important;
+      color: var(--active-text);
+      font-weight: 600;
+    }
+
+    tr.state-overdue td {
+      background-color: var(--overdue-bg) !important;
+      color: var(--overdue-text);
+    }
+
+    tr.state-critical td {
+      background-color: var(--critical-bg) !important;
+      color: var(--critical-text);
+      font-weight: 600;
+    }
+
+    /* Cell Typography */
+    .slot-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .done-cb {
+      width: 19px;
+      height: 19px;
+      cursor: pointer;
+      accent-color: #15803d;
+      vertical-align: middle;
+    }
+
+    .time-cell {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .time-cell.red-paper {
+      box-shadow: inset 3px 0 0 #ef4444;
+    }
+
+    .red-flag {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #ef4444;
+      margin-left: 3px;
+      vertical-align: middle;
+    }
+
+    .late-cell {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .cls-cell {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 0.78rem;
+      text-align: center;
+    }
+
+    .cls-G2C { color: #0369a1; }
+    .cls-G2D { color: #6b21a8; }
+
+    .kh-name-text {
+      font-family: 'Kantumruy Pro', sans-serif;
+      font-size: 0.86rem;
+      font-weight: 500;
+    }
+
+    .en-name-text {
+      font-weight: 600;
+      font-size: 0.86rem;
+    }
+
+    .double-badge {
+      display: inline-block;
+      background: #b45309;
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 3px;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+
+    .conf-no {
+      background: #ef4444;
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.72rem;
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+
+    .conf-blank {
+      color: #64748b;
+      font-size: 0.72rem;
+    }
+
+    .note-input {
+      width: 100%;
+      border: 1px solid transparent;
+      background: transparent;
+      font-family: inherit;
+      font-size: 0.8rem;
+      color: inherit;
+      padding: 3px 5px;
+    }
+
+    .note-input:focus,
+    .note-input:hover {
+      border-color: #64748b;
+      background: rgba(255, 255, 255, 0.8);
+      outline: none;
+    }
+
+    /* Live Timer Scrubber Line */
+    .scrubber-line {
+      position: absolute;
+      left: -6px;
+      right: -6px;
+      height: 3px;
+      background: var(--scrubber);
+      box-shadow: 0 0 6px rgba(220, 38, 38, 0.65);
+      z-index: 30;
+      pointer-events: none;
+      display: none;
+    }
+
+    .scrubber-line.visible {
+      display: block;
+    }
+
+    .scrubber-badge {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translate(-102%, -50%);
+      background: var(--scrubber);
+      color: #ffffff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 3px;
+      white-space: nowrap;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .scrubber-dot {
+      position: absolute;
+      left: -4px;
+      top: -4px;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: var(--scrubber);
+      border: 2px solid #ffffff;
+    }
+
+    @media (max-width: 1480px) {
+      .scrubber-badge {
+        transform: translate(6px, -130%);
+      }
+    }
+
+    .footer-bar {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Top Sheet Banner -->
+    <div class="sheet-banner">
+      <div class="banner-left">
+        <h1>PARENT TEACHER CONFERENCE SCHEDULE (PTC) — G2C &amp; G2D</h1>
+        <div class="meta">
+          Teacher's Name: <strong>Mr. Sebastian / ប៉ាត ចន្ទ</strong> &nbsp;|&nbsp;
+          G2C TA: <strong>Ms. Siphan Ahliza</strong> &nbsp;|&nbsp;
+          G2D TA: <strong>Ms. Leang Chanthy</strong>
+        </div>
+      </div>
+
+      <div class="banner-right">
+        <div class="live-clock">
+          <span id="clockDot" class="live-dot"></span>
+          <span id="clockText">--:--:--</span>
+        </div>
+        <button class="btn" id="jumpNowBtn">🎯 Jump to Now</button>
+        <button class="btn" id="toggleLunchBtn" title="Show or collapse the lunch block">🍱 Collapse Lunch</button>
+        <button class="btn" id="toggleSimBtn">⏱️ Test Time</button>
+        <a class="btn" href="ptc_tracker_mobile.html?view=mobile" onclick="try{sessionStorage.setItem('ptc_preferred_view','mobile');}catch(e){}">📱 Mobile Version</a>
+        <button class="btn" id="exportCsvBtn">⬇️ Export CSV</button>
+      </div>
+    </div>
+
+    <!-- Time Simulator Bar -->
+    <div class="sim-bar" id="simBar">
+      <div>
+        <strong>⏱️ Time Simulator:</strong> Scrub through the day to test row colors, Free slots, and the live Late counter.
+      </div>
+      <div class="sim-controls">
+        <span id="simLabel" style="font-family:'JetBrains Mono',monospace;font-weight:700;min-width:75px;">08:00 AM</span>
+        <input type="range" id="simSlider" class="sim-slider" min="470" max="945" value="480" step="1" />
+        <button class="btn" id="resetLiveBtn">Use Live Clock</button>
+      </div>
+    </div>
+
+    <!-- Tabs & Color Key -->
+    <div class="controls-row">
+      <div class="day-tabs">
+        <button class="tab-btn active" data-day="2026-10-23">
+          FRIDAY, OCT 23, 2026
+          <span class="tab-count" id="countFri">0/16</span>
+        </button>
+        <button class="tab-btn" data-day="2026-10-24">
+          SATURDAY, OCT 24, 2026
+          <span class="tab-count" id="countSat">0/17</span>
+        </button>
+      </div>
+
+      <div class="legend-strip">
+        <div class="legend-item free-slot">Empty Row = Free Slot</div>
+        <div class="legend-item done">Done: <strong id="statDone">0</strong></div>
+        <div class="legend-item active">Active (Yellow): <strong id="statActive">0</strong></div>
+        <div class="legend-item overdue">Overdue (Orange): <strong id="statOverdue">0</strong></div>
+        <div class="legend-item critical">45m+ Late (Red): <strong id="statCritical">0</strong></div>
+      </div>
+    </div>
+
+    <!-- Main Schedule Grid Table -->
+    <div class="table-container" id="tableContainer">
+      <div class="scrubber-line" id="scrubberLine">
+        <div class="scrubber-dot"></div>
+        <div class="scrubber-badge" id="scrubberBadge">08:00 AM</div>
+      </div>
+
+      <table class="ptc-table">
+        <colgroup>
+          <col class="col-slot" />
+          <col class="col-done" />
+          <col class="col-entime" />
+          <col class="col-late" />
+          <col class="col-encls" />
+          <col class="col-khcls" />
+          <col class="col-khname" />
+          <col class="col-enname" />
+          <col class="col-sex" />
+          <col class="col-khtime" />
+          <col class="col-conf" />
+          <col class="col-notes" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>N°</th>
+            <th>Done</th>
+            <th>En Time</th>
+            <th>Late</th>
+            <th>EN</th>
+            <th>KH</th>
+            <th>Khmer Name</th>
+            <th>English Name</th>
+            <th>Gender</th>
+            <th>Kh Time</th>
+            <th>Conf.</th>
+            <th>Notes / Remarks</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="footer-bar">
+      <div>
+        <span class="red-flag"></span> Red dot indicates time cell was highlighted red on the original paper printout.
+        Every 15-minute slot from 8:00 AM to 3:30 PM has its own table row so Free slots are clearly visible.
+      </div>
+      <div>
+        <button class="btn" id="resetDayBtn" style="font-size:0.74rem;padding:4px 8px;">Reset Current Day Ticks</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Scheduled appointments from G2C.jpg & G2D.jpg
+    const APPOINTMENTS = [
+      // FRIDAY, OCTOBER 23, 2026
+      { id: "fri-01", date: "2026-10-23", startMin: 480, endMin: 495, enTime: "8:00 - 8:15", khTime: "8:15 - 8:30", enClass: "G2C", khClass: "G2C", sheetNo: 1, enName: "Thir Voreaksocheata", khName: "ធា វរសុជាតា", gender: "ស្រី (F)", confirmed: "Yes", redEn: true, redKh: true, overlap: false },
+      { id: "fri-02", date: "2026-10-23", startMin: 495, endMin: 510, enTime: "8:15 - 8:30", khTime: "8:00 - 8:15", enClass: "G2C", khClass: "G2C", sheetNo: 2, enName: "Tam Wiranuth", khName: "តាំ វីរានុត", gender: "ប្រុស (M)", confirmed: "Yes", redEn: false, redKh: false, overlap: false },
+      { id: "fri-03", date: "2026-10-23", startMin: 540, endMin: 555, enTime: "9:00 - 9:15", khTime: "9:15 - 9:30", enClass: "G2C", khClass: "G2C", sheetNo: 3, enName: "Yann Nysang", khName: "យ៉ាន់ នីសាង", gender: "ស្រី (F)", confirmed: "Yes", redEn: false, redKh: false, overlap: false },
+      { id: "fri-04", date: "2026-10-23", startMin: 555, endMin: 570, enTime: "9:15 - 9:30", khTime: "9:30 - 9:45", enClass: "G2C", khClass: "G3C", sheetNo: 4, enName: "Touch Malileakhena", khName: "ទូច ម៉ាលីលក្ខិណា", gender: "ស្រី (F)", confirmed: "Yes", redEn: false, redKh: true, overlap: false },
+      { id: "fri-05", date: "2026-10-23", startMin: 570, endMin: 585, enTime: "9:30 - 9:45", khTime: "9:45 - 10:00", enClass: "G2C", khClass: "G2C", sheetNo: 5, enName: "Cheng Chheanghuot", khName: "ចេង ឈាងហ៊ួត", gender: "ប្រុស (M)", confirmed: "Yes", redEn: true, redKh: true, overlap: false },
+      { id: "fri-06", date: "2026-10-23", startMin: 585, endMin: 600, enTime: "9:45 - 10:00", khTime: "9:30 - 9:45", enClass: "G2C", khClass: "G2C", sheetNo: 6, enName: "Sok Sengthaneth", khName: "សុខ សេងថានិត", gender: "ប្រុស (M)", confirmed: "Yes", redEn: false, redKh: true, overlap: false },
+      { id: "fri-07", date: "2026-10-23", startMin: 600, endMin: 615, enTime: "10:00 - 10:15", khTime: "10:15 - 10:30", enClass: "G2C", khClass: "G2C", sheetNo: 7, enName: "Heang Rachnaponita", khName: "ហៀង រចនាពនិតា", gender: "ស្រី (F)", confirmed: "Yes", redEn: false, redKh: false, overlap: true },
+      { id: "fri-08", date: "2026-10-23", startMin: 600, endMin: 615, enTime: "10:00 - 10:15", khTime: "10:15 - 10:30", enClass: "G2D", khClass: "G5B", sheetNo: 1, enName: "Mong Hak Meyleang", khName: "ម៉ុងហាក់ ម៉ីលាង", gender: "ស្រី (F)", confirmed: "Yes", redEn: true, redKh: true, overlap: true },
+      { id: "fri-09", date: "2026-10-23", startMin: 615, endMin: 630, enTime: "10:15 - 10:30", khTime: "10:00 - 10:15", enClass: "G2D", khClass: "G2D", sheetNo: 2, enName: "Heang Rachnavatei", khName: "ហៀង រចនាវត្តី", gender: "ស្រី (F)", confirmed: "Yes", redEn: true, redKh: true, overlap: false },
+      { id: "fri-10", date: "2026-10-23", startMin: 645, endMin: 660, enTime: "10:45 - 11:00", khTime: "10:30 - 10:45", enClass: "G2C", khClass: "G2C", sheetNo: 8, enName: "Taing Suly", khName: "តាំង ហ៊្វូលី", gender: "ស្រី (F)", confirmed: "Yes", redEn: false, redKh: false, overlap: false },
+      { id: "fri-11", date: "2026-10-23", startMin: 660, endMin: 675, enTime: "11:00 - 11:15", khTime: "11:15 - 11:30", enClass: "G2D", khClass: "G4B", sheetNo: 3, enName: "Eng PichMonika", khName: "អេង ពេជ្រម៉ូនីកា", gender: "ស្រី (F)", confirmed: "Yes", redEn: true, redKh: true, overlap: false },
+      { id: "fri-12", date: "2026-10-23", startMin: 810, endMin: 825, enTime: "1:30 - 1:45", khTime: "1:45 - 2:00", enClass: "G2C", khClass: "G3C", sheetNo: 9, enName: "Din Kunnima", khName: "ឌីន គន្ធនីម៉ា", gender: "ស្រី (F)", confirmed: "Yes", redEn: false, redKh: false, overlap: false },
+      { id: "fri-13", date: "2026-10-23", startMin: 840, endMin: 855, enTime: "2:00 - 2:15", khTime: "2:15 - 2:30", enClass: "G2D", khClass: "G2D", sheetNo: 4, enName: "Vanna Tepy", khName: "វណ្ណា ទេពី", gender: "ស្រី (F)", confirmed: "Yes", redEn: false, redKh: false, overlap: false },
+      { id: "fri-14", date: "2026-10-23", startMin: 855, endMin: 870, enTime: "2:15 - 2:30", khTime: "2:00 - 2:15", enClass: "G2C", khClass: "G4A", sheetNo: 10, enName: "Khom Marady", khName: "ខុម ម៉ារ៉ាឌី", gender: "ស្រី (F)", confirmed: "Yes", redEn: false, redKh: false, overlap: false },
+      { id: "fri-15", date: "2026-10-23", startMin: 870, endMin: 885, enTime: "2:30 - 2:45", khTime: "2:45 - 3:00", enClass: "G2C", khClass: "G7", sheetNo: 11, enName: "Try Meng Kheang", khName: "ទ្រី ម៉េងឃៀង", gender: "ប្រុស (M)", confirmed: "Yes", redEn: false, redKh: false, overlap: false },
+      { id: "fri-16", date: "2026-10-23", startMin: 885, endMin: 900, enTime: "2:45 - 3:00", khTime: "2:30 - 2:45", enClass: "G2C", khClass: "G2C", sheetNo: 12, enName: "An Tech Chay", khName: "អាន តិចឆាយ", gender: "ប្រុស (M)", confirmed: "Yes", redEn: false, redKh: false, overlap: false },
+
+      // SATURDAY, OCTOBER 24, 2026
+      { id: "sat-01", date: "2026-10-24", startMin: 480, endMin: 495, enTime: "8:00 - 8:15", khTime: "8:15 - 8:30", enClass: "G2C", khClass: "G2C", sheetNo: 13, enName: "Kao Sokdalis", khName: "កៅ សុខដាលីស", gender: "ស្រី (F)", confirmed: "Yes", redEn: true, redKh: true, overlap: false },
+      { id: "sat-02", date: "2026-10-24", startMin: 495, endMin: 510, enTime: "8:15 - 8:30", khTime: "8:00 - 8:15", enClass: "G2D", khClass: "G2D", sheetNo: 5, enName: "Bun Sopheaksethika", khName: "ប៊ុន សុភសិទ្ធិការ្យ", gender: "ស្រី (F)", confirmed: "Yes", redEn: false, redKh: false, overlap: false },
+      { id: "sat-03", date: "2026-10-24", startMin: 510, endMin: 525, enTime: "8:30 - 8:45", khTime: "8:45 - 9:00", enClass: "G2D", khClass: "G2D", sheetNo: 6, enName: "Uy Monyvortna", khName: "អ៊ុយ មុនីវឌ្ឍនា", gender: "ស្រី (F)", confirmed: "Yes", redEn: false, redKh: false, overlap: false },
+      { id: "sat-04", date: "2026-10-24", startMin: 525, endMin: 540, enTime: "8:45 - 9:00", khTime: "8:30 - 8:45", enClass: "G2D", khClass: "G2D", sheetNo: 7, enName: "Hong Takdhenuan", khName: "ហុង តាក់ធេននួ", gender: "ប្រុស (M)", confirmed: "Yes", redEn: false, redKh: false, overlap: false },
+      { id: "sat-05", date: "2026-10-24", startMin: 540, endMin: 555, enTime: "9:00 - 9:15", khTime: "9:15 - 9:30", enClass: "G2D", khClass: "G2D", sheetNo: 8, enName: "Ly Yov", khName: "លី យ៉ូវ", gender: "ប្រុស (M)", confirmed: "No", redEn: false, redKh: false, overlap: false },
+      { id: "sat-06", date: "2026-10-24", startMin: 570, endMin: 585, enTime: "9:30 - 9:45", khTime: "9:45 - 10:00", enClass: "G2C", khClass: "G2C", sheetNo: 14, enName: "Tieng Puthika", khName: "ទៀង ពុទ្ធិកា", gender: "ស្រី (F)", confirmed: "Yes", redEn: true, redKh: true, overlap: false },
+      { id: "sat-07", date: "2026-10-24", startMin: 585, endMin: 600, enTime: "9:45 - 10:00", khTime: "9:30 - 9:45", enClass: "G2D", khClass: "G2D", sheetNo: 9, enName: "Ry Lychhay", khName: "រី លីឆាយ", gender: "ប្រុស (M)", confirmed: "", redEn: false, redKh: false, overlap: false },
+      { id: "sat-08", date: "2026-10-24", startMin: 600, endMin: 615, enTime: "10:00 - 10:15", khTime: "10:15 - 10:30", enClass: "G2D", khClass: "G2D", sheetNo: 10, enName: "Se Pichputhearin", khName: "សៃ ពេជ្រពុទ្ធារិន្ទ", gender: "ប្រុស (M)", confirmed: "Yes", redEn: true, redKh: true, overlap: false },
+      { id: "sat-09", date: "2026-10-24", startMin: 615, endMin: 630, enTime: "10:15 - 10:30", khTime: "10:00 - 10:15", enClass: "G2D", khClass: "G2D", sheetNo: 11, enName: "Tan Sophiavatey", khName: "តាន់ សុភាវត្តី", gender: "ស្រី (F)", confirmed: "Yes", redEn: true, redKh: true, overlap: false },
+      { id: "sat-10", date: "2026-10-24", startMin: 630, endMin: 645, enTime: "10:30 - 10:45", khTime: "10:45 - 11:00", enClass: "G2C", khClass: "G4A", sheetNo: 15, enName: "Chhayyuth nuthnanith", khName: "ឆៃយុត្តិ នុតណានីត", gender: "ស្រី (F)", confirmed: "Yes", redEn: false, redKh: false, overlap: false },
+      { id: "sat-11", date: "2026-10-24", startMin: 645, endMin: 660, enTime: "10:45 - 11:00", khTime: "10:30 - 10:45", enClass: "G2D", khClass: "G1B", sheetNo: 12, enName: "Rity Lyariya", khName: "ឫទ្ធី លីអរិយា", gender: "ស្រី (F)", confirmed: "Yes", redEn: false, redKh: false, overlap: false },
+      { id: "sat-12", date: "2026-10-24", startMin: 660, endMin: 675, enTime: "11:00 - 11:15", khTime: "11:15 - 11:30", enClass: "G2D", khClass: "G2D", sheetNo: 13, enName: "Ngoun Sereysokkhak", khName: "ងន់ សិរីសុខៈ", gender: "ប្រុស (M)", confirmed: "Yes", redEn: true, redKh: true, overlap: false },
+      { id: "sat-13", date: "2026-10-24", startMin: 840, endMin: 855, enTime: "2:00 - 2:15", khTime: "2:15 - 2:30", enClass: "G2C", khClass: "G3C", sheetNo: 16, enName: "Uy Monichakravuth", khName: "អ៊ុយ មុនីចក្រាវុធ", gender: "ប្រុស (M)", confirmed: "Yes", redEn: false, redKh: false, overlap: false },
+      { id: "sat-14", date: "2026-10-24", startMin: 855, endMin: 870, enTime: "2:15 - 2:30", khTime: "2:45 - 3:00", enClass: "G2D", khClass: "G5B", sheetNo: 14, enName: "Ly Kimcheng", khName: "លី គីមចេង", gender: "ស្រី (F)", confirmed: "Yes", redEn: false, redKh: false, overlap: false },
+      { id: "sat-15", date: "2026-10-24", startMin: 870, endMin: 885, enTime: "2:30 - 2:45", khTime: "2:30 - 2:45", enClass: "G2D", khClass: "G5B", sheetNo: 15, enName: "Ly Kimchou", khName: "លី គីមជូ", gender: "ស្រី (F)", confirmed: "Yes", redEn: false, redKh: true, overlap: false },
+      { id: "sat-16", date: "2026-10-24", startMin: 885, endMin: 900, enTime: "2:45 - 3:00", khTime: "2:30 - 2:45", enClass: "G2D", khClass: "G2D", sheetNo: 16, enName: "Luy Thavy", khName: "លុយ ថាវី", gender: "ស្រី (F)", confirmed: "Yes", redEn: false, redKh: true, overlap: false },
+      { id: "sat-17", date: "2026-10-24", startMin: 915, endMin: 930, enTime: "3:15 - 3:30", khTime: "3:00 - 3:15", enClass: "G2D", khClass: "G3B", sheetNo: 17, enName: "Ly Long Sreng", khName: "លី ឡុងស្រេង", gender: "ប្រុស (M)", confirmed: "Yes", redEn: false, redKh: false, overlap: false }
+    ];
+
+    const STORAGE_KEY = "makson_ptc_2026_state_v1";
+    let appState = loadState();
+    let currentDay = detectDefaultDay();
+    let collapseLunch = false;
+    let simMode = false;
+    let simMinutes = 575;
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : { done: {}, doneAt: {}, notes: {} };
+      } catch (e) {
+        return { done: {}, doneAt: {}, notes: {} };
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch (e) {}
+    }
+
+    function detectDefaultDay() {
+      const now = new Date();
+      const iso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+      return iso === "2026-10-24" ? "2026-10-24" : "2026-10-23";
+    }
+
+    function formatMinTo12h(totalMinutes) {
+      const hrs24 = Math.floor(totalMinutes / 60);
+      const mins = Math.floor(totalMinutes % 60);
+      const period = hrs24 >= 12 ? "PM" : "AM";
+      const hrs12 = hrs24 % 12 === 0 ? 12 : hrs24 % 12;
+      return `${String(hrs12).padStart(2, "0")}:${String(mins).padStart(2, "0")} ${period}`;
+    }
+
+    function formatSlotRange(startMin, endMin) {
+      const fmt = (m) => {
+        const h24 = Math.floor(m / 60);
+        const mins = Math.floor(m % 60);
+        const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+        return `${h12}:${String(mins).padStart(2, "0")}`;
+      };
+      const suffix = startMin >= 720 ? "PM" : "AM";
+      return `${fmt(startMin)} - ${fmt(endMin)} ${suffix}`;
+    }
+
+    function getCurrentMinutes() {
+      if (simMode) return simMinutes;
+      const now = new Date();
+      return now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+    }
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/"/g, "&quot;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    // Build 15-minute grid from 8:00 AM (480) to 3:00 PM (900 on Friday) or 3:30 PM (930 on Saturday)
+    function renderTable() {
+      const tbody = document.getElementById("tableBody");
+      tbody.innerHTML = "";
+
+      const dayAppts = APPOINTMENTS.filter(a => a.date === currentDay);
+      const dayStart = 480; // 08:00 AM
+      const dayEnd = currentDay === "2026-10-23" ? 900 : 930;
+
+      // Lunch block boundaries
+      const lunchStart = 675; // 11:15 AM
+      const lunchEnd = currentDay === "2026-10-23" ? 810 : 840; // 1:30 PM (Fri) or 2:00 PM (Sat)
+      const lunchRangeText = currentDay === "2026-10-23" ? "11:15 AM – 1:30 PM" : "11:15 AM – 2:00 PM";
+      const totalLunchSlots = Math.round((lunchEnd - lunchStart) / 15);
+
+      let rowNum = 1;
+
+      for (let t = dayStart; t < dayEnd; t += 15) {
+        const isLunchSlot = (t >= lunchStart && t < lunchEnd);
+
+        // If lunch is collapsed into a single row
+        if (isLunchSlot && collapseLunch) {
+          if (t === lunchStart) {
+            const tr = document.createElement("tr");
+            tr.className = "row-empty track-row";
+            tr.dataset.startMin = lunchStart;
+            tr.dataset.endMin = lunchEnd;
+            tr.style.height = "52px";
+            tr.innerHTML = `
+              <td class="slot-num">—</td>
+              <td class="center"></td>
+              <td class="time-cell">${lunchRangeText}</td>
+              <td colspan="9" class="lunch-merged-cell" style="padding:8px !important;">
+                <div class="lunch-merged-content">
+                  <div class="lunch-big-title" style="font-size:1.15rem;">🍱 LUNCH BREAK</div>
+                  <div class="lunch-big-sub">${lunchRangeText} (Collapsed · Click "Expand Lunch" to view slots)</div>
+                </div>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          }
+          continue;
+        }
+
+        // Expanded Lunch: render all 15-min rows on the left, but merge the middle columns into one big "Lunch Break"
+        if (isLunchSlot && !collapseLunch) {
+          const tr = document.createElement("tr");
+          tr.className = "row-empty track-row";
+          tr.dataset.startMin = t;
+          tr.dataset.endMin = t + 15;
+
+          if (t === lunchStart) {
+            // First row of lunch creates the big merged cell spanning all lunch slots
+            tr.innerHTML = `
+              <td class="slot-num">${rowNum++}</td>
+              <td class="center"></td>
+              <td class="time-cell">${formatSlotRange(t, t + 15)}</td>
+              <td rowspan="${totalLunchSlots}" colspan="9" class="lunch-merged-cell">
+                <div class="lunch-merged-content">
+                  <div class="lunch-big-title">🍱 LUNCH BREAK</div>
+                  <div class="lunch-big-sub">${lunchRangeText}</div>
+                </div>
+              </td>
+            `;
+          } else {
+            // Subsequent lunch rows only have the left 3 cells (time + number); remaining 9 columns are covered by rowspan
+            tr.innerHTML = `
+              <td class="slot-num">${rowNum++}</td>
+              <td class="center"></td>
+              <td class="time-cell">${formatSlotRange(t, t + 15)}</td>
+            `;
+          }
+          tbody.appendChild(tr);
+          continue;
+        }
+
+        const slotAppts = dayAppts.filter(a => a.startMin === t);
+
+        if (slotAppts.length === 0) {
+          // Free Slot row
+          const tr = document.createElement("tr");
+          tr.className = "row-empty track-row";
+          tr.dataset.startMin = t;
+          tr.dataset.endMin = t + 15;
+
+          const noteKey = `empty-${currentDay}-${t}`;
+          const noteVal = appState.notes[noteKey] || "";
+
+          tr.innerHTML = `
+            <td class="slot-num">${rowNum++}</td>
+            <td class="center"></td>
+            <td class="time-cell">${formatSlotRange(t, t + 15)}</td>
+            <td class="center free-slot-label">—</td>
+            <td class="center"></td>
+            <td class="center"></td>
+            <td></td>
+            <td class="free-slot-label">Free Slot</td>
+            <td class="center"></td>
+            <td class="center"></td>
+            <td class="center"></td>
+            <td>
+              <input type="text" class="note-input" data-note-key="${noteKey}" placeholder="" value="${escapeHtml(noteVal)}" />
+            </td>
+          `;
+          tbody.appendChild(tr);
+        } else {
+          // Scheduled appointment row(s)
+          slotAppts.forEach(item => {
+            const isDone = !!appState.done[item.id];
+            const noteVal = appState.notes[item.id] || "";
+
+            const tr = document.createElement("tr");
+            tr.className = "row-scheduled track-row";
+            tr.id = `row-${item.id}`;
+            tr.dataset.id = item.id;
+            tr.dataset.startMin = item.startMin;
+            tr.dataset.endMin = item.endMin;
+
+            const confCell =
+              item.confirmed === "Yes"
+                ? "Yes"
+                : item.confirmed === "No"
+                ? `<span class="conf-no">No</span>`
+                : `<span class="conf-blank">—</span>`;
+
+            tr.innerHTML = `
+              <td class="slot-num">${rowNum++}</td>
+              <td class="center">
+                <input type="checkbox" class="done-cb" data-id="${item.id}" ${isDone ? "checked" : ""} />
+              </td>
+              <td class="time-cell ${item.redEn ? "red-paper" : ""}">
+                ${formatSlotRange(item.startMin, item.endMin)}
+                ${item.redEn ? `<span class="red-flag" title="Highlighted red on paper sheet"></span>` : ""}
+              </td>
+              <td class="late-cell" id="late-${item.id}">—</td>
+              <td class="cls-cell cls-${item.enClass}">${item.enClass}</td>
+              <td class="cls-cell">${item.khClass}</td>
+              <td class="kh-name-text">${item.khName}</td>
+              <td class="en-name-text">
+                ${item.enName}
+                ${item.overlap ? `<span class="double-badge" title="Two appointments at 10:00-10:15">2x</span>` : ""}
+              </td>
+              <td class="center">${item.gender}</td>
+              <td class="time-cell ${item.redKh ? "red-paper" : ""}">
+                ${item.khTime}
+                ${item.redKh ? `<span class="red-flag" title="Khmer time highlighted red on paper sheet"></span>` : ""}
+              </td>
+              <td class="center">${confCell}</td>
+              <td>
+                <input type="text" class="note-input" data-note-key="${item.id}" placeholder="Click to add note..." value="${escapeHtml(noteVal)}" />
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      }
+
+      // Checkbox listeners
+      tbody.querySelectorAll(".done-cb").forEach(cb => {
+        cb.addEventListener("change", (e) => {
+          const id = e.target.dataset.id;
+          if (e.target.checked) {
+            appState.done[id] = true;
+            appState.doneAt[id] = Math.floor(getCurrentMinutes());
+          } else {
+            delete appState.done[id];
+            delete appState.doneAt[id];
+          }
+          saveState();
+          updateLiveStatus();
+        });
+      });
+
+      // Note input listeners
+      tbody.querySelectorAll(".note-input").forEach(inp => {
+        inp.addEventListener("input", (e) => {
+          const key = e.target.dataset.noteKey;
+          appState.notes[key] = e.target.value;
+          saveState();
+        });
+      });
+
+      updateLiveStatus();
+    }
+
+    function formatLateTimer(diffMinFloat) {
+      const totalSecs = Math.max(0, Math.floor(diffMinFloat * 60));
+      const mins = Math.floor(totalSecs / 60);
+      const secs = totalSecs % 60;
+      if (mins >= 60) {
+        return `${Math.floor(mins / 60)}h ${String(mins % 60).padStart(2, "0")}m`;
+      }
+      if (simMode) return `${mins} min`;
+      return `${mins}m ${String(secs).padStart(2, "0")}s`;
+    }
+
+    function updateLiveStatus() {
+      const now = new Date();
+      const nowMin = getCurrentMinutes();
+
+      // Clock display
+      const clockText = document.getElementById("clockText");
+      const clockDot = document.getElementById("clockDot");
+      if (simMode) {
+        clockText.textContent = formatMinTo12h(nowMin) + " [SIM]";
+        clockDot.classList.add("sim");
+      } else {
+        clockText.textContent = now.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: true
+        });
+        clockDot.classList.remove("sim");
+      }
+
+      // Tab badges
+      const friAppts = APPOINTMENTS.filter(a => a.date === "2026-10-23");
+      const satAppts = APPOINTMENTS.filter(a => a.date === "2026-10-24");
+      document.getElementById("countFri").textContent = `${friAppts.filter(a => appState.done[a.id]).length}/${friAppts.length}`;
+      document.getElementById("countSat").textContent = `${satAppts.filter(a => appState.done[a.id]).length}/${satAppts.length}`;
+
+      let cDone = 0, cActive = 0, cOverdue = 0, cCritical = 0;
+
+      // Update Scheduled Rows
+      APPOINTMENTS.filter(a => a.date === currentDay).forEach(item => {
+        const tr = document.getElementById(`row-${item.id}`);
+        const lateCell = document.getElementById(`late-${item.id}`);
+        if (!tr || !lateCell) return;
+
+        tr.classList.remove("state-done", "state-active", "state-overdue", "state-critical");
+
+        const isDone = !!appState.done[item.id];
+        const diff = nowMin - item.startMin;
+
+        if (isDone) {
+          tr.classList.add("state-done");
+          lateCell.textContent = "✓ Done";
+          cDone++;
+        } else if (diff < 0) {
+          lateCell.textContent = "—";
+        } else if (nowMin >= item.startMin && nowMin < item.endMin) {
+          tr.classList.add("state-active");
+          lateCell.textContent = formatLateTimer(diff);
+          cActive++;
+        } else if (diff >= 45) {
+          tr.classList.add("state-critical");
+          lateCell.textContent = `+${formatLateTimer(diff)}`;
+          cCritical++;
+        } else {
+          tr.classList.add("state-overdue");
+          lateCell.textContent = `+${formatLateTimer(diff)}`;
+          cOverdue++;
+        }
+      });
+
+      // Highlight active Free Slot row if current time is inside a Free Slot
+      document.querySelectorAll("tr.row-empty").forEach(tr => {
+        const s = parseFloat(tr.dataset.startMin);
+        const e = parseFloat(tr.dataset.endMin);
+        tr.classList.toggle("active-free-slot", nowMin >= s && nowMin < e);
+      });
+
+      document.getElementById("statDone").textContent = cDone;
+      document.getElementById("statActive").textContent = cActive;
+      document.getElementById("statOverdue").textContent = cOverdue;
+      document.getElementById("statCritical").textContent = cCritical;
+
+      updateScrubberPosition(nowMin);
+    }
+
+    function updateScrubberPosition(nowMin) {
+      const scrubber = document.getElementById("scrubberLine");
+      const badge = document.getElementById("scrubberBadge");
+      const container = document.getElementById("tableContainer");
+      const rows = Array.from(document.querySelectorAll("tr.track-row"));
+
+      if (!rows.length) {
+        scrubber.classList.remove("visible");
+        return;
+      }
+
+      const groups = [];
+      rows.forEach(r => {
+        const s = parseFloat(r.dataset.startMin);
+        const e = parseFloat(r.dataset.endMin);
+        const last = groups[groups.length - 1];
+        if (last && last.startMin === s && last.endMin === e) {
+          last.rows.push(r);
+        } else {
+          groups.push({ startMin: s, endMin: e, rows: [r] });
+        }
+      });
+
+      const firstMin = groups[0].startMin;
+      const lastMin = groups[groups.length - 1].endMin;
+
+      if (nowMin < firstMin - 20 || nowMin > lastMin + 20) {
+        scrubber.classList.remove("visible");
+        return;
+      }
+
+      scrubber.classList.add("visible");
+      badge.textContent = `NOW · ${formatMinTo12h(nowMin)}`;
+
+      const containerRect = container.getBoundingClientRect();
+      let y = 0;
+
+      if (nowMin <= firstMin) {
+        y = groups[0].rows[0].getBoundingClientRect().top - containerRect.top;
+      } else if (nowMin >= lastMin) {
+        const lastRows = groups[groups.length - 1].rows;
+        y = lastRows[lastRows.length - 1].getBoundingClientRect().bottom - containerRect.top;
+      } else {
+        for (const g of groups) {
+          if (nowMin >= g.startMin && nowMin <= g.endMin) {
+            const topRect = g.rows[0].getBoundingClientRect();
+            const botRect = g.rows[g.rows.length - 1].getBoundingClientRect();
+            const topY = topRect.top - containerRect.top;
+            const height = botRect.bottom - topRect.top;
+            const ratio = (nowMin - g.startMin) / (g.endMin - g.startMin);
+            y = topY + ratio * height;
+            break;
+          }
+        }
+      }
+
+      scrubber.style.top = `${y}px`;
+    }
+
+    // Event Listeners
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.day === currentDay);
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentDay = btn.dataset.day;
+        renderTable();
+      });
+    });
+
+    const toggleLunchBtn = document.getElementById("toggleLunchBtn");
+    toggleLunchBtn.addEventListener("click", () => {
+      collapseLunch = !collapseLunch;
+      toggleLunchBtn.textContent = collapseLunch ? "🍱 Expand Lunch" : "🍱 Collapse Lunch";
+      toggleLunchBtn.classList.toggle("active-toggle", collapseLunch);
+      renderTable();
+    });
+
+    const simBar = document.getElementById("simBar");
+    const simSlider = document.getElementById("simSlider");
+    const simLabel = document.getElementById("simLabel");
+
+    document.getElementById("toggleSimBtn").addEventListener("click", () => {
+      simMode = !simMode;
+      simBar.classList.toggle("visible", simMode);
+      if (simMode) {
+        simMinutes = parseFloat(simSlider.value);
+        simLabel.textContent = formatMinTo12h(simMinutes);
+      }
+      updateLiveStatus();
+    });
+
+    simSlider.addEventListener("input", (e) => {
+      simMode = true;
+      simMinutes = parseFloat(e.target.value);
+      simLabel.textContent = formatMinTo12h(simMinutes);
+      updateLiveStatus();
+    });
+
+    document.getElementById("resetLiveBtn").addEventListener("click", () => {
+      simMode = false;
+      simBar.classList.remove("visible");
+      updateLiveStatus();
+    });
+
+    document.getElementById("jumpNowBtn").addEventListener("click", () => {
+      const scrubber = document.getElementById("scrubberLine");
+      if (scrubber.classList.contains("visible")) {
+        scrubber.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    });
+
+    document.getElementById("resetDayBtn").addEventListener("click", () => {
+      if (!confirm("Reset all Done checkboxes for the selected day?")) return;
+      APPOINTMENTS.filter(a => a.date === currentDay).forEach(a => {
+        delete appState.done[a.id];
+        delete appState.doneAt[a.id];
+      });
+      saveState();
+      renderTable();
+    });
+
+    document.getElementById("exportCsvBtn").addEventListener("click", () => {
+      const headers = ["Date", "Day", "En Time", "Kh Time", "EN Class", "KH Class", "English Name", "Khmer Name", "Gender", "Confirmed", "Done", "Notes"];
+      const out = [];
+      for (const day of ["2026-10-23", "2026-10-24"]) {
+        const dayName = day === "2026-10-23" ? "Friday" : "Saturday";
+        const dayEnd = day === "2026-10-23" ? 900 : 930;
+        const lStart = 675;
+        const lEnd = day === "2026-10-23" ? 810 : 840;
+        for (let t = 480; t < dayEnd; t += 15) {
+          const matches = APPOINTMENTS.filter(a => a.date === day && a.startMin === t);
+          if (matches.length === 0) {
+            const isLunch = (t >= lStart && t < lEnd);
+            const defNote = isLunch ? "-- LUNCH BREAK --" : "-- FREE SLOT --";
+            const note = (appState.notes[`empty-${day}-${t}`] || defNote).replace(/"/g, '""');
+            out.push([day, dayName, formatSlotRange(t, t + 15), "", "", "", "", "", "", "", "", `"${note}"`].join(","));
+          } else {
+            matches.forEach(a => {
+              const note = (appState.notes[a.id] || "").replace(/"/g, '""');
+              out.push([
+                a.date, dayName, formatSlotRange(a.startMin, a.endMin), a.khTime,
+                a.enClass, a.khClass, `"${a.enName}"`, `"${a.khName}"`,
+                `"${a.gender}"`, a.confirmed, appState.done[a.id] ? "Yes" : "No", `"${note}"`
+              ].join(","));
+            });
+          }
+        }
+      }
+      const csvContent = "\uFEFF" + [headers.join(","), ...out].join("\r\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ptc_schedule_table_${currentDay}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    window.addEventListener("storage", (e) => {
+      if (e.key === STORAGE_KEY) {
+        appState = loadState();
+        renderTable();
+      }
+    });
+
+    window.addEventListener("resize", () => updateLiveStatus());
+
+    renderTable();
+    setInterval(updateLiveStatus, 1000);
+  </script>
+</body>
+</html>
