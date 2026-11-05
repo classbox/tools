@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Little Volcano Lab – 3D Volcano Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app" class="panel-open">
+  <main id="stage">
+    <div id="canvasHost"></div>
+    <div id="labels"></div>
+
+    <header id="titleBar">
+      <span class="logo">🌋</span>
+      <div>
+        <h1>Little Volcano Lab</h1>
+        <p>Look inside a volcano and make it erupt!</p>
+      </div>
+    </header>
+
+    <div id="gauge" title="Tap to learn about pressure">
+      <div class="gauge-title">PRESSURE</div>
+      <div class="gauge-body">
+        <div class="tube"><div class="fill" id="gaugeFill"></div><div class="ticks"></div></div>
+        <div class="gauge-info">
+          <div id="gaugeFace">😴</div>
+          <div id="gaugeText">Sleeping</div>
+          <div id="gaugePct">0%</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <div id="factCard" class="hidden">
+      <button id="factClose" aria-label="Close">✖</button>
+      <div class="fact-emoji" id="factEmoji">🔥</div>
+      <div class="fact-body">
+        <div class="fact-head">
+          <h2 id="factTitle">Title</h2>
+          <button id="factSpeak" title="Read aloud">🔊 Listen</button>
+        </div>
+        <p id="factText">Text</p>
+        <p id="factTip" class="fact-tip"></p>
+      </div>
+    </div>
+
+    <div id="hint">🖐️ Drag to turn &nbsp;•&nbsp; 🔍 Pinch or scroll to zoom &nbsp;•&nbsp; 👆 Tap a part to learn</div>
+    <button id="panelToggle" aria-label="Show or hide controls">⚙️</button>
+    <div id="loading">Loading volcano…</div>
+  </main>
+
+  <aside id="panel">
+    <section class="card">
+      <h3>✂️ Look Inside</h3>
+      <button id="btnCut" class="big-btn cut">✂️ Cut it open!</button>
+      <label class="slider-row"><span>How deep?</span>
+        <input type="range" id="sliceDepth" min="-5" max="5" step="0.05" value="0"></label>
+      <div class="row-ends"><span>a little</span><span>a lot</span></div>
+      <label class="switch"><input type="checkbox" id="sliceFollow" checked><span>Slice always faces me</span></label>
+      <label class="slider-row" id="angleRow"><span>Turn slice</span>
+        <input type="range" id="sliceAngle" min="0" max="360" step="1" value="0" disabled></label>
+      <label class="switch"><input type="checkbox" id="showLabels" checked><span>🏷️ Show labels</span></label>
+    </section>
+
+    <section class="card">
+      <h3>🔥 Volcano Power</h3>
+      <label class="slider-row"><span>Pressure</span>
+        <input type="range" id="pressure" min="0" max="100" step="1" value="0"></label>
+      <button id="btnHeat" class="big-btn heat">🔥 Build pressure</button>
+      <button id="btnErupt" class="big-btn erupt">💥 ERUPT!</button>
+      <button id="btnReset" class="small-btn">🔄 Reset volcano</button>
+      <div class="chips">
+        <label class="chip"><input type="checkbox" id="fxFountain" checked><span>⛲ Lava fountain</span></label>
+        <label class="chip"><input type="checkbox" id="fxBombs" checked><span>🪨 Volcanic bombs</span></label>
+        <label class="chip"><input type="checkbox" id="fxAsh" checked><span>☁️ Ash cloud</span></label>
+        <label class="chip"><input type="checkbox" id="fxFlows" checked><span>🌊 Lava flows</span></label>
+        <label class="chip"><input type="checkbox" id="fxLightning" checked><span>⚡ Lightning</span></label>
+      </div>
+      <label class="switch"><input type="checkbox" id="autoErupt" checked><span>Erupt by itself at 100%</span></label>
+      <label class="switch"><input type="checkbox" id="slowMo"><span>🐢 Slow motion</span></label>
+      <label class="switch"><input type="checkbox" id="soundOn" checked><span>🔊 Sound</span></label>
+    </section>
+
+    <section class="card">
+      <h3>🔎 Parts of a Volcano</h3>
+      <div id="partsGrid" class="parts-grid"></div>
+    </section>
+
+    <section class="card">
+      <h3>🎥 Camera</h3>
+      <div class="btn-grid">
+        <button data-view="front">Front</button>
+        <button data-view="side">Side</button>
+        <button data-view="top">Top</button>
+        <button data-view="low">Underground</button>
+        <button id="btnSpin">🔄 Spin</button>
+        <button id="btnFull">⛶ Full screen</button>
+      </div>
+    </section>
+    <p class="keys">Keys: <b>Space</b> erupt · <b>C</b> cut · <b>P</b> pressure · <b>L</b> labels · <b>R</b> reset</p>
+  </aside>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/volcano.js"></script>
+</body>
+</html>
