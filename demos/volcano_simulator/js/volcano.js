@@ -838,18 +838,6 @@
     acc: {}, channels: [0], msLevel: 0, fountainTop: 0, lavaIdx: -1,
   };
 
-  function speakText(text) {
-    if (!S.sound || !window.speechSynthesis) return;
-    try {
-      window.speechSynthesis.cancel();
-      const clean = text.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '').trim();
-      const u = new SpeechSynthesisUtterance(clean);
-      u.rate = 0.96;
-      u.pitch = 1.08;
-      window.speechSynthesis.speak(u);
-    } catch (_) {}
-  }
-
   const MILESTONES = [
     [0.25, '⬆️ Magma is rising up the main vent!'],
     [0.5, '🫧 Gas bubbles push harder and harder… the ground shakes!'],
@@ -1344,10 +1332,6 @@
     document.querySelectorAll('.part-btn').forEach((b) => b.classList.remove('active'));
   }
   $('factClose').addEventListener('click', hideFact);
-  $('factSpeak').addEventListener('click', () => {
-    const p = S.highlight === 'pressure' ? PRESSURE_FACT : PART[S.highlight];
-    if (p) speakText(`${p.name}. ${p.text} ${p.tip || ''}`);
-  });
 
   let toastTimer = 0;
   function toast(msg, ms) {
@@ -1460,7 +1444,6 @@
   $('soundOn').addEventListener('change', (e) => {
     S.sound = e.target.checked;
     audio.setMuted(!S.sound);
-    if (!S.sound && window.speechSynthesis) window.speechSynthesis.cancel();
   });
   $('gauge').addEventListener('click', () => showFact('pressure'));
 

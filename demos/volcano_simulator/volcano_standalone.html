@@ -223,13 +223,6 @@ html, body {
 #factCard h2 {
   margin: 0; font-size: 14px; font-weight: 600; color: #f8fafc; line-height: 1.2;
 }
-#factSpeak {
-  border: 1px solid rgba(255, 255, 255, 0.14); background: rgba(255, 255, 255, 0.06);
-  color: #cbd5e1; border-radius: 5px;
-  padding: 2px 7px; font: inherit; font-size: 11px; font-weight: 500;
-  cursor: pointer; white-space: nowrap; transition: background 0.15s;
-}
-#factSpeak:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
 #factCard p {
   margin: 0; font-size: 12.5px; line-height: 1.5; font-weight: 400; color: #cbd5e1;
 }
@@ -555,7 +548,6 @@ input[type=range]:disabled::-webkit-slider-thumb { border-color: #64748b; backgr
       <div class="fact-body">
         <div class="fact-head">
           <h2 id="factTitle">Title</h2>
-          <button id="factSpeak" title="Read aloud">🔊 Listen</button>
         </div>
         <p id="factText">Text</p>
         <p id="factTip" class="fact-tip"></p>
@@ -1637,18 +1629,6 @@ input[type=range]:disabled::-webkit-slider-thumb { border-color: #64748b; backgr
     acc: {}, channels: [0], msLevel: 0, fountainTop: 0, lavaIdx: -1,
   };
 
-  function speakText(text) {
-    if (!S.sound || !window.speechSynthesis) return;
-    try {
-      window.speechSynthesis.cancel();
-      const clean = text.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '').trim();
-      const u = new SpeechSynthesisUtterance(clean);
-      u.rate = 0.96;
-      u.pitch = 1.08;
-      window.speechSynthesis.speak(u);
-    } catch (_) {}
-  }
-
   const MILESTONES = [
     [0.25, '⬆️ Magma is rising up the main vent!'],
     [0.5, '🫧 Gas bubbles push harder and harder… the ground shakes!'],
@@ -2143,10 +2123,6 @@ input[type=range]:disabled::-webkit-slider-thumb { border-color: #64748b; backgr
     document.querySelectorAll('.part-btn').forEach((b) => b.classList.remove('active'));
   }
   $('factClose').addEventListener('click', hideFact);
-  $('factSpeak').addEventListener('click', () => {
-    const p = S.highlight === 'pressure' ? PRESSURE_FACT : PART[S.highlight];
-    if (p) speakText(`${p.name}. ${p.text} ${p.tip || ''}`);
-  });
 
   let toastTimer = 0;
   function toast(msg, ms) {
@@ -2259,7 +2235,6 @@ input[type=range]:disabled::-webkit-slider-thumb { border-color: #64748b; backgr
   $('soundOn').addEventListener('change', (e) => {
     S.sound = e.target.checked;
     audio.setMuted(!S.sound);
-    if (!S.sound && window.speechSynthesis) window.speechSynthesis.cancel();
   });
   $('gauge').addEventListener('click', () => showFact('pressure'));
 
