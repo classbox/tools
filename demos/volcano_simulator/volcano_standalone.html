@@ -3,19 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Little Volcano Lab – 3D Volcano Simulator</title>
+<title>Volcano Lab – 3D Volcano Simulator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --ink: #2b2140;
-  --panel: #fff8ec;
-  --card: #ffffff;
-  --accent: #ff6a1a;
-  --red: #e8382b;
-  --radius: 18px;
-  font-family: 'Baloo 2', 'Comic Sans MS', 'Trebuchet MS', system-ui, sans-serif;
+  --bg-panel: #111622;
+  --bg-card: #181f2e;
+  --bg-card-alt: #131926;
+  --bg-control: #212a3d;
+  --bg-control-hover: #29344b;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --accent: #f97316;
+  --accent-blue: #3b82f6;
+  --red: #ef4444;
+  --radius: 10px;
+  --radius-sm: 6px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
 }
 
 * { box-sizing: border-box; }
@@ -24,8 +35,8 @@ html, body {
   margin: 0;
   height: 100%;
   overflow: hidden;
-  background: #0f1b2d;
-  color: var(--ink);
+  background: #0b111e;
+  color: var(--text-main);
 }
 
 #app { display: flex; width: 100%; height: 100%; }
@@ -38,198 +49,473 @@ html, body {
 
 #loading {
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  font-size: 28px; font-weight: 800; color: #fff; background: #1b2a44; z-index: 50;
-  transition: opacity .5s;
+  font-size: 15px; font-weight: 500; letter-spacing: 0.02em; color: var(--text-main);
+  background: #0f172a; z-index: 50; transition: opacity .4s ease;
 }
 #loading.done { opacity: 0; pointer-events: none; }
 
+/* ---------------- Title Bar ---------------- */
 #titleBar {
   position: absolute; top: 14px; left: 16px; display: flex; align-items: center; gap: 10px;
-  background: rgba(255, 255, 255, .88); padding: 6px 18px 6px 10px; border-radius: 999px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, .25); pointer-events: none; z-index: 5;
+  background: rgba(15, 23, 42, 0.82); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 8px 14px; border-radius: var(--radius);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); pointer-events: none; z-index: 5;
 }
-#titleBar .logo { font-size: 38px; line-height: 1; }
-#titleBar h1 { margin: 0; font-size: 24px; line-height: 1.05; color: #d9480f; }
-#titleBar p { margin: 0; font-size: 14px; font-weight: 700; color: #5c4b7a; }
+#titleBar .logo { font-size: 22px; line-height: 1; }
+#titleBar h1 {
+  margin: 0; font-size: 14px; font-weight: 600; line-height: 1.2;
+  color: #f8fafc; letter-spacing: -0.01em;
+}
+#titleBar p {
+  margin: 1px 0 0; font-size: 11px; font-weight: 400; color: var(--text-muted);
+}
 
+/* ---------------- Bottom Hint & Panel Toggle ---------------- */
 #hint {
   position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%);
-  background: rgba(20, 20, 40, .62); color: #fff; padding: 4px 16px; border-radius: 999px;
-  font-size: 15px; font-weight: 700; white-space: nowrap; pointer-events: none; z-index: 4;
+  background: rgba(15, 23, 42, 0.78); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1; padding: 5px 14px; border-radius: 999px;
+  font-size: 11.5px; font-weight: 500; letter-spacing: 0.01em;
+  white-space: nowrap; pointer-events: none; z-index: 4;
 }
 
 #panelToggle {
-  position: absolute; top: 14px; right: 14px; z-index: 6; width: 52px; height: 52px; border-radius: 50%;
-  border: none; font-size: 26px; background: #fff; box-shadow: 0 4px 14px rgba(0, 0, 0, .3); cursor: pointer;
+  position: absolute; top: 14px; right: 14px; z-index: 6;
+  width: 36px; height: 36px; border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: 16px; background: rgba(15, 23, 42, 0.82);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  color: #f8fafc; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+}
+#panelToggle:hover {
+  background: rgba(30, 41, 59, 0.92);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
-/* ---------------- Labels ---------------- */
+/* ---------------- 3D Callout Labels ---------------- */
 #labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 3; }
 .label {
   position: absolute; left: 0; top: 0; display: flex; flex-direction: column; align-items: center;
-  pointer-events: none; transition: opacity .25s; opacity: 0; will-change: transform;
+  pointer-events: none; transition: opacity .2s ease; opacity: 0; will-change: transform;
 }
 .label.show { opacity: 1; }
 .label .tag {
-  pointer-events: auto; cursor: pointer; background: rgba(255, 255, 255, .95);
-  border: 3px solid var(--c); border-radius: 999px; padding: 1px 12px;
-  font-weight: 800; font-size: clamp(13px, 1.3vw, 18px); white-space: nowrap;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, .35); color: var(--ink);
+  pointer-events: auto; cursor: pointer;
+  background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-left: 3px solid var(--c);
+  border-radius: 6px; padding: 3px 9px;
+  font-weight: 600; font-size: 11.5px; letter-spacing: 0.01em; white-space: nowrap;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35); color: #f8fafc;
+  transition: transform 0.15s, background 0.15s, border-color 0.15s;
+}
+.label .tag:hover {
+  background: rgba(30, 41, 59, 0.96);
+  transform: translateY(-1px);
 }
 .label:not(.show) .tag { pointer-events: none; }
-.label .stick { width: 3px; height: 24px; background: var(--c); box-shadow: 0 0 3px rgba(0,0,0,.4); }
+.label .stick { width: 1.5px; height: 18px; background: var(--c); opacity: 0.85; }
 .label .dot {
-  width: 13px; height: 13px; border-radius: 50%; background: var(--c); border: 2px solid #fff;
-  margin-bottom: -6px; box-shadow: 0 0 4px rgba(0, 0, 0, .5);
+  width: 8px; height: 8px; border-radius: 50%; background: var(--c); border: 1.5px solid #fff;
+  margin-bottom: -4px; box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
 }
-.label.active .tag { animation: tagPulse 1s ease-in-out infinite; background: #fffbd6; }
-@keyframes tagPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+.label.active .tag {
+  background: #1e293b;
+  border-color: var(--c);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.45);
+}
 
-/* ---------------- Gauge ---------------- */
+/* ---------------- Pressure Gauge HUD ---------------- */
 #gauge {
-  position: absolute; left: 16px; bottom: 54px; z-index: 5; background: rgba(255, 255, 255, .92);
-  border-radius: var(--radius); padding: 8px 14px 10px; box-shadow: 0 4px 16px rgba(0, 0, 0, .3);
+  position: absolute; left: 16px; bottom: 16px; z-index: 5;
+  background: rgba(15, 23, 42, 0.84); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius); padding: 10px 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
   cursor: pointer; user-select: none;
+  transition: border-color 0.2s, background 0.2s;
 }
-#gauge .gauge-title { font-weight: 800; letter-spacing: 2px; font-size: 14px; color: #6a4c93; text-align: center; }
-#gauge .gauge-body { display: flex; align-items: flex-end; gap: 12px; }
+#gauge:hover { border-color: rgba(255, 255, 255, 0.24); }
+#gauge .gauge-title {
+  font-weight: 600; letter-spacing: 0.08em; font-size: 10px;
+  color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;
+}
+#gauge .gauge-body { display: flex; align-items: center; gap: 10px; }
 #gauge .tube {
-  position: relative; width: 34px; height: 150px; border-radius: 18px; background: #e9e4f0;
-  border: 3px solid #4a3b63; overflow: hidden;
+  position: relative; width: 14px; height: 96px; border-radius: 7px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14); overflow: hidden;
 }
 #gauge .fill {
   position: absolute; left: 0; right: 0; bottom: 0; height: 0%;
-  background: linear-gradient(to top, #2ec27e, #f6d32d 50%, #ff7800 75%, #e01b24);
-  background-size: 100% 150px; background-position: bottom; transition: height .15s linear;
+  background: linear-gradient(to top, #10b981, #eab308 50%, #f97316 75%, #ef4444);
+  background-size: 100% 96px; background-position: bottom; transition: height .15s linear;
 }
 #gauge .ticks {
   position: absolute; inset: 0;
-  background: repeating-linear-gradient(to top, transparent 0 28px, rgba(0,0,0,.25) 28px 30px);
+  background: repeating-linear-gradient(to top, transparent 0 18px, rgba(0, 0, 0, 0.35) 18px 19px);
 }
-#gauge .gauge-info { width: 118px; text-align: center; }
-#gaugeFace { font-size: 46px; line-height: 1; }
-#gaugeText { font-weight: 800; font-size: 17px; line-height: 1.1; min-height: 38px; display: flex; align-items: center; justify-content: center; }
-#gaugePct { font-weight: 800; font-size: 24px; color: #d9480f; }
-#gauge.danger { animation: gaugeShake .12s linear infinite; }
-#gauge.erupting { background: rgba(255, 230, 210, .95); }
+#gauge .gauge-info {
+  min-width: 84px; display: flex; flex-direction: column; gap: 4px;
+}
+#gaugePct {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600; font-size: 20px; line-height: 1; color: #f8fafc;
+}
+.gauge-status {
+  display: flex; align-items: center; gap: 5px;
+}
+#gaugeFace { font-size: 15px; line-height: 1; }
+#gaugeText {
+  font-weight: 500; font-size: 11.5px; line-height: 1.2; color: #cbd5e1;
+}
+#gauge.danger {
+  border-color: rgba(239, 68, 68, 0.6);
+  animation: gaugeShake .16s linear infinite;
+}
+#gauge.erupting {
+  background: rgba(30, 18, 24, 0.9);
+  border-color: rgba(249, 115, 22, 0.6);
+}
 @keyframes gaugeShake {
-  0% { transform: translate(0, 0); } 25% { transform: translate(-2px, 1px); }
-  50% { transform: translate(2px, -1px); } 75% { transform: translate(-1px, -1px); } 100% { transform: translate(0, 0); }
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(-1px, 0.5px); }
+  75% { transform: translate(1px, -0.5px); }
 }
 
-/* ---------------- Toast ---------------- */
+/* ---------------- Toast Notification ---------------- */
 #toast {
-  position: absolute; top: 84px; left: 50%; transform: translate(-50%, -20px); opacity: 0;
-  background: #2b2140; color: #fff; padding: 10px 22px; border-radius: 16px; font-size: clamp(16px, 1.6vw, 22px);
-  font-weight: 800; max-width: min(720px, 90%); text-align: center; box-shadow: 0 6px 20px rgba(0, 0, 0, .35);
-  transition: opacity .35s, transform .35s; pointer-events: none; z-index: 7;
+  position: absolute; top: 68px; left: 50%; transform: translate(-50%, -10px); opacity: 0;
+  background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #f8fafc; padding: 8px 16px; border-radius: 8px; font-size: 12.5px;
+  font-weight: 500; max-width: min(560px, 88%); text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  transition: opacity .25s ease, transform .25s ease; pointer-events: none; z-index: 7;
 }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-/* ---------------- Fact card ---------------- */
+/* ---------------- Fact Inspector Card ---------------- */
 #factCard {
-  position: absolute; right: 16px; bottom: 54px; width: min(420px, calc(100% - 32px)); z-index: 8;
-  background: #fff; border-radius: 22px; padding: 14px 18px 14px 14px; display: flex; gap: 12px;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, .4); border-top: 10px solid var(--c, #ff6a1a);
-  transition: opacity .25s, transform .25s;
+  position: absolute; right: 16px; bottom: 16px; width: min(360px, calc(100% - 32px)); z-index: 8;
+  background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 4px solid var(--c, #f97316);
+  border-radius: var(--radius); padding: 14px 16px; display: flex; gap: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  transition: opacity .2s ease, transform .2s ease;
 }
-#factCard.hidden { opacity: 0; transform: translateY(20px); pointer-events: none; }
-#factCard .fact-emoji { font-size: 56px; line-height: 1; }
+#factCard.hidden { opacity: 0; transform: translateY(10px); pointer-events: none; }
+#factCard .fact-emoji {
+  font-size: 24px; line-height: 1; width: 38px; height: 38px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, 0.06); border-radius: 8px;
+}
 #factCard .fact-body { flex: 1; min-width: 0; }
-#factCard .fact-head { display: flex; align-items: center; gap: 10px; margin-bottom: 2px; padding-right: 26px; }
-#factCard h2 { margin: 0; font-size: 25px; color: var(--c, #ff6a1a); text-shadow: 0 1px 0 rgba(0,0,0,.15); line-height: 1.1; }
-#factSpeak {
-  border: 2px solid #d7c7f7; background: #f4efff; color: #4a3b63; border-radius: 999px;
-  padding: 2px 10px; font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; white-space: nowrap;
+#factCard .fact-head {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px; padding-right: 22px;
 }
-#factSpeak:hover { background: #e5dafc; }
-#factCard p { margin: 0; font-size: 18px; line-height: 1.3; font-weight: 600; }
-#factCard .fact-tip { margin-top: 6px; font-size: 16px; color: #6a4c93; font-weight: 800; }
+#factCard h2 {
+  margin: 0; font-size: 14px; font-weight: 600; color: #f8fafc; line-height: 1.2;
+}
+#factSpeak {
+  border: 1px solid rgba(255, 255, 255, 0.14); background: rgba(255, 255, 255, 0.06);
+  color: #cbd5e1; border-radius: 5px;
+  padding: 2px 7px; font: inherit; font-size: 11px; font-weight: 500;
+  cursor: pointer; white-space: nowrap; transition: background 0.15s;
+}
+#factSpeak:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+#factCard p {
+  margin: 0; font-size: 12.5px; line-height: 1.5; font-weight: 400; color: #cbd5e1;
+}
+#factCard .fact-tip {
+  margin-top: 8px; padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 11.5px; color: #94a3b8; font-weight: 500;
+}
 #factCard .fact-tip:empty { display: none; }
 #factClose {
-  position: absolute; top: 6px; right: 8px; border: none; background: #eee; width: 32px; height: 32px;
-  border-radius: 50%; font-size: 16px; cursor: pointer;
+  position: absolute; top: 10px; right: 10px; border: none;
+  background: transparent; color: var(--text-muted);
+  width: 24px; height: 24px; border-radius: 5px; font-size: 12px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+#factClose:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+
+/* ---------------- Sidebar Control Panel ---------------- */
+#panel {
+  width: 320px; flex: 0 0 320px; height: 100%; overflow-y: auto;
+  background: var(--bg-panel);
+  padding: 0 12px 16px;
+  border-left: 1px solid var(--border-subtle);
+  z-index: 9;
+  scrollbar-width: thin;
+  scrollbar-color: #334155 transparent;
+}
+#panel::-webkit-scrollbar { width: 6px; }
+#panel::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+#app:not(.panel-open) #panel { display: none; }
+
+.panel-header {
+  position: sticky; top: 0; z-index: 2;
+  background: rgba(17, 22, 34, 0.92); backdrop-filter: blur(8px);
+  padding: 12px 4px 10px; margin-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.panel-header h2 {
+  margin: 0; font-size: 12px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted);
 }
 
-/* ---------------- Panel ---------------- */
-#panel {
-  width: 340px; flex: 0 0 340px; height: 100%; overflow-y: auto; background: var(--panel);
-  padding: 12px 12px 20px; border-left: 4px solid #ffb37a; z-index: 9;
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  padding: 12px;
+  margin-bottom: 10px;
 }
-#app:not(.panel-open) #panel { display: none; }
-.card { background: var(--card); border-radius: var(--radius); padding: 10px 14px 12px; margin-bottom: 12px; box-shadow: 0 2px 10px rgba(80, 40, 0, .12); }
-.card h3 { margin: 0 0 6px; font-size: 21px; color: #7a2e0e; }
+
+.card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.card h3 {
+  margin: 0; font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted);
+}
+
+.sub-label {
+  font-size: 10.5px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.05em; color: var(--text-dim);
+  margin: 12px 0 6px;
+}
+
+/* ---------------- Primary & Secondary Buttons ---------------- */
+.action-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+  margin-top: 8px;
+}
 
 .big-btn {
-  width: 100%; border: none; border-radius: 16px; padding: 10px 12px; font: inherit; font-size: 22px;
-  font-weight: 800; cursor: pointer; margin: 4px 0; color: #fff; box-shadow: 0 5px 0 rgba(0, 0, 0, .25);
-  transition: transform .08s, box-shadow .08s, filter .2s;
+  width: 100%; border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm); padding: 7px 10px;
+  font: inherit; font-size: 12.5px; font-weight: 600;
+  cursor: pointer; color: #fff;
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  transition: background 0.15s, border-color 0.15s, transform 0.08s, opacity 0.15s;
 }
-.big-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0, 0, 0, .25); }
-.big-btn.cut { background: linear-gradient(#5aa9ff, #2f7fe0); }
-.big-btn.cut.on { background: linear-gradient(#9a7cff, #6c4ad8); }
-.big-btn.heat { background: linear-gradient(#ffad3b, #ff7a00); }
-.big-btn.heat.on { background: linear-gradient(#ffd166, #f4a100); color: #4a2a00; }
-.big-btn.erupt { background: linear-gradient(#ff5a4a, #d61f1f); font-size: 30px; letter-spacing: 1px; }
-.big-btn.erupt.ready { animation: eruptReady .8s ease-in-out infinite; }
-.big-btn.erupt.dim { filter: saturate(.45) brightness(1.05); }
-.big-btn:disabled { filter: grayscale(.8); cursor: not-allowed; animation: none; }
-@keyframes eruptReady { 0%,100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+.big-btn:active:not(:disabled) { transform: translateY(1px); }
+
+.big-btn.cut {
+  background: #2563eb; border-color: #3b82f6;
+}
+.big-btn.cut:hover:not(:disabled) { background: #1d4ed8; }
+.big-btn.cut.on {
+  background: #4f46e5; border-color: #6366f1;
+}
+
+.big-btn.heat {
+  background: #d97706; border-color: #f59e0b;
+}
+.big-btn.heat:hover:not(:disabled) { background: #b45309; }
+.big-btn.heat.on {
+  background: #f59e0b; color: #0f172a; border-color: #fbbf24;
+}
+
+.big-btn.erupt {
+  background: #dc2626; border-color: #ef4444; letter-spacing: 0.02em;
+}
+.big-btn.erupt:hover:not(:disabled) { background: #b91c1c; }
+.big-btn.erupt.ready {
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.35);
+  animation: eruptReady 1.2s ease-in-out infinite;
+}
+.big-btn.erupt.dim { opacity: 0.55; }
+.big-btn:disabled {
+  opacity: 0.4; cursor: not-allowed; animation: none; box-shadow: none;
+}
+@keyframes eruptReady {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+  50% { box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15); }
+}
 
 .small-btn {
-  width: 100%; border: 2px solid #d9c6b0; background: #fff; border-radius: 14px; padding: 6px; font: inherit;
-  font-size: 17px; font-weight: 800; cursor: pointer; margin: 4px 0 6px; color: var(--ink);
+  border: 1px solid var(--border-subtle); background: var(--bg-control);
+  border-radius: 5px; padding: 3px 8px; font: inherit;
+  font-size: 11px; font-weight: 500; cursor: pointer; color: #cbd5e1;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.small-btn:hover {
+  background: var(--bg-control-hover); color: #fff; border-color: var(--border-strong);
 }
 
-.slider-row { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 17px; margin-top: 6px; }
-.slider-row span { flex: 0 0 92px; }
-.slider-row input { flex: 1; }
-.row-ends { display: flex; justify-content: space-between; font-size: 13px; color: #8a7a9a; font-weight: 700; padding-left: 102px; margin-top: -4px; }
-#angleRow.disabled { opacity: .45; }
+/* ---------------- Sliders ---------------- */
+.control-group {
+  background: var(--bg-card-alt);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  margin-top: 8px;
+}
 
-input[type=range] { -webkit-appearance: none; appearance: none; height: 14px; border-radius: 10px; background: #f0dcc4; outline: none; }
-input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; border-radius: 50%; background: #ff6a1a; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.35); cursor: pointer; }
-input[type=range]::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; background: #ff6a1a; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.35); cursor: pointer; }
-input[type=range]:disabled::-webkit-slider-thumb { background: #aaa; }
-#pressure { background: linear-gradient(to right, #2ec27e, #f6d32d 50%, #ff7800 75%, #e01b24); }
+.slider-row {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 500; font-size: 12px; color: #cbd5e1;
+}
+.slider-row + .slider-row { margin-top: 8px; }
+.slider-row span { flex: 0 0 72px; }
+.slider-row input { flex: 1; margin: 0; }
+.row-ends {
+  display: flex; justify-content: space-between;
+  font-size: 10px; color: var(--text-dim); font-weight: 500;
+  padding-left: 82px; margin: 2px 0 6px;
+}
+#angleRow.disabled { opacity: 0.38; pointer-events: none; }
 
-.switch { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 16px; margin-top: 6px; cursor: pointer; }
-.switch input { width: 22px; height: 22px; accent-color: #ff6a1a; cursor: pointer; }
+input[type=range] {
+  -webkit-appearance: none; appearance: none;
+  height: 5px; border-radius: 999px;
+  background: #334155; outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
+  background: #f8fafc; border: 2px solid var(--accent);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4); cursor: pointer;
+  transition: transform 0.1s;
+}
+input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.12); }
+input[type=range]::-moz-range-thumb {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: #f8fafc; border: 2px solid var(--accent);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4); cursor: pointer;
+}
+input[type=range]:disabled::-webkit-slider-thumb { border-color: #64748b; background: #94a3b8; }
+#pressure {
+  background: linear-gradient(to right, #10b981, #eab308 50%, #f97316 75%, #ef4444);
+}
 
-.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 2px; }
+/* ---------------- Toggle Switches ---------------- */
+.toggle-list {
+  display: flex; flex-direction: column; gap: 6px; margin-top: 8px;
+}
+.switch {
+  display: flex; align-items: center; justify-content: space-between;
+  font-weight: 400; font-size: 12px; color: #cbd5e1;
+  padding: 3px 2px; cursor: pointer; user-select: none;
+}
+.switch:hover { color: #f8fafc; }
+.switch input[type=checkbox] {
+  -webkit-appearance: none; appearance: none;
+  width: 30px; height: 17px; border-radius: 999px;
+  background: #334155; position: relative; cursor: pointer;
+  outline: none; margin: 0; flex-shrink: 0;
+  transition: background 0.18s ease;
+}
+.switch input[type=checkbox]::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 13px; height: 13px; border-radius: 50%;
+  background: #cbd5e1; transition: transform 0.18s ease, background 0.18s ease;
+}
+.switch input[type=checkbox]:checked { background: var(--accent); }
+.switch input[type=checkbox]:checked::after {
+  transform: translateX(13px); background: #fff;
+}
+
+/* ---------------- Phenomenon Chips ---------------- */
+.chips {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 5px;
+}
 .chip input { display: none; }
 .chip span {
-  display: inline-block; padding: 3px 11px; border-radius: 999px; border: 2px solid #d9c6b0; background: #f6f1ea;
-  font-weight: 800; font-size: 15px; cursor: pointer; color: #9a8a7a; user-select: none;
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 8px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card-alt);
+  font-weight: 500; font-size: 11.5px; cursor: pointer;
+  color: var(--text-muted); user-select: none;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
-.chip input:checked + span { background: #ffe1c7; border-color: #ff8a3d; color: #7a2e0e; }
+.chip span:hover {
+  border-color: var(--border-strong); color: #cbd5e1;
+}
+.chip input:checked + span {
+  background: rgba(249, 115, 22, 0.14);
+  border-color: rgba(249, 115, 22, 0.45);
+  color: #f8fafc;
+}
 
-.parts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+/* ---------------- Volcano Anatomy Parts Grid ---------------- */
+.parts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
 .part-btn {
-  border: 3px solid var(--c); background: #fff; border-radius: 14px; padding: 5px 6px; font: inherit; font-size: 15px;
-  font-weight: 800; cursor: pointer; text-align: left; line-height: 1.1; display: flex; align-items: center; gap: 6px; color: var(--ink);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--c);
+  background: var(--bg-card-alt);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px; font: inherit; font-size: 11.5px;
+  font-weight: 500; cursor: pointer; text-align: left; line-height: 1.2;
+  display: flex; align-items: center; gap: 6px; color: #cbd5e1;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
-.part-btn .em { font-size: 22px; }
-.part-btn.active { background: var(--c); color: #fff; }
-
-.btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-.btn-grid button {
-  border: 2px solid #c9b8e8; background: #f4efff; border-radius: 12px; padding: 6px; font: inherit; font-size: 16px;
-  font-weight: 800; cursor: pointer; color: #4a3b63;
+.part-btn:hover {
+  background: var(--bg-control); color: #fff;
 }
-.btn-grid button.on { background: #6c4ad8; color: #fff; border-color: #6c4ad8; }
-.keys { font-size: 13px; color: #8a7a9a; text-align: center; margin: 4px 0 0; }
+.part-btn .em { font-size: 14px; flex-shrink: 0; }
+.part-btn.active {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--c);
+  color: #fff;
+  font-weight: 600;
+}
 
-/* ---------------- Small screens ---------------- */
+/* ---------------- Camera & View Buttons ---------------- */
+.view-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 6px;
+}
+.btn-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 5px;
+}
+.view-grid button, .btn-grid button {
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-control);
+  border-radius: var(--radius-sm);
+  padding: 6px 6px; font: inherit; font-size: 11.5px;
+  font-weight: 500; cursor: pointer; color: #cbd5e1;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.view-grid button:hover, .btn-grid button:hover {
+  background: var(--bg-control-hover); color: #fff; border-color: var(--border-strong);
+}
+.btn-grid button.on {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+/* ---------------- Keyboard Shortcuts Footer ---------------- */
+.keys {
+  font-size: 11px; color: var(--text-dim); text-align: center;
+  margin: 8px 0 0; line-height: 1.6;
+}
+.keys kbd {
+  display: inline-block; padding: 1px 5px; border-radius: 4px;
+  background: var(--bg-card); border: 1px solid var(--border-subtle);
+  font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted);
+}
+
+/* ---------------- Small Screens ---------------- */
 @media (max-width: 900px) {
-  #panel { position: absolute; right: 0; top: 0; bottom: 0; box-shadow: -6px 0 20px rgba(0,0,0,.3); }
+  #panel {
+    position: absolute; right: 0; top: 0; bottom: 0;
+    box-shadow: -8px 0 28px rgba(0, 0, 0, 0.5);
+  }
   #app:not(.panel-open) #panel { display: none; }
   #titleBar p { display: none; }
   #hint { display: none; }
-  #gauge .tube { height: 110px; }
-  #gauge .gauge-info { width: 92px; }
 }
-
 </style>
 </head>
 <body>
@@ -241,19 +527,21 @@ input[type=range]:disabled::-webkit-slider-thumb { background: #aaa; }
     <header id="titleBar">
       <span class="logo">🌋</span>
       <div>
-        <h1>Little Volcano Lab</h1>
-        <p>Look inside a volcano and make it erupt!</p>
+        <h1>Volcano Lab</h1>
+        <p>Interactive 3D Cross-Section &amp; Eruption Simulator</p>
       </div>
     </header>
 
-    <div id="gauge" title="Tap to learn about pressure">
+    <div id="gauge" title="Click to learn about magma pressure">
       <div class="gauge-title">PRESSURE</div>
       <div class="gauge-body">
         <div class="tube"><div class="fill" id="gaugeFill"></div><div class="ticks"></div></div>
         <div class="gauge-info">
-          <div id="gaugeFace">😴</div>
-          <div id="gaugeText">Sleeping</div>
           <div id="gaugePct">0%</div>
+          <div class="gauge-status">
+            <span id="gaugeFace">😴</span>
+            <span id="gaugeText">Sleeping</span>
+          </div>
         </div>
       </div>
     </div>
@@ -261,7 +549,7 @@ input[type=range]:disabled::-webkit-slider-thumb { background: #aaa; }
     <div id="toast"></div>
 
     <div id="factCard" class="hidden">
-      <button id="factClose" aria-label="Close">✖</button>
+      <button id="factClose" aria-label="Close">✕</button>
       <div class="fact-emoji" id="factEmoji">🔥</div>
       <div class="fact-body">
         <div class="fact-head">
@@ -273,31 +561,66 @@ input[type=range]:disabled::-webkit-slider-thumb { background: #aaa; }
       </div>
     </div>
 
-    <div id="hint">🖐️ Drag to turn &nbsp;•&nbsp; 🔍 Pinch or scroll to zoom &nbsp;•&nbsp; 👆 Tap a part to learn</div>
-    <button id="panelToggle" aria-label="Show or hide controls">⚙️</button>
-    <div id="loading">Loading volcano…</div>
+    <div id="hint">Drag to orbit &nbsp;·&nbsp; Scroll to zoom &nbsp;·&nbsp; Click any feature to inspect</div>
+    <button id="panelToggle" aria-label="Show or hide controls" title="Toggle controls">⚙️</button>
+    <div id="loading">Loading 3D simulation…</div>
   </main>
 
   <aside id="panel">
+    <div class="panel-header">
+      <h2>Controls &amp; Inspector</h2>
+    </div>
+
     <section class="card">
-      <h3>✂️ Look Inside</h3>
+      <div class="card-head">
+        <h3>Cross-Section</h3>
+      </div>
       <button id="btnCut" class="big-btn cut">✂️ Cut it open!</button>
-      <label class="slider-row"><span>How deep?</span>
-        <input type="range" id="sliceDepth" min="-5" max="5" step="0.05" value="0"></label>
-      <div class="row-ends"><span>a little</span><span>a lot</span></div>
-      <label class="switch"><input type="checkbox" id="sliceFollow" checked><span>Slice always faces me</span></label>
-      <label class="slider-row" id="angleRow"><span>Turn slice</span>
-        <input type="range" id="sliceAngle" min="0" max="360" step="1" value="0" disabled></label>
-      <label class="switch"><input type="checkbox" id="showLabels" checked><span>🏷️ Show labels</span></label>
+
+      <div class="control-group">
+        <label class="slider-row">
+          <span>Slice depth</span>
+          <input type="range" id="sliceDepth" min="-5" max="5" step="0.05" value="0">
+        </label>
+        <div class="row-ends"><span>Shallow</span><span>Deep</span></div>
+
+        <label class="slider-row" id="angleRow">
+          <span>Slice angle</span>
+          <input type="range" id="sliceAngle" min="0" max="360" step="1" value="0" disabled>
+        </label>
+      </div>
+
+      <div class="toggle-list">
+        <label class="switch">
+          <span>Auto-face camera</span>
+          <input type="checkbox" id="sliceFollow" checked>
+        </label>
+        <label class="switch">
+          <span>Show 3D labels</span>
+          <input type="checkbox" id="showLabels" checked>
+        </label>
+      </div>
     </section>
 
     <section class="card">
-      <h3>🔥 Volcano Power</h3>
-      <label class="slider-row"><span>Pressure</span>
-        <input type="range" id="pressure" min="0" max="100" step="1" value="0"></label>
-      <button id="btnHeat" class="big-btn heat">🔥 Build pressure</button>
-      <button id="btnErupt" class="big-btn erupt">💥 ERUPT!</button>
-      <button id="btnReset" class="small-btn">🔄 Reset volcano</button>
+      <div class="card-head">
+        <h3>Magma &amp; Eruption</h3>
+        <button id="btnReset" class="small-btn" title="Reset volcano">↺ Reset</button>
+      </div>
+
+      <div class="control-group">
+        <label class="slider-row">
+          <span>Pressure</span>
+          <input type="range" id="pressure" min="0" max="100" step="1" value="0">
+        </label>
+      </div>
+
+      <div class="action-row">
+        <button id="btnHeat" class="big-btn heat">🔥 Build pressure</button>
+        <button id="btnErupt" class="big-btn erupt">💥 ERUPT!</button>
+      </div>
+
+      <div class="sub-label">Active Phenomena</div>
       <div class="chips">
         <label class="chip"><input type="checkbox" id="fxFountain" checked><span>⛲ Lava fountain</span></label>
         <label class="chip"><input type="checkbox" id="fxBombs" checked><span>🪨 Volcanic bombs</span></label>
@@ -305,28 +628,50 @@ input[type=range]:disabled::-webkit-slider-thumb { background: #aaa; }
         <label class="chip"><input type="checkbox" id="fxFlows" checked><span>🌊 Lava flows</span></label>
         <label class="chip"><input type="checkbox" id="fxLightning" checked><span>⚡ Lightning</span></label>
       </div>
-      <label class="switch"><input type="checkbox" id="autoErupt" checked><span>Erupt by itself at 100%</span></label>
-      <label class="switch"><input type="checkbox" id="slowMo"><span>🐢 Slow motion</span></label>
-      <label class="switch"><input type="checkbox" id="soundOn" checked><span>🔊 Sound</span></label>
+
+      <div class="sub-label">Simulation Settings</div>
+      <div class="toggle-list">
+        <label class="switch">
+          <span>Auto-erupt at 100%</span>
+          <input type="checkbox" id="autoErupt" checked>
+        </label>
+        <label class="switch">
+          <span>Slow motion</span>
+          <input type="checkbox" id="slowMo">
+        </label>
+        <label class="switch">
+          <span>Sound effects</span>
+          <input type="checkbox" id="soundOn" checked>
+        </label>
+      </div>
     </section>
 
     <section class="card">
-      <h3>🔎 Parts of a Volcano</h3>
+      <div class="card-head">
+        <h3>Volcano Anatomy</h3>
+      </div>
       <div id="partsGrid" class="parts-grid"></div>
     </section>
 
     <section class="card">
-      <h3>🎥 Camera</h3>
-      <div class="btn-grid">
+      <div class="card-head">
+        <h3>Camera &amp; View</h3>
+      </div>
+      <div class="view-grid">
         <button data-view="front">Front</button>
         <button data-view="side">Side</button>
         <button data-view="top">Top</button>
-        <button data-view="low">Underground</button>
-        <button id="btnSpin">🔄 Spin</button>
-        <button id="btnFull">⛶ Full screen</button>
+        <button data-view="low">Below</button>
+      </div>
+      <div class="btn-grid">
+        <button id="btnSpin">🔄 Auto-Orbit</button>
+        <button id="btnFull">⛶ Fullscreen</button>
       </div>
     </section>
-    <p class="keys">Keys: <b>Space</b> erupt · <b>C</b> cut · <b>P</b> pressure · <b>L</b> labels · <b>R</b> reset</p>
+
+    <p class="keys">
+      <kbd>Space</kbd> Erupt · <kbd>C</kbd> Cut · <kbd>P</kbd> Pressure · <kbd>L</kbd> Labels · <kbd>R</kbd> Reset
+    </p>
   </aside>
 </div>
 

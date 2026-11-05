@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Little Volcano Lab – 3D Volcano Simulator</title>
+<title>Volcano Lab – 3D Volcano Simulator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -18,19 +18,21 @@
     <header id="titleBar">
       <span class="logo">🌋</span>
       <div>
-        <h1>Little Volcano Lab</h1>
-        <p>Look inside a volcano and make it erupt!</p>
+        <h1>Volcano Lab</h1>
+        <p>Interactive 3D Cross-Section &amp; Eruption Simulator</p>
       </div>
     </header>
 
-    <div id="gauge" title="Tap to learn about pressure">
+    <div id="gauge" title="Click to learn about magma pressure">
       <div class="gauge-title">PRESSURE</div>
       <div class="gauge-body">
         <div class="tube"><div class="fill" id="gaugeFill"></div><div class="ticks"></div></div>
         <div class="gauge-info">
-          <div id="gaugeFace">😴</div>
-          <div id="gaugeText">Sleeping</div>
           <div id="gaugePct">0%</div>
+          <div class="gauge-status">
+            <span id="gaugeFace">😴</span>
+            <span id="gaugeText">Sleeping</span>
+          </div>
         </div>
       </div>
     </div>
@@ -38,7 +40,7 @@
     <div id="toast"></div>
 
     <div id="factCard" class="hidden">
-      <button id="factClose" aria-label="Close">✖</button>
+      <button id="factClose" aria-label="Close">✕</button>
       <div class="fact-emoji" id="factEmoji">🔥</div>
       <div class="fact-body">
         <div class="fact-head">
@@ -50,31 +52,66 @@
       </div>
     </div>
 
-    <div id="hint">🖐️ Drag to turn &nbsp;•&nbsp; 🔍 Pinch or scroll to zoom &nbsp;•&nbsp; 👆 Tap a part to learn</div>
-    <button id="panelToggle" aria-label="Show or hide controls">⚙️</button>
-    <div id="loading">Loading volcano…</div>
+    <div id="hint">Drag to orbit &nbsp;·&nbsp; Scroll to zoom &nbsp;·&nbsp; Click any feature to inspect</div>
+    <button id="panelToggle" aria-label="Show or hide controls" title="Toggle controls">⚙️</button>
+    <div id="loading">Loading 3D simulation…</div>
   </main>
 
   <aside id="panel">
+    <div class="panel-header">
+      <h2>Controls &amp; Inspector</h2>
+    </div>
+
     <section class="card">
-      <h3>✂️ Look Inside</h3>
+      <div class="card-head">
+        <h3>Cross-Section</h3>
+      </div>
       <button id="btnCut" class="big-btn cut">✂️ Cut it open!</button>
-      <label class="slider-row"><span>How deep?</span>
-        <input type="range" id="sliceDepth" min="-5" max="5" step="0.05" value="0"></label>
-      <div class="row-ends"><span>a little</span><span>a lot</span></div>
-      <label class="switch"><input type="checkbox" id="sliceFollow" checked><span>Slice always faces me</span></label>
-      <label class="slider-row" id="angleRow"><span>Turn slice</span>
-        <input type="range" id="sliceAngle" min="0" max="360" step="1" value="0" disabled></label>
-      <label class="switch"><input type="checkbox" id="showLabels" checked><span>🏷️ Show labels</span></label>
+
+      <div class="control-group">
+        <label class="slider-row">
+          <span>Slice depth</span>
+          <input type="range" id="sliceDepth" min="-5" max="5" step="0.05" value="0">
+        </label>
+        <div class="row-ends"><span>Shallow</span><span>Deep</span></div>
+
+        <label class="slider-row" id="angleRow">
+          <span>Slice angle</span>
+          <input type="range" id="sliceAngle" min="0" max="360" step="1" value="0" disabled>
+        </label>
+      </div>
+
+      <div class="toggle-list">
+        <label class="switch">
+          <span>Auto-face camera</span>
+          <input type="checkbox" id="sliceFollow" checked>
+        </label>
+        <label class="switch">
+          <span>Show 3D labels</span>
+          <input type="checkbox" id="showLabels" checked>
+        </label>
+      </div>
     </section>
 
     <section class="card">
-      <h3>🔥 Volcano Power</h3>
-      <label class="slider-row"><span>Pressure</span>
-        <input type="range" id="pressure" min="0" max="100" step="1" value="0"></label>
-      <button id="btnHeat" class="big-btn heat">🔥 Build pressure</button>
-      <button id="btnErupt" class="big-btn erupt">💥 ERUPT!</button>
-      <button id="btnReset" class="small-btn">🔄 Reset volcano</button>
+      <div class="card-head">
+        <h3>Magma &amp; Eruption</h3>
+        <button id="btnReset" class="small-btn" title="Reset volcano">↺ Reset</button>
+      </div>
+
+      <div class="control-group">
+        <label class="slider-row">
+          <span>Pressure</span>
+          <input type="range" id="pressure" min="0" max="100" step="1" value="0">
+        </label>
+      </div>
+
+      <div class="action-row">
+        <button id="btnHeat" class="big-btn heat">🔥 Build pressure</button>
+        <button id="btnErupt" class="big-btn erupt">💥 ERUPT!</button>
+      </div>
+
+      <div class="sub-label">Active Phenomena</div>
       <div class="chips">
         <label class="chip"><input type="checkbox" id="fxFountain" checked><span>⛲ Lava fountain</span></label>
         <label class="chip"><input type="checkbox" id="fxBombs" checked><span>🪨 Volcanic bombs</span></label>
@@ -82,28 +119,50 @@
         <label class="chip"><input type="checkbox" id="fxFlows" checked><span>🌊 Lava flows</span></label>
         <label class="chip"><input type="checkbox" id="fxLightning" checked><span>⚡ Lightning</span></label>
       </div>
-      <label class="switch"><input type="checkbox" id="autoErupt" checked><span>Erupt by itself at 100%</span></label>
-      <label class="switch"><input type="checkbox" id="slowMo"><span>🐢 Slow motion</span></label>
-      <label class="switch"><input type="checkbox" id="soundOn" checked><span>🔊 Sound</span></label>
+
+      <div class="sub-label">Simulation Settings</div>
+      <div class="toggle-list">
+        <label class="switch">
+          <span>Auto-erupt at 100%</span>
+          <input type="checkbox" id="autoErupt" checked>
+        </label>
+        <label class="switch">
+          <span>Slow motion</span>
+          <input type="checkbox" id="slowMo">
+        </label>
+        <label class="switch">
+          <span>Sound effects</span>
+          <input type="checkbox" id="soundOn" checked>
+        </label>
+      </div>
     </section>
 
     <section class="card">
-      <h3>🔎 Parts of a Volcano</h3>
+      <div class="card-head">
+        <h3>Volcano Anatomy</h3>
+      </div>
       <div id="partsGrid" class="parts-grid"></div>
     </section>
 
     <section class="card">
-      <h3>🎥 Camera</h3>
-      <div class="btn-grid">
+      <div class="card-head">
+        <h3>Camera &amp; View</h3>
+      </div>
+      <div class="view-grid">
         <button data-view="front">Front</button>
         <button data-view="side">Side</button>
         <button data-view="top">Top</button>
-        <button data-view="low">Underground</button>
-        <button id="btnSpin">🔄 Spin</button>
-        <button id="btnFull">⛶ Full screen</button>
+        <button data-view="low">Below</button>
+      </div>
+      <div class="btn-grid">
+        <button id="btnSpin">🔄 Auto-Orbit</button>
+        <button id="btnFull">⛶ Fullscreen</button>
       </div>
     </section>
-    <p class="keys">Keys: <b>Space</b> erupt · <b>C</b> cut · <b>P</b> pressure · <b>L</b> labels · <b>R</b> reset</p>
+
+    <p class="keys">
+      <kbd>Space</kbd> Erupt · <kbd>C</kbd> Cut · <kbd>P</kbd> Pressure · <kbd>L</kbd> Labels · <kbd>R</kbd> Reset
+    </p>
   </aside>
 </div>
 
