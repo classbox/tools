@@ -95,28 +95,29 @@ html, body {
 .label.show { opacity: 1; }
 .label .tag {
   pointer-events: auto; cursor: pointer;
-  background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-left: 3px solid var(--c);
-  border-radius: 6px; padding: 3px 9px;
-  font-weight: 600; font-size: 11.5px; letter-spacing: 0.01em; white-space: nowrap;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35); color: #f8fafc;
+  background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-left: 4px solid var(--c);
+  border-radius: 8px; padding: 4px 10px;
+  font-family: 'Comic Neue', 'Comic Sans MS', 'Baloo 2', system-ui, cursive, sans-serif;
+  font-weight: 700; font-size: 15px; line-height: 1.25; letter-spacing: 0.01em; white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4); color: #f8fafc;
   transition: transform 0.15s, background 0.15s, border-color 0.15s;
 }
 .label .tag:hover {
   background: rgba(30, 41, 59, 0.96);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
 .label:not(.show) .tag { pointer-events: none; }
-.label .stick { width: 1.5px; height: 18px; background: var(--c); opacity: 0.85; }
+.label .stick { width: 2px; height: 20px; background: var(--c); opacity: 0.9; }
 .label .dot {
   width: 8px; height: 8px; border-radius: 50%; background: var(--c); border: 1.5px solid #fff;
-  margin-bottom: -4px; box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+  margin-bottom: -4px; box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
 }
 .label.active .tag {
   background: #1e293b;
   border-color: var(--c);
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2), 0 4px 14px rgba(0, 0, 0, 0.5);
 }
 
 /* ---------------- Pressure Gauge HUD ---------------- */

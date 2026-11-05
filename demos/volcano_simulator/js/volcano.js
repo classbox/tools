@@ -327,6 +327,11 @@
     side: THREE.BackSide,
     clipping: true,
     clippingPlanes: CLIP,
+    depthTest: true,
+    depthWrite: true,
+    extensions: {
+      fragDepth: true,
+    },
     uniforms: {
       uPlane: { value: new THREE.Vector4(0, 0, -1, 1000) },
       uTime: { value: 0 },
@@ -362,6 +367,19 @@
         if (r < ${F(RIM_R)}) { float u = r / ${F(RIM_R)}; return ${F(CRATER_FLOOR)} + ${F(PEAK - CRATER_FLOOR)}*u*u; }
         if (r < ${F(CONE_BASE)}) { float t = (r - ${F(RIM_R)}) / ${F(CONE_BASE - RIM_R)}; return ${F(PEAK)} * pow(1.0 - t, 1.7); }
         return 0.0;
+      }
+      float surfH(vec3 p, float r){
+        float th = atan(p.z, p.x);
+        float coneW = 1.0 - smoothstep(${F(CONE_BASE - 1.0)}, ${F(CONE_BASE + 0.6)}, r);
+        float edgeW = 1.0 - smoothstep(${F(GROUND_R - 1.4)}, ${F(GROUND_R - 0.2)}, r);
+        float craterW = mix(0.35, 1.0, smoothstep(0.3, ${F(RIM_R + 0.3)}, r));
+        float d = 0.12 * sin(p.x * 1.7 + p.z * 0.9) * sin(p.z * 1.9 - p.x * 0.6)
+                + 0.06 * sin(p.x * 3.1 + 1.0) * sin(p.z * 2.7 + 2.0);
+        d *= mix(0.45, 1.0, coneW);
+        d += coneW * smoothstep(1.0, 2.2, r) * 0.11 * sin(th * 13.0 + r * 0.9) * (0.6 + 0.4 * sin(th * 5.0));
+        float dx = p.x - ${F(SIDE_OUT.x)}, dz = p.z - ${F(SIDE_OUT.z)}, d2 = dx * dx + dz * dz;
+        d += 0.42 * exp(-d2 / 0.35) - 0.22 * exp(-d2 / 0.035);
+        return profileH(r) + d * edgeW * craterW;
       }
       float sdSeg(vec3 p, vec3 a, vec3 b){ vec3 pa = p-a, ba = b-a; float h = clamp(dot(pa,ba)/dot(ba,ba), 0.0, 1.0); return length(pa - ba*h); }
 
@@ -401,14 +419,17 @@
       void main(){
         #include <clipping_planes_fragment>
         // find the point where the view ray meets the cutting plane
+        float dCam = dot(uPlane.xyz, cameraPosition) + uPlane.w;
+        if (dCam >= 0.0) discard;
         vec3 rd = normalize(vWorld - cameraPosition);
         float den = dot(uPlane.xyz, rd);
-        vec3 p = vWorld;
-        if (abs(den) > 1e-5) {
-          float t = -(dot(uPlane.xyz, cameraPosition) + uPlane.w) / den;
-          if (t > 0.0) p = cameraPosition + rd*t;
-        }
+        if (den <= 1e-5) discard;
+        float t = -dCam / den;
+        if (t <= 0.0) discard;
+        vec3 p = cameraPosition + rd * t;
         float r = length(p.xz);
+        float sh = surfH(p, r);
+        if (r > ${F(GROUND_R)} || p.y < ${F(BOTTOM)} || p.y > sh) discard;
         vec3 q = vec3(p.x / ${F(CH.rx)}, (p.y - ${F(CH.y)}) / ${F(CH.ry)}, p.z / ${F(CH.rx)});
         float e = dot(q,q) + (vnoise(p*1.3) - 0.5)*0.35;
         float cr = ${F(CONDUIT_R)} + max(0.0, p.y - 3.4)*0.35 + (vnoise(vec3(p.y*2.0, 0.5, 0.5)) - 0.5)*0.06;
@@ -438,10 +459,20 @@
           col = mix(col, vec3(1.0,1.0,0.55), 0.22 + 0.3*pulse);
         }
         gl_FragColor = vec4(col, 1.0);
+
+        // Seal depth buffer with the cut plane depth so internal/back features do not bleed through
+        float zCam = -(viewMatrix * vec4(p, 1.0)).z;
+        float ndcZ = (500.1 / 499.9) - (100.0 / (499.9 * max(0.1, zCam)));
+        #if defined(GL_EXT_frag_depth)
+          gl_FragDepthEXT = clamp(ndcZ * 0.5 + 0.5 - 0.00005, 0.0, 1.0);
+        #else
+          gl_FragDepth = clamp(ndcZ * 0.5 + 0.5 - 0.00005, 0.0, 1.0);
+        #endif
       }`,
   });
   const capMesh = new THREE.Mesh(terrainGeo, capMat);
   capMesh.visible = false;
+  capMesh.renderOrder = 0;
   scene.add(capMesh);
 
   // Glowing lava lake in the crater
@@ -658,10 +689,10 @@
     }
   }
 
-  const fountain = new Pool(3000, { tex: TEX_SOFT, blending: THREE.AdditiveBlending, order: 12 });
+  const fountain = new Pool(3000, { tex: TEX_SOFT, blending: THREE.AdditiveBlending, clip: true, order: 12 });
   const flows = new Pool(5000, { tex: TEX_SOFT, clip: true, order: 11 });
-  const ash = new Pool(2600, { tex: TEX_PUFF, order: 20 });
-  const steam = new Pool(500, { tex: TEX_PUFF, order: 19 });
+  const ash = new Pool(2600, { tex: TEX_PUFF, clip: true, order: 20 });
+  const steam = new Pool(500, { tex: TEX_PUFF, clip: true, order: 19 });
   const dust = new Pool(900, { tex: TEX_PUFF, clip: true, order: 18 });
 
   flows.onDeath = (i) => paint(flows.pos[i * 3], flows.pos[i * 3 + 2], 0.3);
@@ -690,7 +721,7 @@
       clippingPlanes: CLIP, clipShadows: true,
     });
     const m = new THREE.Mesh(ROCK_GEOS[k % ROCK_GEOS.length], mat);
-    m.castShadow = true; m.visible = false;
+    m.castShadow = true; m.visible = false; m.renderOrder = 2;
     scene.add(m);
     boulders.push({ mesh: m, mat, active: false, state: 'off', vel: new THREE.Vector3(), spin: new THREE.Vector3(), s: 0.2, heat: 0 });
   }
@@ -801,7 +832,7 @@
   const S = {
     time: 0, pressure: 0, heating: false, phase: 'calm', er: null, intensity: 0,
     magma: MAGMA_LOW, blast: 0, shake: 0, ashLevel: 0,
-    cutOn: false, cutAmt: 0, sliceDepth: 0, sliceAngle: 0, follow: true,
+    cutOn: false, cutAmt: 0, sliceDepth: 0, sliceAngle: 0, follow: false,
     showLabels: true, highlight: null, autoErupt: true, slowMo: false, sound: true,
     fx: { fountain: true, bombs: true, ash: true, flows: true, lightning: true },
     acc: {}, channels: [0], msLevel: 0, fountainTop: 0, lavaIdx: -1,
@@ -933,6 +964,9 @@
       const damp = Math.max(0, 1 - k * dt);
       V[o] *= damp; V[o + 2] *= damp;
       x += V[o] * dt; z += V[o + 2] * dt;
+      if (cutActive() && sliceN.x * x + sliceN.z * z + cutPlane.constant < -0.05) {
+        flows.kill(i); return;
+      }
       const r = Math.hypot(x, z);
       if (r > GROUND_R - 0.15) { const f = (GROUND_R - 0.15) / r; x *= f; z *= f; V[o] = V[o + 2] = 0; }
       P[o] = x; P[o + 2] = z; P[o + 1] = surfY(x, z) + 0.05;
@@ -1191,26 +1225,26 @@
         return regionAt(p.x, p.y, p.z) === 1 ? p : null;
       case 'vent':
         if (!inside) return null;
-        p = onPlane(new THREE.Vector3(conduitX(0.6), 0.6, 0));
+        p = onPlane(new THREE.Vector3(conduitX(-0.5), -0.5, 0));
         return regionAt(p.x, p.y, p.z) === 2 ? p : null;
       case 'side':
         if (inside) {
-          p = onPlane(new THREE.Vector3().addVectors(SIDE_A, SIDE_B).multiplyScalar(0.5));
+          p = onPlane(new THREE.Vector3().addVectors(SIDE_A, SIDE_B).multiplyScalar(0.55));
           if (regionAt(p.x, p.y, p.z) === 3) return p;
         }
         p = new THREE.Vector3(SIDE_OUT.x, surfY(SIDE_OUT.x, SIDE_OUT.z) + 0.15, SIDE_OUT.z);
         return isKept(p) && !occluded(p) ? p : null;
       case 'layers': {
         if (!inside) return null;
-        const s = -Math.sqrt(Math.max(0, 2.6 * 2.6 - c * c));
+        const s = -Math.sqrt(Math.max(0, 3.8 * 3.8 - c * c));
         const r = Math.hypot(s, c);
-        p = planePoint(s, profile(r) * 0.45);
+        p = planePoint(s, Math.max(1.1, profile(r) * 0.55));
         return regionAt(p.x, p.y, p.z) === 6 ? p : null;
       }
       case 'crust': {
         if (inside) {
-          const s = Math.sqrt(Math.max(0, 5.3 * 5.3 - c * c));
-          p = planePoint(s, -1.0);
+          const s = Math.sqrt(Math.max(0, 5.6 * 5.6 - c * c));
+          p = planePoint(s, -1.2);
           if (regionAt(p.x, p.y, p.z) === 7) return p;
         }
         const d = Math.hypot(camera.position.x, camera.position.z) || 1;
@@ -1218,7 +1252,7 @@
         return isKept(p) ? p : null;
       }
       case 'crater':
-        p = new THREE.Vector3(0, PEAK + 0.25, 0);
+        p = new THREE.Vector3(0, PEAK + 0.5, 0);
         return isKept(p) && !occluded(p) ? p : null;
       case 'lava': {
         if (flows.count < 20) return null;
@@ -1250,6 +1284,7 @@
   function updateLabels() {
     const w = host.clientWidth, h = host.clientHeight;
     labelTick++;
+    const visible = [];
     for (const L of LABELS) {
       const key = L.part.key;
       const want = S.showLabels || S.highlight === key;
@@ -1260,10 +1295,27 @@
       }
       if (p) {
         const x = (_v.x * 0.5 + 0.5) * w, y = (-_v.y * 0.5 + 0.5) * h;
-        L.el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) translate(-50%, -100%)`;
+        visible.push({ L, x, y, curY: y });
         if (!L.shown) { L.el.classList.add('show'); L.shown = true; }
       } else if (L.shown) { L.el.classList.remove('show'); L.shown = false; }
       L.el.classList.toggle('active', S.highlight === key);
+    }
+
+    // Sort by y ascending and deconflict vertical overlaps if horizontally close
+    visible.sort((a, b) => a.y - b.y);
+    for (let i = 0; i < visible.length; i++) {
+      for (let j = 0; j < i; j++) {
+        const a = visible[j], b = visible[i];
+        const dx = Math.abs(a.x - b.x);
+        const dy = b.curY - a.curY;
+        if (dx < 120 && dy < 34 && dy >= -5) {
+          b.curY = a.curY + 36;
+        }
+      }
+    }
+
+    for (const item of visible) {
+      item.L.el.style.transform = `translate(${item.x.toFixed(1)}px, ${item.curY.toFixed(1)}px) translate(-50%, -100%)`;
     }
   }
 
@@ -1384,7 +1436,6 @@
       $('sliceAngle').value = deg;
     }
   });
-  $('angleRow').classList.add('disabled');
   $('sliceAngle').addEventListener('input', (e) => { S.sliceAngle = (parseFloat(e.target.value) * Math.PI) / 180; frame.userData.show = 1.6; });
   $('showLabels').addEventListener('change', (e) => { S.showLabels = e.target.checked; });
 
