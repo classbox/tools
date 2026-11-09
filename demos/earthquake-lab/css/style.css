@@ -1,0 +1,116 @@
+:root { --glass: rgba(14, 20, 44, 0.74); --line: rgba(255,255,255,0.16); --hot:#ff8a2a; --hot2:#ffd166; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; overflow:hidden; background:#070b1d; color:#fff;
+    font-family:'Fredoka','Comic Sans MS',system-ui,sans-serif; -webkit-user-select:none; user-select:none; }
+  #stage { position:fixed; inset:0; }
+  #stage canvas { display:block; }
+  #labels { position:fixed; inset:0; pointer-events:none; }
+
+  /* ---------- Minimal 3D status badge ---------- */
+  .lbl { background:rgba(255,255,255,0.95); color:#1b2142; padding:6px 16px 7px; border-radius:999px;
+    font-size:clamp(14px,1.3vw,22px); font-weight:600; white-space:nowrap; text-align:center; line-height:1.1;
+    box-shadow:0 6px 18px rgba(0,0,0,0.35); border:3px solid #fff; }
+  .lbl.lock { background:#2b3157; color:#fff; border-color:#8d97d9; font-size:clamp(16px,1.5vw,25px); }
+  .lbl.lock.slip { background:#ff3b3b; border-color:#ffd0d0; animation:pop .35s ease-out; }
+  @keyframes pulse { from { transform:scale(1); } to { transform:scale(1.08); } }
+  @keyframes pop { 0%{transform:scale(.6)} 70%{transform:scale(1.2)} 100%{transform:scale(1)} }
+
+  /* ---------- Top bar ---------- */
+  #top { position:fixed; top:12px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:8px; z-index:5; width:max-content; max-width:96vw; }
+  #modeBar { display:flex; align-items:center; gap:10px; background:rgba(8, 12, 30, 0.86); padding:5px 8px; border-radius:999px; border:3px solid rgba(255,255,255,0.22); box-shadow:0 8px 24px rgba(0,0,0,0.45); }
+  .modeBtn { font:inherit; font-size:clamp(15px,1.35vw,23px); font-weight:700; color:rgba(255,255,255,0.78); background:transparent;
+    border:none; padding:8px 22px; border-radius:999px; cursor:pointer; transition:all .18s; }
+  .modeBtn:hover { color:#fff; }
+  .modeBtn.on { background:linear-gradient(180deg,#5ce1e6,#2a8fe0); color:#06152d; box-shadow:0 4px 14px rgba(42,143,224,0.45); }
+  #tabs, #cityTabs { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+  #cityTabs { display:none; }
+  .tab, .ctab { font:inherit; font-size:clamp(14px,1.2vw,20px); font-weight:600; color:#fff; background:var(--glass);
+    border:3px solid var(--line); padding:7px 18px; border-radius:999px; cursor:pointer; transition:transform .15s; }
+  .tab:hover, .ctab:hover { transform:translateY(-2px); }
+  .tab.on, .ctab.on { background:linear-gradient(180deg,#ffd166,#ff8a2a); color:#2a1200; border-color:#fff3c4; }
+  .ctab.dice { background:rgba(45, 62, 120, 0.88); border-color:#7b93eb; }
+  .ctab.dice:active { transform:scale(0.93); }
+
+  /* ---------- Push meter ---------- */
+  #meter { position:fixed; right:18px; top:50%; transform:translateY(-50%); width:96px; background:var(--glass);
+    border:3px solid var(--line); border-radius:26px; padding:12px 10px; display:flex; flex-direction:column; align-items:center; gap:8px; z-index:5; }
+  #meter .mt { font-size:16px; font-weight:600; text-align:center; line-height:1.05; }
+  #meter .bar { width:38px; height:min(38vh,320px); border-radius:20px; background:rgba(255,255,255,0.12); border:3px solid rgba(255,255,255,.35);
+    position:relative; overflow:hidden; }
+  #fill { position:absolute; left:0; right:0; bottom:0; height:0%; border-radius:16px;
+    background:linear-gradient(0deg,#3ddc84 0%,#ffd166 55%,#ff3b3b 100%); background-size:100% min(38vh,320px); background-position:bottom; }
+  #face { font-size:40px; line-height:1; transition:transform .2s; }
+  #meter.full #face { animation:pulse .3s infinite alternate; }
+
+  /* ---------- Bottom Action Bar (Plates) ---------- */
+  #manualBar { position:fixed; left:50%; bottom:20px; transform:translateX(-50%); background:var(--glass); border:3px solid var(--line);
+    border-radius:999px; padding:7px 20px; display:flex; align-items:center; gap:12px; z-index:5; font-size:clamp(14px,1.2vw,20px); }
+  #manualBar button { font:inherit; font-weight:700; color:#2a1200; background:linear-gradient(180deg,#ffd166,#ff8a2a);
+    border:3px solid #fff3c4; border-radius:999px; padding:6px 20px; cursor:pointer; box-shadow:0 4px 12px rgba(255,138,42,0.4);
+    transition:transform .1s; }
+  #manualBar button:active { transform:scale(0.92); }
+
+  /* ---------- Bottom Shake-Table Bar (City) ---------- */
+  #cityBar { position:fixed; left:50%; bottom:16px; transform:translateX(-50%); background:rgba(10, 16, 38, 0.88);
+    border:3px solid rgba(255,255,255,0.22); border-radius:28px; padding:10px 22px; display:none; align-items:center; gap:18px;
+    z-index:5; box-shadow:0 12px 32px rgba(0,0,0,0.5); width:max-content; max-width:96vw; flex-wrap:wrap; justify-content:center; }
+  #magBox { display:flex; align-items:center; gap:14px; }
+  #magBadge { width:58px; height:58px; border-radius:18px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    font-weight:700; color:#1b0c00; background:#ffd166; border:3px solid #fff; box-shadow:0 4px 14px rgba(0,0,0,0.35); line-height:1; }
+  #magBadge .num { font-size:30px; }
+  #magBadge .sub { font-size:10px; opacity:0.8; text-transform:uppercase; letter-spacing:0.5px; }
+  #magSliderWrap { display:flex; flex-direction:column; gap:4px; min-width:260px; }
+  #magHeader { display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
+  #magTitle { font-size:clamp(15px,1.25vw,20px); font-weight:700; }
+  #magDesc { font-size:clamp(12px,0.95vw,15px); opacity:0.85; }
+  #magSlider { width:100%; height:12px; border-radius:999px; -webkit-appearance:none; appearance:none;
+    background:linear-gradient(90deg,#3ddc84 0%,#ffd166 42%,#ff7b2a 70%,#ff2a2a 88%,#d938ff 100%);
+    outline:none; border:2px solid rgba(255,255,255,0.5); cursor:pointer; }
+  #magSlider::-webkit-slider-thumb { -webkit-appearance:none; width:26px; height:26px; border-radius:50%;
+    background:#fff; border:4px solid #1b2142; box-shadow:0 2px 8px rgba(0,0,0,0.5); cursor:pointer; }
+  #magTicks { display:flex; justify-content:space-between; font-size:11px; opacity:0.7; padding:0 4px; font-weight:600; }
+  .cityActBtn { font:inherit; font-size:clamp(15px,1.25vw,20px); font-weight:700; padding:10px 22px; border-radius:999px; cursor:pointer; transition:transform .12s; }
+  .cityActBtn:active { transform:scale(0.94); }
+  #cityShakeBtn { background:linear-gradient(180deg,#ff6a3d,#d92316); color:#fff; border:3px solid #ffc2b3; box-shadow:0 6px 18px rgba(224,50,26,0.5); }
+  #cityShakeBtn.shaking { background:linear-gradient(180deg,#ffd166,#ff8a2a); color:#2a1200; border-color:#fff; animation:pulse .35s infinite alternate; }
+  #cityFixBtn { background:#2b3566; color:#fff; border:3px solid #6376c7; }
+
+  /* ---------- Teacher panel ---------- */
+  #gear { position:fixed; top:14px; right:16px; z-index:7; font-size:26px; width:52px; height:52px; border-radius:50%;
+    border:3px solid var(--line); background:var(--glass); color:#fff; cursor:pointer; }
+  #panel { position:fixed; top:76px; right:16px; width:330px; max-height:calc(100vh - 100px); overflow:auto; z-index:7;
+    background:rgba(12,17,38,0.94); border:2px solid var(--line); border-radius:20px; padding:14px 16px; font-size:15px;
+    transform:translateX(120%); transition:transform .3s ease; }
+  #panel.open { transform:none; }
+  #panel h3 { margin:0 0 10px; font-size:19px; }
+  #panel .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:8px 0; }
+  #panel button { font:inherit; font-size:15px; color:#fff; background:#2b3460; border:2px solid #4a578f; border-radius:12px; padding:6px 12px; cursor:pointer; }
+  #panel button:hover { background:#3a4680; }
+  #panel button.big { background:linear-gradient(180deg,#ff6a3d,#e0321a); border-color:#ffb199; font-weight:600; font-size:17px; flex:1; }
+  #panel label.sl { display:block; margin:10px 0 2px; }
+  #panel input[type=range] { width:100%; accent-color:#ffb347; }
+  #panel .hint { font-size:12.5px; opacity:.7; margin-top:-2px; }
+  #panel .toggles { display:grid; grid-template-columns:1fr 1fr; gap:5px 10px; margin:10px 0; }
+  #panel .toggles label { cursor:pointer; }
+  #panel .keys { font-size:12.5px; opacity:.75; line-height:1.5; border-top:1px solid var(--line); padding-top:8px; margin-top:8px; }
+  #panel details { margin-top:8px; font-size:13.5px; line-height:1.4; }
+  #panel details summary { cursor:pointer; font-weight:600; }
+  #panel details ul { padding-left:18px; margin:6px 0; }
+
+  body.city-mode #tabs, body.city-mode #meter, body.city-mode #manualBar { display:none !important; }
+  body.city-mode #cityTabs, body.city-mode #cityBar { display:flex !important; }
+  body.clean #meter, body.clean #manualBar, body.clean #cityBar, body.clean #top, body.clean #gear, body.clean #panel { display:none !important; }
+
+  /* ---------- Fade to black / start ---------- */
+  #fade { position:fixed; inset:0; background:#000000; opacity:0; pointer-events:none; transition:opacity .4s ease; z-index:25; }
+  #fade.on { opacity:1; pointer-events:auto; }
+  #start { position:fixed; inset:0; z-index:30; display:flex; align-items:center; justify-content:center;
+    background:radial-gradient(circle at 50% 40%, rgba(40,60,130,.55), rgba(5,8,22,.92)); }
+  #start .card { text-align:center; }
+  #start .big { font-size:clamp(70px,9vw,140px); animation:wob 2.2s ease-in-out infinite; }
+  @keyframes wob { 0%,100%{transform:rotate(-6deg)} 50%{transform:rotate(6deg)} }
+  #start h1 { font-size:clamp(36px,5vw,84px); margin:6px 0; }
+  #start p { font-size:clamp(17px,1.8vw,30px); opacity:.9; margin:6px 0 22px; }
+  #start button { font:inherit; font-size:clamp(22px,2.4vw,40px); font-weight:700; padding:14px 46px; border-radius:999px; border:4px solid #fff3c4;
+    background:linear-gradient(180deg,#ffd166,#ff8a2a); color:#2a1200; cursor:pointer; box-shadow:0 10px 30px rgba(255,140,40,.45); }
+  #start .hint { font-size:clamp(13px,1.1vw,18px); opacity:.65; margin-top:22px; }
