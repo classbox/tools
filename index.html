@@ -503,6 +503,14 @@
                 history.replaceState(null, '', '#' + url);
             }
 
+            // Track tool switch in GoatCounter (on subsequent switches after initial page load)
+            if (historyMode !== 'replace' && typeof window.goatcounter?.count === 'function') {
+                window.goatcounter.count({
+                    path: location.pathname + '#' + url,
+                    title: title
+                });
+            }
+
             // Auto‑collapse sidebar after selecting a tool
             collapseSidebar();
         }
@@ -656,6 +664,19 @@
 
         // --- Initialize App & Auto‑load tool ---
         function initApp() {
+            // Check for GoatCounter opt-out toggle BEFORE loadToolFromUrl overwrites the URL hash
+            const urlParams = new URLSearchParams(window.location.search);
+            if (window.location.hash === '#toggle-goatcounter' || urlParams.has('toggle-goatcounter')) {
+                if (localStorage.getItem('skipgc') === 't') {
+                    localStorage.removeItem('skipgc');
+                    alert('GoatCounter tracking is now ENABLED for this browser.');
+                } else {
+                    localStorage.setItem('skipgc', 't');
+                    alert('GoatCounter tracking is now DISABLED for this browser.');
+                }
+                history.replaceState(null, '', window.location.pathname);
+            }
+
             const savedClass = localStorage.getItem('classroom_selected_class');
             if (savedClass && document.getElementById('class-selector')) {
                 document.getElementById('class-selector').value = savedClass;
@@ -671,5 +692,17 @@
             initApp();
         }
     </script>
+
+    <!-- GoatCounter Analytics (tracks classbox.github.io & skips browser if opted out via #toggle-goatcounter) -->
+    <script>
+        window.goatcounter = {
+            no_onload: localStorage.getItem('skipgc') === 't' || window.location.hostname !== 'classbox.github.io',
+            path: function(p) {
+                return location.pathname + location.hash;
+            }
+        };
+    </script>
+    <script data-goatcounter="https://classbox.goatcounter.com/count"
+            async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>
