@@ -494,17 +494,17 @@ const audio = {
     // crack
     const n = c.createBufferSource(); n.buffer = this.white;
     const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 900; bp.Q.value = 0.7;
-    const g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.45 * str + 0.1, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+    const g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime((0.45 * str + 0.1) * 1.5, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
     n.connect(bp).connect(g).connect(this.master); n.start(t); n.stop(t + 0.5);
     // rumble
     const r = c.createBufferSource(); r.buffer = this.brown; r.loop = true;
     const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 90 + str * 160;
     const g2 = c.createGain(); const dur = (1.5 + str * 3) * slow;
-    g2.gain.setValueAtTime(0.0001, t); g2.gain.exponentialRampToValueAtTime(0.9 * str + 0.2, t + 0.15); g2.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    g2.gain.setValueAtTime(0.0001, t); g2.gain.exponentialRampToValueAtTime((0.9 * str + 0.2) * 1.5, t + 0.15); g2.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     r.connect(lp).connect(g2).connect(this.master); r.start(t); r.stop(t + dur + 0.1);
-    // thump
+    // thump (final boom)
     const o = c.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(70, t); o.frequency.exponentialRampToValueAtTime(28, t + 0.9);
-    const g3 = c.createGain(); g3.gain.setValueAtTime(0.0001, t); g3.gain.exponentialRampToValueAtTime(0.7 * str + 0.1, t + 0.02); g3.gain.exponentialRampToValueAtTime(0.0001, t + 1.1);
+    const g3 = c.createGain(); g3.gain.setValueAtTime(0.0001, t); g3.gain.exponentialRampToValueAtTime((0.7 * str + 0.1) * 1.5, t + 0.02); g3.gain.exponentialRampToValueAtTime(0.0001, t + 1.1);
     o.connect(g3).connect(this.master); o.start(t); o.stop(t + 1.2);
   },
   creak(level) {
@@ -521,8 +521,8 @@ const audio = {
     bp.Q.value = 2.4;
     const gr = c.createGain();
     gr.gain.setValueAtTime(0.0001, t);
-    gr.gain.exponentialRampToValueAtTime(0.28 + lv * 0.48, t + 0.06);
-    gr.gain.exponentialRampToValueAtTime(0.14 + lv * 0.25, t + dur * 0.65);
+    gr.gain.exponentialRampToValueAtTime((0.28 + lv * 0.48) * 2, t + 0.06);
+    gr.gain.exponentialRampToValueAtTime((0.14 + lv * 0.25) * 2, t + dur * 0.65);
     gr.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     r.connect(bp).connect(gr).connect(this.master);
     r.start(t); r.stop(t + dur + 0.05);
@@ -536,7 +536,7 @@ const audio = {
       const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 110 + lv * 90;
       const go = c.createGain();
       go.gain.setValueAtTime(0.0001, t);
-      go.gain.exponentialRampToValueAtTime(0.14 + lv * 0.22, t + 0.05);
+      go.gain.exponentialRampToValueAtTime((0.14 + lv * 0.22) * 2, t + 0.05);
       go.gain.exponentialRampToValueAtTime(0.0001, t + dur);
       o.connect(lp).connect(go).connect(this.master);
       o.start(t); o.stop(t + dur + 0.05);
@@ -2522,7 +2522,7 @@ addEventListener('resize', () => {
 /* ---------- Push meter & minimal Stuck/Slip badge ---------- */
 function updateHUD() {
   const e = sim.D - sim.S, ratio = clamp(e / sim.threshold, 0, 1);
-  const inQuake = sim.quakeAge >= 0 && sim.quakeAge < 4.3;
+  const inQuake = sim.quakeAge >= 0 && sim.quakeAge < 7.3;
   $('#fill').style.height = (sim.slipping || inQuake ? 0 : ratio * 100).toFixed(1) + '%';
   $('#face').textContent = inQuake ? '💥' : ratio < 0.35 ? '🙂' : ratio < 0.72 ? '😬' : '😱';
   $('#meter').classList.toggle('full', ratio > 0.72 && !inQuake);
@@ -2567,8 +2567,8 @@ function frame(now) {
       const ratio = (sim.D - sim.S) / sim.threshold;
       if (sim.playing && sim.quakeAge < 0 && ratio > 0.7 && !sim.slipping && Math.random() < rdt * ratio * 1.3) audio.creak(ratio);
 
-      // Once quake has finished (~4.3s), fade to black briefly and reset board to normal state
-      if (!sim.slipping && sim.quakeAge >= 4.3 && !resettingBoard) {
+      // Once quake has finished (~7.3s), fade to black briefly and reset board to normal state
+      if (!sim.slipping && sim.quakeAge >= 7.3 && !resettingBoard) {
         quakeFinishReset();
       }
     }
