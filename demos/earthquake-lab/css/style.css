@@ -53,27 +53,40 @@
   /* ---------- Bottom Shake-Table Bar (City) ---------- */
   #cityBar { position:fixed; left:50%; bottom:16px; transform:translateX(-50%); background:rgba(10, 16, 38, 0.88);
     border:3px solid rgba(255,255,255,0.22); border-radius:28px; padding:10px 22px; display:none; align-items:center; gap:18px;
-    z-index:5; box-shadow:0 12px 32px rgba(0,0,0,0.5); width:max-content; max-width:96vw; flex-wrap:wrap; justify-content:center; }
-  #magBox { display:flex; align-items:center; gap:14px; }
+    z-index:5; box-shadow:0 12px 32px rgba(0,0,0,0.5); width:max-content; max-width:96vw; flex-wrap:nowrap; justify-content:center; }
+  #magBox { display:flex; align-items:center; gap:14px; min-width:0; }
   #magBadge { width:58px; height:58px; border-radius:18px; display:flex; flex-direction:column; align-items:center; justify-content:center;
-    font-weight:700; color:#1b0c00; background:#ffd166; border:3px solid #fff; box-shadow:0 4px 14px rgba(0,0,0,0.35); line-height:1; }
-  #magBadge .num { font-size:30px; }
+    font-weight:700; color:#1b0c00; background:#ffd166; border:3px solid #fff; box-shadow:0 4px 14px rgba(0,0,0,0.35); line-height:1; flex-shrink:0; }
+  #magBadge .num { font-size:30px; font-variant-numeric:tabular-nums; }
   #magBadge .sub { font-size:10px; opacity:0.8; text-transform:uppercase; letter-spacing:0.5px; }
-  #magSliderWrap { display:flex; flex-direction:column; gap:4px; min-width:260px; }
-  #magHeader { display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
-  #magTitle { font-size:clamp(15px,1.25vw,20px); font-weight:700; }
-  #magDesc { font-size:clamp(12px,0.95vw,15px); opacity:0.85; }
+  #magSliderWrap { display:flex; flex-direction:column; gap:4px; width:clamp(490px, 36vw, 580px); min-width:0; flex-shrink:0; }
+  #magHeader { display:flex; justify-content:space-between; align-items:baseline; gap:10px; width:100%; min-width:0; }
+  #magTitle { font-size:clamp(15px,1.25vw,20px); font-weight:700; white-space:nowrap; line-height:1.15; flex-shrink:0; }
+  #magDesc { font-size:clamp(12px,0.95vw,15px); opacity:0.85; white-space:nowrap; line-height:1.15; overflow:hidden; text-overflow:ellipsis; min-width:0; }
   #magSlider { width:100%; height:12px; border-radius:999px; -webkit-appearance:none; appearance:none;
     background:linear-gradient(90deg,#3ddc84 0%,#ffd166 42%,#ff7b2a 70%,#ff2a2a 88%,#d938ff 100%);
     outline:none; border:2px solid rgba(255,255,255,0.5); cursor:pointer; }
   #magSlider::-webkit-slider-thumb { -webkit-appearance:none; width:26px; height:26px; border-radius:50%;
     background:#fff; border:4px solid #1b2142; box-shadow:0 2px 8px rgba(0,0,0,0.5); cursor:pointer; }
-  #magTicks { display:flex; justify-content:space-between; font-size:11px; opacity:0.7; padding:0 4px; font-weight:600; }
-  .cityActBtn { font:inherit; font-size:clamp(15px,1.25vw,20px); font-weight:700; padding:10px 22px; border-radius:999px; cursor:pointer; transition:transform .12s; }
+  #magTicks { display:flex; justify-content:space-between; font-size:11px; opacity:0.7; padding:0 4px; font-weight:600; white-space:nowrap; }
+  .cityActBtn { font:inherit; font-size:clamp(15px,1.25vw,20px); font-weight:700; padding:10px 22px; border-radius:999px; cursor:pointer; transition:transform .12s; white-space:nowrap; flex-shrink:0; }
   .cityActBtn:active { transform:scale(0.94); }
   #cityShakeBtn { background:linear-gradient(180deg,#ff6a3d,#d92316); color:#fff; border:3px solid #ffc2b3; box-shadow:0 6px 18px rgba(224,50,26,0.5); }
   #cityShakeBtn.shaking { background:linear-gradient(180deg,#ffd166,#ff8a2a); color:#2a1200; border-color:#fff; animation:pulse .35s infinite alternate; }
   #cityFixBtn { background:#2b3566; color:#fff; border:3px solid #6376c7; }
+  @media (max-width: 1320px) {
+    #cityBar { padding:9px 18px; gap:14px; }
+    #magSliderWrap { width:clamp(320px, 34vw, 420px); gap:3px; }
+    #magHeader { flex-direction:column; align-items:flex-start; gap:1px; }
+    #magDesc { max-width:100%; }
+    .cityActBtn { font-size:clamp(14px,1.25vw,19px); padding:8px 16px; }
+  }
+  @media (max-width: 900px) {
+    #cityBar { flex-wrap:wrap; gap:10px 14px; padding:10px 16px; }
+    #magBox { width:100%; justify-content:center; }
+    #magSliderWrap { width:clamp(240px, 68vw, 380px); }
+    #magDesc { white-space:normal; min-height:2.3em; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+  }
 
   /* ---------- Teacher panel ---------- */
   #gear { position:fixed; top:14px; right:16px; z-index:7; font-size:26px; width:52px; height:52px; border-radius:50%;
