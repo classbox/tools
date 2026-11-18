@@ -13,9 +13,41 @@
         --water-back: #0077b6;
         --water-deep: #03045e;
         --rope-color: #d4a373;
+        --rope-stripe: #a87b51;
         --wood: #5d4037;
         --danger: #ff4d4d;
         --success: #8AC926;
+    }
+
+    body.theme-volcano {
+        --sky-top: #1a0b0e;
+        --sky-bottom: #7c2d12;
+        --water-front: #f97316;
+        --water-back: #dc2626;
+        --water-deep: #450a0a;
+        --rope-color: #78716c;
+        --rope-stripe: #44403c;
+        --wood: #292524;
+    }
+
+    body.theme-blackhole {
+        --space-bg: #050510;
+        --bh-glow: #7b2cbf;
+        --bh-accretion: #ff9e00;
+        --tether-color: #bde0fe;
+        background-color: var(--space-bg);
+        background-image: 
+            radial-gradient(2px 2px at 15% 15%, rgba(255,255,255,0.8) 100%, transparent),
+            radial-gradient(1px 1px at 25% 45%, rgba(255,255,255,0.5) 100%, transparent),
+            radial-gradient(2px 2px at 45% 25%, rgba(255,255,255,0.9) 100%, transparent),
+            radial-gradient(1.5px 1.5px at 65% 55%, rgba(255,255,255,0.6) 100%, transparent),
+            radial-gradient(1px 1px at 85% 10%, rgba(255,255,255,0.8) 100%, transparent),
+            radial-gradient(2px 2px at 95% 75%, rgba(255,255,255,0.4) 100%, transparent),
+            radial-gradient(1.5px 1.5px at 10% 85%, rgba(255,255,255,0.7) 100%, transparent),
+            radial-gradient(1px 1px at 35% 80%, rgba(255,255,255,0.5) 100%, transparent),
+            radial-gradient(2.5px 2.5px at 75% 35%, rgba(255,255,255,0.9) 100%, transparent),
+            radial-gradient(1.5px 1.5px at 55% 85%, rgba(255,255,255,0.4) 100%, transparent);
+        background-size: 400px 400px;
     }
     
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -58,43 +90,159 @@
     .modal-content {
         background: #0f172a;
         color: #e2e8f0;
-        padding: 30px;
+        padding: 28px;
         border-radius: 12px;
-        width: 90%;
-        max-width: 400px;
+        width: 92%;
+        max-width: 720px;
         border: 1px solid #00b4d8;
         box-shadow: 0 10px 40px rgba(0, 180, 216, 0.4);
         max-height: 90vh;
         display: flex;
         flex-direction: column;
     }
-    .modal-content h2 { margin-bottom: 20px; text-align: center; color: #fff; flex-shrink: 0; }
+    .modal-content h2 { margin-bottom: 18px; text-align: center; color: #fff; flex-shrink: 0; }
+    .modal-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 22px;
+        align-items: stretch;
+        min-height: 0;
+        flex: 1;
+    }
+    .modal-col-left {
+        display: flex;
+        flex-direction: column;
+    }
+    .modal-col-right {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
+    .modal-col-right .form-group {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        margin-bottom: 0;
+    }
     .form-group { margin-bottom: 15px; flex-shrink: 0; }
+    .modal-col-left .form-group:last-child { margin-bottom: 0; }
     .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #94a3b8; }
     .form-group input { 
         width: 100%; padding: 8px; border: 1px solid #334155; border-radius: 6px; font-size: 16px; 
         background: #1e293b; color: #fff;
     }
     
-    /* Scrollable team name list */
+    /* Scrollable team/student name list */
     .team-names-scroll {
-        max-height: 150px;
+        height: 220px;
         overflow-y: auto;
-        padding-right: 5px;
         border: 1px solid #334155;
         border-radius: 6px;
         padding: 8px;
         background: rgba(0,0,0,0.2);
     }
-    .team-name-input { margin-bottom: 8px; width: 100%; padding: 6px; border: 1px solid #334155; border-radius: 4px; background: #1e293b; color: #fff;}
+    .team-name-input { margin-bottom: 8px; width: 100%; padding: 6px 8px; border: 1px solid #334155; border-radius: 4px; background: #1e293b; color: #fff;}
     .team-name-input:last-child { margin-bottom: 0; }
     
     .start-btn {
         width: 100%; padding: 12px; background: #00b4d8; color: white;
         border: none; border-radius: 6px; font-size: 18px; font-weight: bold;
-        cursor: pointer; margin-top: 15px; transition: background 0.2s; flex-shrink: 0;
+        cursor: pointer; margin-top: 18px; transition: background 0.2s; flex-shrink: 0;
     }
     .start-btn:hover { background: #0096c7; }
+
+    /* Theme Toggle in Settings */
+    .theme-toggle {
+        display: flex;
+        gap: 8px;
+    }
+    .theme-btn {
+        flex: 1;
+        padding: 8px 6px;
+        white-space: nowrap;
+        border: 1px solid #334155;
+        border-radius: 6px;
+        background: #1e293b;
+        color: #cbd5e1;
+        font-size: 13px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    @media (max-width: 640px) {
+        .modal-grid { grid-template-columns: 1fr; gap: 15px; }
+        .team-names-scroll { max-height: 150px; }
+    }
+    .theme-btn:hover {
+        border-color: #64748b;
+        color: #fff;
+    }
+    .theme-btn.active[data-theme="shark"] {
+        background: #0077b6;
+        border-color: #00b4d8;
+        color: #fff;
+        box-shadow: 0 0 10px rgba(0, 180, 216, 0.4);
+    }
+    .theme-btn.active[data-theme="volcano"] {
+        background: #c2410c;
+        border-color: #f97316;
+        color: #fff;
+        box-shadow: 0 0 10px rgba(249, 115, 22, 0.45);
+    }
+    .theme-btn.active[data-theme="blackhole"] {
+        background: #6b21a8;
+        border-color: #a855f7;
+        color: #fff;
+        box-shadow: 0 0 10px rgba(168, 85, 247, 0.45);
+    }
+    body.theme-blackhole .modal-content {
+        border-color: #7b2cbf;
+        box-shadow: 0 10px 40px rgba(123, 44, 191, 0.5);
+    }
+    body.theme-blackhole .start-btn {
+        background: #7b2cbf;
+    }
+    body.theme-blackhole .start-btn:hover {
+        background: #9d4edd;
+    }
+    body.theme-blackhole #gear-btn,
+    body.theme-blackhole #sound-btn {
+        background: rgba(0, 0, 0, 0.6);
+        border-color: var(--tether-color);
+        color: var(--tether-color);
+        box-shadow: 0 0 10px rgba(189, 224, 254, 0.4);
+    }
+    body.theme-blackhole #gear-btn:hover,
+    body.theme-blackhole #sound-btn:hover {
+        background: var(--tether-color);
+        color: #000;
+        box-shadow: 0 0 20px var(--tether-color);
+    }
+    body.theme-blackhole #top-bar {
+        background-color: #2a2d34;
+        background-image:
+            linear-gradient(90deg, transparent 50%, rgba(0,0,0,0.5) 50%),
+            linear-gradient(0deg, #1f2228 0%, #3d424b 50%, #1f2228 100%);
+        background-size: 30px 100%, 100% 100%;
+        border-top: 2px solid #5a606d;
+        border-bottom: 3px solid #111;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.8), 0 0 15px rgba(136, 204, 255, 0.2);
+    }
+    body.theme-blackhole .team-name {
+        color: #fff;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    }
+    body.theme-volcano .modal-content {
+        border-color: #f97316;
+        box-shadow: 0 10px 40px rgba(234, 88, 12, 0.45);
+    }
+    body.theme-volcano .start-btn {
+        background: #ea580c;
+    }
+    body.theme-volcano .start-btn:hover {
+        background: #c2410c;
+    }
 
     /* Settings Gear Button */
     #gear-btn {
@@ -124,6 +272,18 @@
         background: #00b4d8; color: #fff;
         box-shadow: 0 0 15px #00b4d8;
     }
+    body.theme-volcano #gear-btn,
+    body.theme-volcano #sound-btn {
+        background: rgba(28, 25, 23, 0.85);
+        border-color: #f97316;
+        color: #fed7aa;
+    }
+    body.theme-volcano #gear-btn:hover,
+    body.theme-volcano #sound-btn:hover {
+        background: #ea580c;
+        color: #fff;
+        box-shadow: 0 0 15px #f97316;
+    }
 
     /* Main Game Board */
     #board {
@@ -146,6 +306,11 @@
         border-bottom: 3px solid #3e2723;
         z-index: 10;
         box-shadow: 0 8px 15px rgba(0,0,0,0.25);
+    }
+    body.theme-volcano #top-bar {
+        border-top: 2px solid #57534e;
+        border-bottom: 3px solid #1c1917;
+        box-shadow: 0 8px 18px rgba(0,0,0,0.6), 0 2px 10px rgba(249, 115, 22, 0.25);
     }
 
     /* Team Columns */
@@ -174,6 +339,10 @@
         color: #03045e; margin-bottom: 8px; text-align: center;
         width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+    }
+    body.theme-volcano .team-name {
+        color: #fef3c7;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.85);
     }
     
     /* Inline Status Bar */
@@ -229,17 +398,20 @@
         top: 0px; 
         left: 50%; transform: translateX(-50%);
         width: 4px;
-        background: repeating-linear-gradient(0deg, var(--rope-color), var(--rope-color) 10px, #a87b51 10px, #a87b51 20px);
+        background: repeating-linear-gradient(0deg, var(--rope-color), var(--rope-color) 10px, var(--rope-stripe) 10px, var(--rope-stripe) 20px);
         height: 0px; 
         transition: height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     
     /* Dead / Bitten Rope hanging in the wind */
     .rope.bitten {
-        background: repeating-linear-gradient(0deg, var(--rope-color), var(--rope-color) 10px, #a87b51 10px, #a87b51 20px);
+        background: repeating-linear-gradient(0deg, var(--rope-color), var(--rope-color) 10px, var(--rope-stripe) 10px, var(--rope-stripe) 20px);
         border-bottom: 4px dashed #8d6e63; /* Jagged bite end */
         animation: ropeSway 2.5s ease-in-out infinite alternate;
         transform-origin: top center;
+    }
+    body.theme-volcano .rope.bitten {
+        border-bottom-color: #f97316;
     }
 
     .stick-figure-wrapper {
@@ -300,7 +472,6 @@
         stroke-width: 3;
         animation: waveSlide 6s linear infinite;
     }
-
     /* Patrolling Shark Fin */
     #shark {
         position: absolute;
@@ -318,6 +489,270 @@
         width: 140px; height: 16px;
         background: radial-gradient(ellipse at center, rgba(255,255,255,0.7) 0%, transparent 70%);
         animation: wakePulse 1.2s ease-in-out infinite alternate;
+    }
+
+    /* --- VOLCANO THEME SCENE (Distinct from Shark Ocean) --- */
+    body.theme-volcano #shark,
+    body.theme-volcano #sea-container {
+        display: none;
+    }
+
+    #volcano-scene {
+        display: none;
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+        overflow: hidden;
+    }
+    body.theme-volcano #volcano-scene {
+        display: block;
+    }
+
+    #volcano-mountains {
+        position: absolute;
+        bottom: 14vh;
+        left: 0;
+        width: 100%;
+        height: 58vh;
+    }
+
+    .smoke-plume {
+        position: absolute;
+        left: 50%;
+        bottom: 52vh;
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(120, 113, 108, 0.55) 0%, rgba(68, 64, 60, 0.25) 55%, transparent 75%);
+        animation: smokeRise 7s ease-out infinite;
+    }
+    .smoke-plume:nth-child(2) { animation-delay: -2.3s; width: 90px; height: 90px; }
+    .smoke-plume:nth-child(3) { animation-delay: -4.6s; width: 110px; height: 110px; }
+
+    #caldera-container {
+        display: none;
+        position: absolute;
+        bottom: 0; left: 0;
+        width: 100%;
+        height: 18vh;
+        z-index: 15;
+        pointer-events: none;
+    }
+    body.theme-volcano #caldera-container {
+        display: block;
+    }
+    .caldera-glow {
+        position: absolute;
+        bottom: 0; left: 0;
+        width: 100%; height: 100%;
+        background: linear-gradient(to bottom, rgba(249, 115, 22, 0) 0%, rgba(234, 88, 12, 0.45) 22%, #dc2626 42%, #7f1d1d 75%, #2a0606 100%);
+        animation: magmaPulse 3s ease-in-out infinite alternate;
+    }
+    .caldera-crust {
+        position: absolute;
+        top: -18px; left: 0;
+        width: 100%;
+        height: 44px;
+    }
+    .lava-bubble {
+        position: absolute;
+        bottom: 12vh;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 35%, #fef08a 0%, #f97316 55%, #b91c1c 100%);
+        box-shadow: 0 0 12px #f97316;
+        animation: bubblePop 2.8s ease-in-out infinite;
+    }
+
+    body.theme-volcano .rope {
+        display: none;
+    }
+    .charred-marker {
+        display: none;
+        position: absolute;
+        top: 18px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 26px;
+        opacity: 0.75;
+        filter: drop-shadow(0 0 6px #f97316);
+    }
+    body.theme-volcano .charred-marker.visible {
+        display: block;
+    }
+
+    .ember {
+        position: absolute;
+        border-radius: 50%;
+        pointer-events: none;
+        background: radial-gradient(circle, #fef08a 0%, #f97316 60%, transparent 100%);
+        box-shadow: 0 0 8px #f97316;
+    }
+
+    @keyframes smokeRise {
+        0% { transform: translate(-50%, 0) scale(0.6); opacity: 0; }
+        20% { opacity: 0.65; }
+        100% { transform: translate(calc(-50% + 45px), -260px) scale(2.4); opacity: 0; }
+    }
+    @keyframes magmaPulse {
+        0% { filter: brightness(0.95); }
+        100% { filter: brightness(1.18); }
+    }
+    @keyframes bubblePop {
+        0%, 100% { transform: translateY(0) scale(0.4); opacity: 0; }
+        45% { transform: translateY(-10px) scale(1); opacity: 0.95; }
+        70% { transform: translateY(-14px) scale(1.25); opacity: 0.9; }
+        85% { transform: translateY(-16px) scale(1.45); opacity: 0; }
+    }
+
+    /* --- BLACK HOLE THEME SCENE --- */
+    body.theme-blackhole #shark,
+    body.theme-blackhole #sea-container,
+    body.theme-blackhole #volcano-scene,
+    body.theme-blackhole #caldera-container {
+        display: none;
+    }
+
+    .quiver-container {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        transform-origin: top center;
+    }
+
+    body.theme-blackhole .rope {
+        background: var(--tether-color);
+        box-shadow: 0 0 8px #00bbf9;
+    }
+    body.theme-blackhole .rope.snapped {
+        height: 0 !important;
+        box-shadow: none;
+        transition: height 0.1s ease-in;
+    }
+
+    body.theme-blackhole .stick-figure-wrapper.dead-state {
+        opacity: 1;
+        animation: spaghettify 3s forwards cubic-bezier(0.5, 0, 1, 1);
+    }
+
+    .sf-dead-eye { display: none; }
+    .sf-alive-eye { display: block; }
+    .dead .sf-dead-eye { display: block; }
+    .dead .sf-alive-eye { display: none; }
+
+    /* Dynamic Character Expressions */
+    .expr-happy, .expr-nervous, .expr-panic { display: none; }
+    .mood-happy .expr-happy { display: block; }
+    .mood-nervous .expr-nervous { display: block; }
+    .mood-panic .expr-panic { display: block; }
+
+    #black-hole-container {
+        display: none;
+        position: absolute;
+        bottom: -10vh;
+        left: 0;
+        width: 100vw;
+        height: 30vh;
+        pointer-events: none;
+        z-index: 15;
+    }
+    body.theme-blackhole #black-hole-container {
+        display: block;
+    }
+
+    .event-horizon {
+        position: absolute;
+        width: 20vw; height: 20vw;
+        left: 50%; top: 50%;
+        margin-left: -10vw; margin-top: -10vw;
+        border-radius: 50%;
+        background: #000;
+        box-shadow:
+            inset 0 0 20px #000,
+            0 0 40px 10px #000,
+            0 0 60px 20px var(--bh-glow),
+            0 0 120px 40px var(--bh-accretion);
+        z-index: 2;
+    }
+    .disk-wrapper {
+        position: absolute;
+        width: 70vw; height: 70vw;
+        left: 50%; top: 50%;
+        margin-left: -35vw; margin-top: -35vw;
+        transform: rotateX(76deg);
+        border-radius: 50%;
+    }
+    .disk-wrapper.back {
+        z-index: 1;
+        clip-path: polygon(0 0, 100% 0, 100% 50%, 0 50%);
+    }
+    .disk-wrapper.front {
+        z-index: 10;
+        clip-path: polygon(0 50%, 100% 50%, 100% 100%, 0 100%);
+    }
+    .disk-spin {
+        width: 100%; height: 100%;
+        border-radius: 50%;
+        background: conic-gradient(
+            rgba(255,150,0,0.1),
+            rgba(255,200,50,0.8) 20%,
+            rgba(255,150,0,0.1) 40%,
+            rgba(255,200,50,0.8) 60%,
+            rgba(255,150,0,0.1) 80%,
+            rgba(255,200,50,0.8) 100%
+        );
+        -webkit-mask-image: radial-gradient(closest-side, transparent 35%, black 40%, black 80%, transparent 100%);
+        mask-image: radial-gradient(closest-side, transparent 35%, black 40%, black 80%, transparent 100%);
+        animation: spinDisk 10s linear infinite;
+        box-shadow: 0 0 50px rgba(255,158,0,0.5), inset 0 0 50px rgba(255,158,0,0.5);
+    }
+
+    .radiation-flash {
+        display: none;
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        background: radial-gradient(circle at 50% 100%, rgba(123, 44, 191, 0.4) 0%, transparent 80%);
+        pointer-events: none; z-index: 0; opacity: 0;
+    }
+    body.theme-blackhole .radiation-flash { display: block; }
+    .flash-active { animation: flashAnim 2s ease-out forwards; }
+
+    .radiation-particle {
+        position: absolute;
+        bottom: 5vh; left: 50%;
+        width: 3px; height: 18px;
+        background: #fff;
+        border-radius: 2px;
+        box-shadow: 0 0 10px 3px #00f5d4;
+        pointer-events: none; z-index: 15;
+    }
+
+    @keyframes spinDisk {
+        0% { transform: rotateZ(0deg); }
+        100% { transform: rotateZ(360deg); }
+    }
+    @keyframes flashAnim {
+        0% { opacity: 0; background-color: rgba(123, 44, 191, 0); }
+        10% { opacity: 1; background-color: rgba(123, 44, 191, 0.25); }
+        100% { opacity: 0; background-color: rgba(123, 44, 191, 0); }
+    }
+    @keyframes quiver {
+        0% { transform: translate(0, 0); }
+        20% { transform: translate(calc(-1px * var(--quiver)), calc(1px * var(--quiver))); }
+        40% { transform: translate(calc(1px * var(--quiver)), calc(-1px * var(--quiver))); }
+        60% { transform: translate(calc(-1px * var(--quiver)), calc(-1px * var(--quiver))); }
+        80% { transform: translate(calc(1px * var(--quiver)), calc(1px * var(--quiver))); }
+        100% { transform: translate(0, 0); }
+    }
+    @keyframes spaghettify {
+        0% {
+            transform: translateX(-50%) scale(1) translateY(0);
+            opacity: 1;
+            filter: brightness(1) hue-rotate(0deg);
+        }
+        100% {
+            transform: translateX(-50%) scaleY(15) scaleX(0.01) translateY(150px);
+            opacity: 0;
+            filter: brightness(3) hue-rotate(90deg);
+        }
     }
 
     /* Event Elements */
@@ -380,6 +815,57 @@
     <source src="tracker_shark_sound.mp3" type="audio/mpeg">
 </audio>
 
+<!-- Volcano Theme Scene (Mountain Range, Smoke Plumes, Bubbling Caldera) -->
+<div id="volcano-scene">
+    <div class="smoke-plume"></div>
+    <div class="smoke-plume"></div>
+    <div class="smoke-plume"></div>
+    <svg id="volcano-mountains" viewBox="0 0 1200 450" preserveAspectRatio="none">
+        <defs>
+            <linearGradient id="volcano-grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#291518"/>
+                <stop offset="100%" stop-color="#120709"/>
+            </linearGradient>
+            <linearGradient id="ridge-grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#1c1114"/>
+                <stop offset="100%" stop-color="#0d0507"/>
+            </linearGradient>
+            <radialGradient id="crater-glow" cx="50%" cy="22%" r="35%">
+                <stop offset="0%" stop-color="#fde047" stop-opacity="0.8"/>
+                <stop offset="45%" stop-color="#f97316" stop-opacity="0.45"/>
+                <stop offset="100%" stop-color="#dc2626" stop-opacity="0"/>
+            </radialGradient>
+        </defs>
+        <!-- Side jagged volcanic ridges -->
+        <polygon points="0,450 0,240 140,170 280,290 390,220 480,450" fill="url(#ridge-grad)"/>
+        <polygon points="720,450 830,210 950,275 1080,150 1200,235 1200,450" fill="url(#ridge-grad)"/>
+        <!-- Central Erupting Volcano -->
+        <ellipse cx="600" cy="115" rx="210" ry="95" fill="url(#crater-glow)"/>
+        <path d="M 240 450 L 505 110 L 555 125 L 600 106 L 645 125 L 695 110 L 960 450 Z" fill="url(#volcano-grad)"/>
+        <!-- Lava rivers down the slopes -->
+        <path d="M 555 125 Q 600 140 645 125 L 632 195 Q 612 165 600 245 Q 588 175 568 205 Z" fill="#f97316" opacity="0.85"/>
+        <path d="M 582 128 Q 600 145 618 128 L 608 180 L 600 162 L 592 188 Z" fill="#fde047" opacity="0.95"/>
+        <path d="M 525 145 Q 495 210 465 280 Q 485 215 510 155 Z" fill="#ea580c" opacity="0.65"/>
+        <path d="M 675 145 Q 710 220 745 310 Q 715 225 688 155 Z" fill="#ea580c" opacity="0.65"/>
+    </svg>
+</div>
+
+<div id="caldera-container">
+    <div class="caldera-glow"></div>
+    <svg class="caldera-crust" viewBox="0 0 1200 50" preserveAspectRatio="none">
+        <polygon points="0,30 60,12 130,28 210,8 290,32 370,14 450,28 540,10 620,30 710,12 800,29 890,9 970,28 1060,14 1140,27 1200,15 1200,50 0,50" fill="#1c1917"/>
+        <polyline points="0,30 60,12 130,28 210,8 290,32 370,14 450,28 540,10 620,30 710,12 800,29 890,9 970,28 1060,14 1140,27 1200,15" fill="none" stroke="#f97316" stroke-width="3"/>
+    </svg>
+    <div class="lava-bubble" style="left:12%; width:18px; height:18px; animation-delay:0s;"></div>
+    <div class="lava-bubble" style="left:29%; width:24px; height:24px; animation-delay:-1.1s;"></div>
+    <div class="lava-bubble" style="left:47%; width:16px; height:16px; animation-delay:-0.6s;"></div>
+    <div class="lava-bubble" style="left:66%; width:26px; height:26px; animation-delay:-1.9s;"></div>
+    <div class="lava-bubble" style="left:84%; width:20px; height:20px; animation-delay:-0.4s;"></div>
+</div>
+
+<!-- Ambient Flash Element for Black Hole Hawking Radiation Events -->
+<div id="ambient-flash" class="radiation-flash"></div>
+
 <!-- Sky Background Events Layer (Behind Players) -->
 <div id="sky-events"></div>
 
@@ -387,17 +873,31 @@
 <div id="settings-modal">
     <div class="modal-content">
         <h2>Game Settings</h2>
-        <div class="form-group">
-            <label for="lives-input">Lives:</label>
-            <input type="number" id="lives-input" value="5" min="1" max="50">
-        </div>
-        <div class="form-group">
-            <label for="teams-input">Number of Teams:</label>
-            <input type="number" id="teams-input" value="4" min="1" max="15">
-        </div>
-        <div class="form-group">
-            <label>Team Names:</label>
-            <div class="team-names-scroll" id="team-names-list"></div>
+        <div class="modal-grid">
+            <div class="modal-col-left">
+                <div class="form-group">
+                    <label>Theme:</label>
+                    <div class="theme-toggle">
+                        <button type="button" class="theme-btn active" data-theme="shark" id="theme-shark-btn" onclick="selectTheme('shark')">🦈 Shark</button>
+                        <button type="button" class="theme-btn" data-theme="volcano" id="theme-volcano-btn" onclick="selectTheme('volcano')">🌋 Volcano</button>
+                        <button type="button" class="theme-btn" data-theme="blackhole" id="theme-blackhole-btn" onclick="selectTheme('blackhole')">🌀 Black Hole</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="lives-input">Lives:</label>
+                    <input type="number" id="lives-input" value="5" min="1" max="50">
+                </div>
+                <div class="form-group">
+                    <label for="teams-input">Number of Teams / Students:</label>
+                    <input type="number" id="teams-input" value="4" min="1" max="15">
+                </div>
+            </div>
+            <div class="modal-col-right">
+                <div class="form-group">
+                    <label>Team / Student Names:</label>
+                    <div class="team-names-scroll" id="team-names-list"></div>
+                </div>
+            </div>
         </div>
         <button class="start-btn" onclick="startGame()">Start / Apply</button>
     </div>
@@ -411,9 +911,9 @@
     <!-- Team columns injected here via JS -->
 </div>
 
-<!-- Scaled Up Patrolling Shark Fin -->
+<!-- Scaled Up Patrolling Hazard Fin -->
 <div id="shark">
-    <svg viewBox="0 0 100 100" style="width: 100%; height: 100%;">
+    <svg id="hazard-svg" viewBox="0 0 100 100" style="width: 100%; height: 100%;">
         <path d="M 10 90 C 32 55 58 10 92 4 Q 72 48 80 90 Z" fill="#1e293b"/>
         <path d="M 22 82 C 40 52 58 22 84 10 Q 72 44 76 82 Z" fill="#334155"/>
         <path d="M 5 88 Q 45 78 95 88 Z" fill="rgba(255,255,255,0.6)"/>
@@ -432,10 +932,50 @@
     </svg>
 </div>
 
+<!-- Black Hole Environment (Black Hole Theme) -->
+<div id="black-hole-container">
+    <div class="disk-wrapper back">
+        <div class="disk-spin"></div>
+    </div>
+    <div class="event-horizon"></div>
+    <div class="disk-wrapper front">
+        <div class="disk-spin"></div>
+    </div>
+</div>
+
 <script>
     let maxLives = 5;
     let numTeams = 4;
     let teams = [];
+    let draftTeamNames = [];
+    let currentTheme = 'shark';
+    try {
+        const savedTheme = localStorage.getItem('tracker_theme');
+        if (savedTheme === 'volcano' || savedTheme === 'shark' || savedTheme === 'blackhole') currentTheme = savedTheme;
+    } catch (e) {}
+
+    function selectTheme(theme) {
+        currentTheme = theme;
+        applyTheme(theme);
+    }
+
+    function applyTheme(theme) {
+        document.body.classList.toggle('theme-volcano', theme === 'volcano');
+        document.body.classList.toggle('theme-blackhole', theme === 'blackhole');
+        document.getElementById('theme-shark-btn').classList.toggle('active', theme === 'shark');
+        document.getElementById('theme-volcano-btn').classList.toggle('active', theme === 'volcano');
+        document.getElementById('theme-blackhole-btn').classList.toggle('active', theme === 'blackhole');
+        const titles = {
+            shark: 'Classroom Points Tracker - Shark Edition',
+            volcano: 'Classroom Points Tracker - Volcano Edition',
+            blackhole: 'Classroom Points Tracker - Black Hole Edition'
+        };
+        document.title = titles[theme] || titles.shark;
+        try { localStorage.setItem('tracker_theme', theme); } catch (e) {}
+        if (teams.length > 0) {
+            renderBoard();
+        }
+    }
 
     const palette = [
         '#FF595E', '#FFCA3A', '#8AC926', '#1982C4', '#6A4C93', 
@@ -449,6 +989,7 @@
     const teamNamesList = document.getElementById('team-names-list');
     const board = document.getElementById('board');
     const skyEvents = document.getElementById('sky-events');
+    const ambientFlash = document.getElementById('ambient-flash');
     const bgAudio = document.getElementById('bg-audio');
     const soundBtn = document.getElementById('sound-btn');
     let isPlaying = false;
@@ -480,13 +1021,19 @@
     teamsInput.addEventListener('input', updateTeamNameInputs);
 
     function updateTeamNameInputs() {
-        const count = parseInt(teamsInput.value) || 1;
+        const currentInputs = teamNamesList.querySelectorAll('.team-name-input');
+        currentInputs.forEach((inp, idx) => {
+            draftTeamNames[idx] = inp.value;
+        });
+        const count = Math.max(1, Math.min(15, parseInt(teamsInput.value) || 1));
         teamNamesList.innerHTML = '';
-        for(let i = 0; i < count; i++) {
+        for (let i = 0; i < count; i++) {
             const input = document.createElement('input');
             input.type = 'text';
             input.className = 'team-name-input';
-            input.value = (teams[i] && teams[i].name) ? teams[i].name : `Team ${i + 1}`;
+            input.value = (draftTeamNames[i] !== undefined && draftTeamNames[i] !== '')
+                ? draftTeamNames[i]
+                : (teams[i] && teams[i].name) ? teams[i].name : `Team ${i + 1}`;
             teamNamesList.appendChild(input);
         }
     }
@@ -495,6 +1042,8 @@
         modal.style.display = 'flex';
         teamsInput.value = teams.length || 4;
         livesInput.value = maxLives;
+        draftTeamNames = teams.map(t => t.name);
+        teamNamesList.innerHTML = '';
         updateTeamNameInputs();
     }
 
@@ -555,24 +1104,165 @@
                     </div>
                 </div>
                 
-                <div class="pendulum-container" id="pendulum-${index}" style="animation: sway ${swayDuration}s ease-in-out ${swayDelay}s infinite alternate;">
+                <div class="pendulum-container" id="pendulum-${index}" style="animation: ${currentTheme === 'volcano' ? 'none' : `sway ${swayDuration}s ease-in-out ${swayDelay}s infinite alternate`};">
                     <div class="jerk-container" id="jerk-${index}">
+                        <div class="quiver-container" id="quiver-${index}">
                         <div class="rope" id="rope-${index}"></div>
+                        <div class="charred-marker" id="charred-${index}">🔥</div>
                         <div class="stick-figure-wrapper" id="figure-wrapper-${index}">
-                            <svg class="stick-figure" viewBox="0 0 100 200">
-                                <line x1="50" y1="0" x2="50" y2="40" stroke="var(--rope-color)" stroke-width="4"/>
-                                <line x1="50" y1="40" x2="50" y2="90" stroke="${team.color}" stroke-width="6" stroke-linecap="round"/>
-                                <polyline points="50,90 75,60 85,75" fill="none" stroke="${team.color}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-                                <line x1="50" y1="90" x2="50" y2="140" stroke="${team.color}" stroke-width="6" stroke-linecap="round"/>
-                                
-                                <polyline points="50,140 25,160 20,190" fill="none" stroke="${team.color}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-                                <polyline points="50,140 75,160 80,190" fill="none" stroke="${team.color}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-                                
-                                <circle cx="50" cy="170" r="18" fill="var(--sky-bottom)" stroke="${team.color}" stroke-width="6"/>
-                                <circle cx="43" cy="170" r="2.5" fill="${team.color}"/>
-                                <circle cx="57" cy="170" r="2.5" fill="${team.color}"/>
-                                <path d="M 42 182 Q 50 188 58 182" stroke="${team.color}" stroke-width="2.5" fill="none"/>
+                            ${currentTheme === 'volcano' ? `
+                            <svg class="stick-figure" id="figure-svg-${index}" viewBox="0 0 100 200">
+                                <!-- Adventure Backpack -->
+                                <rect x="26" y="74" width="16" height="34" rx="6" fill="#44403c" stroke="#1c1917" stroke-width="2"/>
+                                <!-- Legs & Boots -->
+                                <path d="M 45 114 Q 38 136 35 156" fill="none" stroke="#1c1917" stroke-width="10" stroke-linecap="round"/>
+                                <path d="M 45 114 Q 38 136 35 156" fill="none" stroke="${team.color}" stroke-width="6" stroke-linecap="round"/>
+                                <path d="M 55 114 Q 62 136 65 156" fill="none" stroke="#1c1917" stroke-width="10" stroke-linecap="round"/>
+                                <path d="M 55 114 Q 62 136 65 156" fill="none" stroke="${team.color}" stroke-width="6" stroke-linecap="round"/>
+                                <rect x="27" y="152" width="14" height="8" rx="4" fill="#292524"/>
+                                <rect x="59" y="152" width="14" height="8" rx="4" fill="#292524"/>
+                                <!-- Torso / Vest -->
+                                <rect x="38" y="68" width="24" height="48" rx="10" fill="${team.color}" stroke="#1c1917" stroke-width="2.5"/>
+                                <!-- Bandana / Scarf -->
+                                <path d="M 38 72 Q 50 82 62 72 L 66 84 L 54 78 Z" fill="#fde047" stroke="#1c1917" stroke-width="1.5"/>
+                                <!-- Expressive Arms & Hands -->
+                                <path d="M 39 76 Q 22 86 20 68" fill="none" stroke="${team.color}" stroke-width="6" stroke-linecap="round"/>
+                                <circle cx="20" cy="66" r="4.5" fill="#fde68a" stroke="#1c1917" stroke-width="1.5"/>
+                                <path d="M 61 76 Q 78 86 80 68" fill="none" stroke="${team.color}" stroke-width="6" stroke-linecap="round"/>
+                                <circle cx="80" cy="66" r="4.5" fill="#fde68a" stroke="#1c1917" stroke-width="1.5"/>
+                                <!-- Head -->
+                                <circle cx="50" cy="48" r="18" fill="#fde68a" stroke="#1c1917" stroke-width="2.5"/>
+                                <!-- Rosy Cheeks -->
+                                <circle cx="38" cy="52" r="3" fill="#fb7185" opacity="0.6"/>
+                                <circle cx="62" cy="52" r="3" fill="#fb7185" opacity="0.6"/>
+                                <!-- Explorer Helmet & Glowing Headlamp -->
+                                <path d="M 30 42 Q 50 18 70 42 Z" fill="${team.color}" stroke="#1c1917" stroke-width="2"/>
+                                <rect x="28" y="40" width="44" height="5" rx="2.5" fill="${team.color}" stroke="#1c1917" stroke-width="1.5"/>
+                                <circle cx="50" cy="33" r="5" fill="#fef08a" stroke="#1c1917" stroke-width="1.5"/>
+                                <!-- Mood: Happy -->
+                                <g class="expr-happy">
+                                    <circle cx="43" cy="48" r="2.8" fill="#1c1917"/><circle cx="42" cy="47" r="1" fill="#fff"/>
+                                    <circle cx="57" cy="48" r="2.8" fill="#1c1917"/><circle cx="56" cy="47" r="1" fill="#fff"/>
+                                    <path d="M 43 56 Q 50 62 57 56" fill="none" stroke="#1c1917" stroke-width="2.2" stroke-linecap="round"/>
+                                </g>
+                                <!-- Mood: Nervous -->
+                                <g class="expr-nervous">
+                                    <circle cx="43" cy="48" r="3.4" fill="#fff" stroke="#1c1917" stroke-width="1.5"/><circle cx="43" cy="48" r="1.5" fill="#1c1917"/>
+                                    <circle cx="57" cy="48" r="3.4" fill="#fff" stroke="#1c1917" stroke-width="1.5"/><circle cx="57" cy="48" r="1.5" fill="#1c1917"/>
+                                    <path d="M 43 58 Q 47 55 50 58 Q 53 61 57 58" fill="none" stroke="#1c1917" stroke-width="2" stroke-linecap="round"/>
+                                    <path d="M 65 42 Q 68 47 65 50 Q 62 47 65 42 Z" fill="#38bdf8"/>
+                                </g>
+                                <!-- Mood: Panic -->
+                                <g class="expr-panic">
+                                    <circle cx="43" cy="48" r="4" fill="#fff" stroke="#1c1917" stroke-width="1.5"/><circle cx="43" cy="49" r="1.3" fill="#1c1917"/>
+                                    <circle cx="57" cy="48" r="4" fill="#fff" stroke="#1c1917" stroke-width="1.5"/><circle cx="57" cy="49" r="1.3" fill="#1c1917"/>
+                                    <ellipse cx="50" cy="58" rx="4.5" ry="5" fill="#7f1d1d" stroke="#1c1917" stroke-width="1.5"/>
+                                    <path d="M 66 40 Q 69 45 66 48 Q 63 45 66 40 Z" fill="#38bdf8"/>
+                                </g>
+                                <!-- Crumbling Obsidian Rock Platform -->
+                                <polygon points="8,160 92,160 82,188 55,197 20,186" fill="#292524" stroke="#57534e" stroke-width="2.5"/>
+                                <polyline points="24,174 44,179 58,170 76,177" fill="none" stroke="#f97316" stroke-width="2.5" stroke-linecap="round"/>
                             </svg>
+                            ` : currentTheme === 'blackhole' ? `
+                            <svg class="stick-figure" id="figure-svg-${index}" viewBox="0 0 100 200">
+                                <!-- Glow Tether -->
+                                <line x1="50" y1="0" x2="50" y2="42" stroke="var(--tether-color)" stroke-width="4"/>
+                                <!-- Life-support Backpack (Upside-down) -->
+                                <rect x="33" y="92" width="34" height="44" rx="8" fill="#334155" stroke="#0f172a" stroke-width="2"/>
+                                <!-- Leg 1 (Tethered to ankle, straight to hip) -->
+                                <line x1="50" y1="42" x2="50" y2="90" stroke="#e2e8f0" stroke-width="9" stroke-linecap="round"/>
+                                <line x1="50" y1="42" x2="50" y2="90" stroke="${team.color}" stroke-width="5" stroke-linecap="round"/>
+                                <ellipse cx="50" cy="40" rx="8" ry="5" fill="#1e293b" stroke="${team.color}" stroke-width="2"/>
+                                <!-- Leg 2 (Bent knee kicking out from hip) -->
+                                <polyline points="50,90 72,62 82,76" fill="none" stroke="#e2e8f0" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+                                <polyline points="50,90 72,62 82,76" fill="none" stroke="${team.color}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <ellipse cx="84" cy="78" rx="6" ry="5" fill="#1e293b" stroke="${team.color}" stroke-width="2"/>
+                                <!-- Space Suit Torso -->
+                                <rect x="38" y="88" width="24" height="52" rx="11" fill="#f8fafc" stroke="${team.color}" stroke-width="3.5"/>
+                                <rect x="43" y="105" width="14" height="10" rx="3" fill="${team.color}"/>
+                                <!-- Flailing Space Arms & Gloves -->
+                                <path d="M 38 134 Q 20 152 18 176" fill="none" stroke="#f8fafc" stroke-width="8" stroke-linecap="round"/>
+                                <path d="M 38 134 Q 20 152 18 176" fill="none" stroke="${team.color}" stroke-width="4" stroke-linecap="round"/>
+                                <circle cx="18" cy="178" r="5" fill="${team.color}" stroke="#0f172a" stroke-width="1.5"/>
+                                <path d="M 62 134 Q 80 152 82 176" fill="none" stroke="#f8fafc" stroke-width="8" stroke-linecap="round"/>
+                                <path d="M 62 134 Q 80 152 82 176" fill="none" stroke="${team.color}" stroke-width="4" stroke-linecap="round"/>
+                                <circle cx="82" cy="178" r="5" fill="${team.color}" stroke="#0f172a" stroke-width="1.5"/>
+                                <!-- Space Helmet & Wide Rounded Visor -->
+                                <circle cx="50" cy="168" r="24" fill="#0f172a" stroke="${team.color}" stroke-width="4"/>
+                                <rect x="31" y="153" width="38" height="30" rx="14" fill="rgba(56, 189, 248, 0.35)" stroke="rgba(255,255,255,0.85)" stroke-width="1.5"/>
+                                <!-- Visor Glint -->
+                                <path d="M 37 177 Q 43 181 49 180" fill="none" stroke="rgba(255,255,255,0.65)" stroke-width="2" stroke-linecap="round"/>
+                                <!-- Upside-down Expressions inside Visor -->
+                                <g class="sf-alive-eye">
+                                    <g class="expr-happy">
+                                        <circle cx="43" cy="171" r="2.8" fill="#fff"/><circle cx="43" cy="171" r="1.2" fill="#0f172a"/>
+                                        <circle cx="57" cy="171" r="2.8" fill="#fff"/><circle cx="57" cy="171" r="1.2" fill="#0f172a"/>
+                                        <path d="M 43 161 Q 50 155 57 161" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+                                    </g>
+                                    <g class="expr-nervous">
+                                        <circle cx="43" cy="171" r="3.4" fill="#fff"/><circle cx="43" cy="171" r="1.4" fill="#0f172a"/>
+                                        <circle cx="57" cy="171" r="3.4" fill="#fff"/><circle cx="57" cy="171" r="1.4" fill="#0f172a"/>
+                                        <path d="M 43 160 Q 47 163 50 160 Q 53 157 57 160" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>
+                                    </g>
+                                    <g class="expr-panic">
+                                        <circle cx="43" cy="171" r="3.8" fill="#fff"/><circle cx="43" cy="170" r="1.2" fill="#0f172a"/>
+                                        <circle cx="57" cy="171" r="3.8" fill="#fff"/><circle cx="57" cy="170" r="1.2" fill="#0f172a"/>
+                                        <ellipse cx="50" cy="160" rx="4" ry="4.5" fill="#ef4444" stroke="#fff" stroke-width="1.5"/>
+                                    </g>
+                                </g>
+                                <!-- Dead Face -->
+                                <path d="M 40 167 L 46 173 M 46 167 L 40 173" stroke="${team.color}" stroke-width="2.5" class="sf-dead-eye"/>
+                                <path d="M 54 167 L 60 173 M 60 167 L 54 173" stroke="${team.color}" stroke-width="2.5" class="sf-dead-eye"/>
+                                <path d="M 42 159 Q 50 165 58 159" stroke="${team.color}" stroke-width="2.5" fill="none" class="sf-mouth sf-dead-eye"/>
+                            </svg>
+                            ` : `
+                            <svg class="stick-figure" id="figure-svg-${index}" viewBox="0 0 100 200">
+                                <!-- Rope around Ankle -->
+                                <line x1="50" y1="0" x2="50" y2="42" stroke="var(--rope-color)" stroke-width="4.5"/>
+                                <!-- Dangling Legs & Swim Flippers -->
+                                <path d="M 48 42 Q 46 66 50 90" fill="none" stroke="${team.color}" stroke-width="7" stroke-linecap="round"/>
+                                <polygon points="44,40 56,40 60,26 40,28" fill="#0f172a" stroke="${team.color}" stroke-width="1.8"/>
+                                <path d="M 50 90 Q 70 62 82 76" fill="none" stroke="${team.color}" stroke-width="7" stroke-linecap="round"/>
+                                <polygon points="78,74 88,76 92,62 76,62" fill="#0f172a" stroke="${team.color}" stroke-width="1.8"/>
+                                <!-- Torso / Life Vest -->
+                                <rect x="39" y="88" width="22" height="50" rx="10" fill="${team.color}" stroke="#1e293b" stroke-width="2"/>
+                                <path d="M 42 104 L 58 104 M 42 116 L 58 116" stroke="rgba(255,255,255,0.45)" stroke-width="2.5" stroke-linecap="round"/>
+                                <!-- Expressive Arms & Hands -->
+                                <path d="M 39 134 Q 22 152 18 178" fill="none" stroke="${team.color}" stroke-width="6" stroke-linecap="round"/>
+                                <circle cx="18" cy="180" r="4.5" fill="#fde68a" stroke="#1e293b" stroke-width="1.5"/>
+                                <path d="M 61 134 Q 78 152 82 178" fill="none" stroke="${team.color}" stroke-width="6" stroke-linecap="round"/>
+                                <circle cx="82" cy="180" r="4.5" fill="#fde68a" stroke="#1e293b" stroke-width="1.5"/>
+                                <!-- Head -->
+                                <circle cx="50" cy="168" r="19" fill="#fde68a" stroke="#1e293b" stroke-width="2.5"/>
+                                <!-- Rosy Cheeks -->
+                                <circle cx="38" cy="165" r="3" fill="#fb7185" opacity="0.6"/>
+                                <circle cx="62" cy="165" r="3" fill="#fb7185" opacity="0.6"/>
+                                <!-- Swim Goggles on Forehead (Bottom since upside-down) -->
+                                <rect x="36" y="176" width="12" height="7" rx="3" fill="#38bdf8" stroke="#1e293b" stroke-width="1.5"/>
+                                <rect x="52" y="176" width="12" height="7" rx="3" fill="#38bdf8" stroke="#1e293b" stroke-width="1.5"/>
+                                <!-- Mood: Happy -->
+                                <g class="expr-happy">
+                                    <circle cx="43" cy="169" r="2.8" fill="#1e293b"/><circle cx="42" cy="168" r="1" fill="#fff"/>
+                                    <circle cx="57" cy="169" r="2.8" fill="#1e293b"/><circle cx="56" cy="168" r="1" fill="#fff"/>
+                                    <path d="M 43 160 Q 50 154 57 160" fill="none" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+                                </g>
+                                <!-- Mood: Nervous -->
+                                <g class="expr-nervous">
+                                    <circle cx="43" cy="169" r="3.4" fill="#fff" stroke="#1e293b" stroke-width="1.5"/><circle cx="43" cy="169" r="1.4" fill="#1e293b"/>
+                                    <circle cx="57" cy="169" r="3.4" fill="#fff" stroke="#1e293b" stroke-width="1.5"/><circle cx="57" cy="169" r="1.4" fill="#1e293b"/>
+                                    <path d="M 43 159 Q 47 162 50 159 Q 53 156 57 159" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round"/>
+                                    <path d="M 65 162 Q 68 157 65 154 Q 62 157 65 162 Z" fill="#38bdf8"/>
+                                </g>
+                                <!-- Mood: Panic -->
+                                <g class="expr-panic">
+                                    <circle cx="43" cy="169" r="4" fill="#fff" stroke="#1e293b" stroke-width="1.5"/><circle cx="43" cy="168" r="1.3" fill="#1e293b"/>
+                                    <circle cx="57" cy="169" r="4" fill="#fff" stroke="#1e293b" stroke-width="1.5"/><circle cx="57" cy="168" r="1.3" fill="#1e293b"/>
+                                    <ellipse cx="50" cy="159" rx="4.5" ry="5" fill="#991b1b" stroke="#1e293b" stroke-width="1.5"/>
+                                    <path d="M 66 164 Q 69 159 66 156 Q 63 159 66 164 Z" fill="#38bdf8"/>
+                                </g>
+                            </svg>
+                            `}
+                        </div>
                         </div>
                     </div>
                 </div>
@@ -593,41 +1283,216 @@
         const wrapper = document.getElementById(`figure-wrapper-${index}`);
         const rope = document.getElementById(`rope-${index}`);
         const pendulum = document.getElementById(`pendulum-${index}`);
+        const charred = document.getElementById(`charred-${index}`);
+        const svg = document.getElementById(`figure-svg-${index}`);
+        const quiverContainer = document.getElementById(`quiver-${index}`);
         
         const lossRatio = (maxLives - team.lives) / maxLives;
+
+        // Update character facial mood based on remaining lives
+        wrapper.classList.remove('mood-happy', 'mood-nervous', 'mood-panic');
+        if (team.lives <= 1) {
+            wrapper.classList.add('mood-panic');
+        } else if (team.lives <= Math.ceil(maxLives / 2)) {
+            wrapper.classList.add('mood-nervous');
+        } else {
+            wrapper.classList.add('mood-happy');
+        }
         
-        const maxTravelStr = `100vh - 18vh - 191px - 130px`; 
+        const maxTravelStr = currentTheme === 'blackhole'
+            ? `95vh - 308px`
+            : `100vh - 18vh - 191px - 130px`; 
         const dropFormula = `calc(${lossRatio} * (${maxTravelStr}))`;
         
         wrapper.style.top = dropFormula;
         rope.style.height = dropFormula;
 
+        if (currentTheme === 'blackhole') {
+            const quiverAmt = Math.pow(lossRatio, 2) * 8;
+            quiverContainer.style.setProperty('--quiver', quiverAmt);
+            if (lossRatio > 0 && team.lives > 0) {
+                const speed = Math.max(0.05, 0.3 - (lossRatio * 0.25));
+                quiverContainer.style.animation = `quiver ${speed}s infinite linear`;
+            } else {
+                quiverContainer.style.animation = 'none';
+            }
+        } else {
+            quiverContainer.style.animation = 'none';
+        }
+
         if (team.lives === 0) {
-            // Character sinks completely underwater (hidden)
             wrapper.classList.add('dead-state');
-            // Rope is cut/bitten and left hanging shorter, swaying in the wind
-            rope.classList.add('bitten');
-            rope.style.height = '150px'; 
-            pendulum.style.animation = 'none'; // Stop normal sway, rope handles its own wind sway
+            if (currentTheme === 'volcano') {
+                charred.classList.add('visible');
+                pendulum.style.animation = 'none';
+                const colCenterPercent = ((index + 0.5) / teams.length) * 100;
+                createSplash(colCenterPercent);
+            } else if (currentTheme === 'blackhole') {
+                svg.classList.add('dead');
+                rope.classList.add('snapped');
+            } else {
+                // Rope is cut/bitten and left hanging shorter, swaying in the wind
+                rope.classList.add('bitten');
+                rope.style.height = '150px'; 
+                pendulum.style.animation = 'none'; // Stop normal sway, rope handles its own wind sway
+            }
         } else {
             wrapper.classList.remove('dead-state');
             rope.classList.remove('bitten');
-            const swayDuration = 3 + (index % 4) * 0.4;
-            const swayDelay = -index * 0.9;
-            pendulum.style.animation = `sway ${swayDuration}s ease-in-out ${swayDelay}s infinite alternate`;
+            rope.classList.remove('snapped');
+            svg.classList.remove('dead');
+            charred.classList.remove('visible');
+            if (currentTheme === 'volcano') {
+                pendulum.style.animation = 'none';
+            } else {
+                const swayDuration = 3 + (index % 4) * 0.4;
+                const swayDelay = -index * 0.9;
+                pendulum.style.animation = `sway ${swayDuration}s ease-in-out ${swayDelay}s infinite alternate`;
+            }
         }
     }
 
-    // --- RANDOM OCEAN & SKY EVENTS ---
+    // --- RANDOM OCEAN / VOLCANO / BLACK HOLE & SKY EVENTS ---
     function triggerRandomEvent() {
-        if (Math.random() > 0.4) {
-            triggerLeapingFish();
+        if (currentTheme === 'volcano') {
+            if (Math.random() > 0.4) {
+                triggerVolcanoEruption();
+            } else {
+                triggerEmbers();
+            }
+        } else if (currentTheme === 'blackhole') {
+            triggerHawkingRadiation();
         } else {
-            triggerSeagulls();
+            if (Math.random() > 0.4) {
+                triggerLeapingFish();
+            } else {
+                triggerSeagulls();
+            }
         }
 
-        const nextDelay = 8000 + Math.random() * 12000;
+        const nextDelay = currentTheme === 'blackhole'
+            ? (16000 + Math.random() * 20000)
+            : (8000 + Math.random() * 12000);
         setTimeout(triggerRandomEvent, nextDelay);
+    }
+
+    function triggerHawkingRadiation() {
+        ambientFlash.classList.remove('flash-active');
+        void ambientFlash.offsetWidth;
+        ambientFlash.classList.add('flash-active');
+
+        const numParticles = 40 + Math.floor(Math.random() * 30);
+        for (let i = 0; i < numParticles; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'radiation-particle';
+            particle.style.left = '50vw';
+            document.body.appendChild(particle);
+
+            const angle = (Math.random() - 0.5) * 0.8;
+            const velocityY = 50 + Math.random() * 50;
+            const velocityX = Math.sin(angle) * (20 + Math.random() * 20);
+            const duration = 1500 + Math.random() * 2000;
+
+            particle.animate([
+                { transform: 'translate(-50%, 0) scale(1)', opacity: 1, backgroundColor: '#fff' },
+                { transform: `translate(calc(-50% + ${velocityX}vw), -${velocityY * 0.5}vh) scale(0.8)`, backgroundColor: '#00f5d4', offset: 0.5 },
+                { transform: `translate(calc(-50% + ${velocityX * 1.5}vw), -${velocityY}vh) scale(0)`, opacity: 0, backgroundColor: '#7b2cbf' }
+            ], {
+                duration: duration,
+                easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)'
+            });
+
+            setTimeout(() => particle.remove(), duration);
+        }
+    }
+
+    function triggerVolcanoEruption() {
+        const bombCount = 3 + Math.floor(Math.random() * 3);
+        for (let i = 0; i < bombCount; i++) {
+            setTimeout(() => {
+                if (currentTheme !== 'volcano') return;
+                const bomb = document.createElement('div');
+                bomb.className = 'leaping-fish';
+                bomb.style.zIndex = '2';
+
+                const startX = 48 + (Math.random() * 4 - 2);
+                const startY = 55;
+                const endY = 15;
+                const dir = Math.random() > 0.5 ? 1 : -1;
+                const distanceX = 12 + Math.random() * 28;
+                const peakHeightY = 18 + Math.random() * 14;
+
+                bomb.innerHTML = `
+                    <svg viewBox="0 0 60 60" style="width:100%; height:100%; filter: drop-shadow(0 0 10px #f97316);">
+                        <polygon points="30,10 46,24 42,46 18,46 14,24" fill="#292524" stroke="#f97316" stroke-width="3"/>
+                        <circle cx="30" cy="30" r="8" fill="#f97316"/>
+                        <circle cx="28" cy="28" r="4" fill="#fde047"/>
+                    </svg>
+                `;
+
+                skyEvents.appendChild(bomb);
+
+                const duration = 1400 + Math.random() * 400;
+                const startTime = performance.now();
+
+                function animateFrame(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const p = Math.min(elapsed / duration, 1.0);
+
+                    const currentX = startX + (dir * distanceX * p);
+                    const linearY = startY + (endY - startY) * p;
+                    const arcY = 4 * peakHeightY * p * (1 - p);
+                    const currentY = linearY + arcY;
+
+                    bomb.style.left = `${currentX}vw`;
+                    bomb.style.bottom = `${currentY}vh`;
+                    bomb.style.transform = `rotate(${p * 360 * dir}deg) scale(${0.7 + 0.4 * (1 - p)})`;
+
+                    if (p < 1.0) {
+                        requestAnimationFrame(animateFrame);
+                    } else {
+                        createSplash(currentX);
+                        bomb.remove();
+                    }
+                }
+
+                requestAnimationFrame(animateFrame);
+            }, i * 180);
+        }
+    }
+
+    function triggerEmbers() {
+        const count = 8 + Math.floor(Math.random() * 6);
+        for (let i = 0; i < count; i++) {
+            const ember = document.createElement('div');
+            ember.className = 'ember';
+            const size = 5 + Math.random() * 7;
+            ember.style.width = `${size}px`;
+            ember.style.height = `${size}px`;
+            const startX = 10 + Math.random() * 80;
+            const startY = 18 + Math.random() * 10;
+            ember.style.left = `${startX}vw`;
+            ember.style.bottom = `${startY}vh`;
+            skyEvents.appendChild(ember);
+
+            const driftX = (Math.random() - 0.5) * 180;
+            const riseY = 220 + Math.random() * 250;
+            const dur = 4000 + Math.random() * 3000;
+            const delay = i * 250;
+
+            ember.animate([
+                { transform: 'translate(0, 0) scale(1)', opacity: 0 },
+                { opacity: 0.95, offset: 0.2 },
+                { transform: `translate(${driftX}px, -${riseY}px) scale(0.3)`, opacity: 0 }
+            ], {
+                duration: dur,
+                delay: delay,
+                fill: 'both',
+                easing: 'ease-out'
+            });
+
+            setTimeout(() => ember.remove(), dur + delay + 100);
+        }
     }
 
     function triggerLeapingFish() {
@@ -693,6 +1558,11 @@
             drop.style.height = `${size}px`;
             drop.style.left = `${xPercent}vw`;
             drop.style.bottom = `17vh`;
+            if (currentTheme === 'volcano') {
+                const sparkColors = ['#fde047', '#fb923c', '#ef4444'];
+                drop.style.background = sparkColors[i % sparkColors.length];
+                drop.style.boxShadow = '0 0 6px #f97316';
+            }
 
             document.body.appendChild(drop);
 
@@ -744,6 +1614,7 @@
         }
     }
 
+    applyTheme(currentTheme);
     setTimeout(triggerRandomEvent, 3000);
     updateTeamNameInputs();
 
