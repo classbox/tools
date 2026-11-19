@@ -84,12 +84,17 @@
       transform: translateY(-1px);
     }
 
-    .counter {
+    .counter,
+    .score-pill {
       background: var(--card-bg);
       padding: 0.45rem 1.1rem;
       border-radius: 9999px;
       border: 1px solid var(--border-color);
       font-variant-numeric: tabular-nums;
+    }
+
+    .score-pill {
+      color: #fbbf24;
     }
 
     /* Card Area */
@@ -151,6 +156,143 @@
       background: var(--common-color);
       color: #ffffff;
       box-shadow: 0 10px 25px -5px rgba(21, 128, 61, 0.4);
+    }
+
+    /* Choice Buttons */
+    .choice-buttons {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 0.5rem;
+    }
+
+    .choice-btn {
+      padding: 0.95rem 2rem;
+      border-radius: 1rem;
+      border: 2px solid var(--border-color);
+      background: var(--card-bg);
+      color: var(--text-main);
+      font-size: clamp(1.05rem, 2.5vw, 1.35rem);
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      min-width: 210px;
+      justify-content: center;
+    }
+
+    .choice-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+    }
+
+    .choice-btn.proper-btn:hover:not(:disabled) {
+      border-color: #38bdf8;
+      background: rgba(2, 132, 199, 0.22);
+      box-shadow: 0 10px 24px -8px rgba(56, 189, 248, 0.45);
+    }
+
+    .choice-btn.common-btn:hover:not(:disabled) {
+      border-color: #4ade80;
+      background: rgba(21, 128, 61, 0.22);
+      box-shadow: 0 10px 24px -8px rgba(74, 222, 128, 0.45);
+    }
+
+    .choice-btn:disabled {
+      cursor: default;
+      opacity: 0.55;
+    }
+
+    .choice-btn.selected-correct {
+      opacity: 1;
+      border-color: #4ade80;
+      background: rgba(21, 128, 61, 0.35);
+    }
+
+    .choice-btn.selected-wrong {
+      opacity: 1;
+      border-color: #f87171;
+      background: rgba(220, 38, 38, 0.3);
+    }
+
+    .feedback-line {
+      min-height: 1.75rem;
+      font-size: clamp(1.05rem, 2.4vw, 1.3rem);
+      font-weight: 700;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: all 0.2s ease;
+    }
+
+    .feedback-line.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .feedback-line.correct {
+      color: #4ade80;
+    }
+
+    .feedback-line.wrong {
+      color: #fca5a5;
+    }
+
+    /* Score Modal */
+    #score-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 260;
+      cursor: default;
+      padding: 20px;
+    }
+
+    .score-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 32px 30px;
+      width: 420px;
+      max-width: 100%;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 14px;
+    }
+
+    .score-emoji {
+      font-size: 3.2rem;
+      line-height: 1;
+    }
+
+    .score-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .score-big {
+      font-size: 3.25rem;
+      font-weight: 900;
+      color: #fbbf24;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .score-msg {
+      font-size: 1rem;
+      color: #cbd5e1;
+      line-height: 1.45;
+      margin-bottom: 4px;
     }
 
     /* Footer */
@@ -392,6 +534,117 @@
     .btn-primary:hover {
       background: #0369a1;
     }
+
+    /* Intro Popup */
+    #intro-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 250;
+      cursor: default;
+      padding: 20px;
+    }
+
+    .intro-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 26px 28px;
+      width: 460px;
+      max-width: 100%;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      text-align: left;
+    }
+
+    .intro-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .intro-header h2 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.01em;
+    }
+
+    .intro-text {
+      font-size: 0.96rem;
+      line-height: 1.55;
+      color: #cbd5e1;
+    }
+
+    .intro-examples {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 480px) {
+      .intro-examples {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .intro-example {
+      background: var(--bg-dark);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .intro-example-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .intro-example-label.proper {
+      color: #38bdf8;
+    }
+
+    .intro-example-label.common {
+      color: #4ade80;
+    }
+
+    .intro-example-word {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .intro-example-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+    }
+
+    .intro-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding-top: 6px;
+    }
+
+    .intro-hint {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
   </style>
 </head>
 <body>
@@ -405,22 +658,77 @@
       <button class="btn-icon" id="shuffleBtn" title="Shuffle Deck">
         🔀 <span>Shuffle</span>
       </button>
+      <button class="btn-icon" id="helpBtn" title="How It Works">
+        ❓ <span>Info</span>
+      </button>
     </div>
     <div class="top-right-actions">
-      <div class="counter" id="counter">1 / 16</div>
+      <div class="score-pill" id="scorePill">⭐ 0 / 10</div>
+      <div class="counter" id="counter">1 / 10</div>
     </div>
   </div>
 
   <!-- Main Card -->
   <main class="card" id="cardContainer">
     <div class="word-display" id="wordDisplay">---</div>
+    <div class="choice-buttons" id="choiceButtons">
+      <button class="choice-btn proper-btn" id="chooseProperBtn">
+        <span>Proper Noun</span>
+      </button>
+      <button class="choice-btn common-btn" id="chooseCommonBtn">
+        <span>Common Noun</span>
+      </button>
+    </div>
+    <div class="feedback-line" id="feedbackLine"></div>
     <div class="badge" id="typeBadge">---</div>
   </main>
 
   <!-- Footer -->
-  <footer class="footer">
-    <span class="key-hint">SPACE</span> or <span class="key-hint">TAP CARD</span> to reveal & advance
+  <footer class="footer" id="footerHint">
+    Pick <span class="key-hint">1</span> Proper Noun or <span class="key-hint">2</span> Common Noun, then <span class="key-hint">SPACE</span> for next
   </footer>
+
+  <!-- Intro Popup -->
+  <div id="intro-modal" role="dialog" aria-modal="true" aria-labelledby="introTitle">
+    <div class="intro-card" id="introCard">
+      <div class="intro-header">
+        <h2 id="introTitle">Proper Noun or Common Noun?</h2>
+        <button class="modal-close-btn" id="closeIntroBtn" title="Close" aria-label="Close">✖</button>
+      </div>
+      <p class="intro-text">
+        A word is about to pop up! Does it need a <strong>CAPITAL letter</strong>?
+      </p>
+      <div class="intro-examples">
+        <div class="intro-example">
+          <span class="intro-example-label proper">Proper Noun (YES!)</span>
+          <span class="intro-example-word"><span style="color:#38bdf8;text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:3px;">F</span>rance</span>
+          <span class="intro-example-desc">Special names — like people, places, and days!</span>
+        </div>
+        <div class="intro-example">
+          <span class="intro-example-label common">Common Noun (NO)</span>
+          <span class="intro-example-word"><span style="color:#4ade80;">t</span>iger</span>
+          <span class="intro-example-desc">Everyday things — keep it lowercase!</span>
+        </div>
+      </div>
+      <div class="intro-footer">
+        <span class="intro-hint">10 random words — can you get 10 / 10?</span>
+        <button class="btn-modal btn-primary" id="startActivityBtn">Let's Play!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Score Modal -->
+  <div id="score-modal" role="dialog" aria-modal="true" aria-labelledby="scoreTitle">
+    <div class="score-card" id="scoreCard">
+      <div class="score-emoji" id="scoreEmoji">🎉</div>
+      <h2 class="score-title" id="scoreTitle">Round Complete!</h2>
+      <div class="score-big" id="scoreBig">0 / 10</div>
+      <p class="score-msg" id="scoreMsg">Great job!</p>
+      <button class="btn-modal btn-primary" id="playAgainBtn" style="width:100%;padding:12px 20px;font-size:1rem;">
+        Play Again (New 10 Words)
+      </button>
+    </div>
+  </div>
 
   <!-- Settings Modal -->
   <div id="settings-modal">
@@ -470,16 +778,35 @@
   </div>
 
   <script>
-    // --- Default Word Lists ---
+    // --- Default Word Lists (50 words: 25 Proper + 25 Common) ---
+    const ROUND_SIZE = 10;
+
     const DEFAULT_PROPER = [
       "Friday",
-      "France",
-      "Superman",
+      "Monday",
+      "Saturday",
       "August",
-      "Netflix",
+      "December",
+      "October",
+      "France",
+      "Japan",
+      "London",
+      "Cambodia",
+      "Angkor Wat",
       "Sarah",
+      "Leo",
+      "Maya",
+      "Ms. Kim",
+      "Superman",
+      "Spider-Man",
       "Minecraft",
-      "Angkor Wat"
+      "Netflix",
+      "Lego",
+      "Disney",
+      "Halloween",
+      "Christmas",
+      "Earth",
+      "Pacific Ocean"
     ];
 
     const DEFAULT_COMMON = [
@@ -490,7 +817,24 @@
       "jacket",
       "bottle",
       "mountain",
-      "morning"
+      "morning",
+      "pencil",
+      "teacher",
+      "school",
+      "puppy",
+      "bicycle",
+      "kitchen",
+      "river",
+      "cookie",
+      "garden",
+      "friend",
+      "doctor",
+      "planet",
+      "library",
+      "summer",
+      "holiday",
+      "backpack",
+      "ocean"
     ];
 
     // Helper: auto-capitalize words in a proper noun string if typed entirely in lowercase
@@ -550,18 +894,25 @@
         }
       }
 
-      return deck;
+      return deck.slice(0, ROUND_SIZE);
     }
 
     // --- State ---
     let words = [];
     let currentIndex = 0;
     let isRevealed = false;
+    let selectedChoice = null;
+    let score = 0;
 
     // DOM Elements
     const wordDisplay = document.getElementById("wordDisplay");
     const typeBadge = document.getElementById("typeBadge");
     const counter = document.getElementById("counter");
+    const scorePill = document.getElementById("scorePill");
+    const chooseProperBtn = document.getElementById("chooseProperBtn");
+    const chooseCommonBtn = document.getElementById("chooseCommonBtn");
+    const feedbackLine = document.getElementById("feedbackLine");
+    const footerHint = document.getElementById("footerHint");
     const settingsModal = document.getElementById("settings-modal");
     const modalContent = document.getElementById("modalContent");
     const settingsBtn = document.getElementById("settingsBtn");
@@ -573,6 +924,17 @@
     const properNounsInput = document.getElementById("properNounsInput");
     const commonNounsInput = document.getElementById("commonNounsInput");
     const shuffleCheckbox = document.getElementById("shuffleCheckbox");
+    const introModal = document.getElementById("intro-modal");
+    const introCard = document.getElementById("introCard");
+    const helpBtn = document.getElementById("helpBtn");
+    const closeIntroBtn = document.getElementById("closeIntroBtn");
+    const startActivityBtn = document.getElementById("startActivityBtn");
+    const scoreModal = document.getElementById("score-modal");
+    const scoreCard = document.getElementById("scoreCard");
+    const scoreEmoji = document.getElementById("scoreEmoji");
+    const scoreBig = document.getElementById("scoreBig");
+    const scoreMsg = document.getElementById("scoreMsg");
+    const playAgainBtn = document.getElementById("playAgainBtn");
 
     // Load saved settings or defaults
     function loadSavedLists() {
@@ -590,6 +952,9 @@
       words = buildDeck(properList, commonList, shuffle);
       currentIndex = 0;
       isRevealed = false;
+      selectedChoice = null;
+      score = 0;
+      closeScoreModal();
       render();
     }
 
@@ -600,17 +965,42 @@
         typeBadge.className = "badge";
         typeBadge.textContent = "---";
         counter.textContent = "0 / 0";
+        scorePill.textContent = "⭐ 0 / 0";
         return;
       }
 
       const item = words[currentIndex];
       counter.textContent = `${currentIndex + 1} / ${words.length}`;
+      scorePill.textContent = `⭐ ${score} / ${words.length}`;
+
+      chooseProperBtn.className = "choice-btn proper-btn";
+      chooseCommonBtn.className = "choice-btn common-btn";
 
       if (!isRevealed) {
         wordDisplay.textContent = item.raw;
         typeBadge.className = "badge";
         typeBadge.textContent = "---";
+        feedbackLine.className = "feedback-line";
+        feedbackLine.textContent = "";
+        chooseProperBtn.disabled = false;
+        chooseCommonBtn.disabled = false;
+        footerHint.innerHTML = 'Pick <span class="key-hint">1</span> Proper Noun or <span class="key-hint">2</span> Common Noun';
       } else {
+        chooseProperBtn.disabled = true;
+        chooseCommonBtn.disabled = true;
+
+        const isCorrect = selectedChoice === item.proper;
+        if (selectedChoice === true) {
+          chooseProperBtn.classList.add(isCorrect ? "selected-correct" : "selected-wrong");
+        } else if (selectedChoice === false) {
+          chooseCommonBtn.classList.add(isCorrect ? "selected-correct" : "selected-wrong");
+        }
+
+        feedbackLine.textContent = isCorrect
+          ? "🎉 Nice! You got it!"
+          : `💡 Not quite — it's a ${item.proper ? "Proper Noun" : "Common Noun"}!`;
+        feedbackLine.className = `feedback-line show ${isCorrect ? "correct" : "wrong"}`;
+
         typeBadge.textContent = item.proper ? "Proper Noun" : "Common Noun";
         typeBadge.className = `badge ${item.proper ? "proper" : "common"} show`;
 
@@ -633,23 +1023,77 @@
           const restOfWord = displayWord.slice(1);
           wordDisplay.innerHTML = `<span class="highlight-low">${firstLetter}</span>${restOfWord}`;
         }
+
+        const isLast = currentIndex + 1 >= words.length;
+        footerHint.innerHTML = isLast
+          ? '<span class="key-hint">SPACE</span> or <span class="key-hint">TAP</span> to see your score!'
+          : '<span class="key-hint">SPACE</span> or <span class="key-hint">TAP</span> for next word';
       }
     }
 
-    // Step forward: reveal -> advance to next card
-    function advance() {
-      if (words.length === 0) return;
-
-      if (!isRevealed) {
-        isRevealed = true;
-      } else {
-        isRevealed = false;
-        currentIndex = (currentIndex + 1) % words.length;
+    function makeChoice(choseProper) {
+      if (words.length === 0 || isRevealed) return;
+      selectedChoice = choseProper;
+      isRevealed = true;
+      if (choseProper === words[currentIndex].proper) {
+        score++;
       }
       render();
     }
 
+    // Step forward after reveal -> advance to next card or show final score
+    function advance() {
+      if (words.length === 0 || !isRevealed) return;
+
+      if (currentIndex + 1 >= words.length) {
+        showScoreModal();
+        return;
+      }
+
+      isRevealed = false;
+      selectedChoice = null;
+      currentIndex++;
+      render();
+    }
+
+    function showScoreModal() {
+      const total = words.length;
+      scoreBig.textContent = `${score} / ${total}`;
+
+      if (score >= 9) {
+        scoreEmoji.textContent = "🏆";
+        scoreMsg.textContent = "Superstar! You are a capital letter champion!";
+      } else if (score >= 7) {
+        scoreEmoji.textContent = "🎉";
+        scoreMsg.textContent = "Awesome job! You really know your proper nouns!";
+      } else if (score >= 5) {
+        scoreEmoji.textContent = "👏";
+        scoreMsg.textContent = "Good try! Play again to beat your score!";
+      } else {
+        scoreEmoji.textContent = "🌟";
+        scoreMsg.textContent = "Nice effort! Let's try 10 more words!";
+      }
+
+      scoreModal.style.display = "flex";
+    }
+
+    function closeScoreModal() {
+      scoreModal.style.display = "none";
+    }
+
     // --- Modal Management ---
+    function isIntroOpen() {
+      return introModal.style.display !== "none";
+    }
+
+    function openIntroModal() {
+      introModal.style.display = "flex";
+    }
+
+    function closeIntroModal() {
+      introModal.style.display = "none";
+    }
+
     function openModal() {
       const { properList, commonList } = loadSavedLists();
       properNounsInput.value = properList.join("\n");
@@ -692,14 +1136,30 @@
 
     shuffleBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      // Re-shuffle current word deck
-      for (let i = words.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [words[i], words[j]] = [words[j], words[i]];
-      }
-      currentIndex = 0;
-      isRevealed = false;
-      render();
+      initDeck(true);
+    });
+
+    chooseProperBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      makeChoice(true);
+    });
+
+    chooseCommonBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      makeChoice(false);
+    });
+
+    playAgainBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      initDeck(true);
+    });
+
+    scoreCard.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+
+    scoreModal.addEventListener("click", (e) => {
+      e.stopPropagation();
     });
 
     closeModalBtn.addEventListener("click", (e) => {
@@ -732,9 +1192,35 @@
       }
     });
 
-    // Clicking anywhere outside modal triggers flashcard advance
+    helpBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openIntroModal();
+    });
+
+    closeIntroBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      closeIntroModal();
+    });
+
+    startActivityBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      closeIntroModal();
+    });
+
+    introCard.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+
+    introModal.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (e.target === introModal) {
+        closeIntroModal();
+      }
+    });
+
+    // Clicking anywhere outside modal advances after a choice is made
     document.body.addEventListener("click", (e) => {
-      if (settingsModal.style.display === "flex") return;
+      if (isIntroOpen() || settingsModal.style.display === "flex" || scoreModal.style.display === "flex") return;
       if (e.target.closest(".top-bar")) return;
       advance();
     });
@@ -746,6 +1232,22 @@
         return;
       }
 
+      if (isIntroOpen()) {
+        if (e.code === "Space" || e.code === "Enter" || e.key === "Escape") {
+          e.preventDefault();
+          closeIntroModal();
+        }
+        return;
+      }
+
+      if (scoreModal.style.display === "flex") {
+        if (e.code === "Space" || e.code === "Enter") {
+          e.preventDefault();
+          initDeck(true);
+        }
+        return;
+      }
+
       if (settingsModal.style.display === "flex") {
         if (e.key === "Escape") {
           closeModal();
@@ -753,17 +1255,17 @@
         return;
       }
 
-      if (e.code === "Space" || e.code === "Enter" || e.code === "ArrowRight") {
+      if (!isRevealed) {
+        if (e.key === "1") {
+          e.preventDefault();
+          makeChoice(true);
+        } else if (e.key === "2") {
+          e.preventDefault();
+          makeChoice(false);
+        }
+      } else if (e.code === "Space" || e.code === "Enter" || e.code === "ArrowRight") {
         e.preventDefault();
         advance();
-      } else if (e.code === "ArrowLeft") {
-        e.preventDefault();
-        // Go back
-        if (words.length > 0) {
-          isRevealed = false;
-          currentIndex = (currentIndex - 1 + words.length) % words.length;
-          render();
-        }
       }
     });
 

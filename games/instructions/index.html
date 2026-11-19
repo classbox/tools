@@ -38,6 +38,9 @@
           <span>🔄</span> Reset
         </button>
         <div class="side-icon-row">
+          <button class="icon-btn" id="btn-how-to-play" title="How to Play">
+            <span>❓</span>
+          </button>
           <button class="icon-btn" id="btn-sound-toggle" title="Sound">
             <span id="sound-icon">🔊</span>
           </button>
@@ -273,9 +276,78 @@
         />
       </div>
 
-      <button class="btn btn-start" id="btn-start-mission">
-        ▶ START GAME
-      </button>
+      <div class="splash-actions">
+        <button class="btn btn-start" id="btn-start-mission">
+          ▶ START GAME
+        </button>
+        <button class="btn btn-howto-splash" id="btn-splash-howto" type="button">
+          ❓ HOW TO PLAY (2 PLAYERS)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       How to Play Popup (Mandatory 2-Player Intro & In-Game Reference)
+       ========================================================================= -->
+  <div class="howto-backdrop active is-intro" id="howto-backdrop" role="dialog" aria-modal="true" aria-labelledby="howto-title">
+    <div class="howto-modal">
+      <button class="icon-btn howto-close-btn" id="btn-close-howto" aria-label="Close How to Play">✕</button>
+
+      <div class="howto-header">
+        <span class="howto-pill">👥 MANDATORY 2-PLAYER TEAM GAME</span>
+        <h2 class="howto-title" id="howto-title">HOW TO PLAY</h2>
+      </div>
+
+      <div class="howto-body">
+        <!-- Left Column: Transparent Illustration -->
+        <div class="howto-art-col">
+          <div class="howto-art-stage">
+            <img
+              src="assets/how-to-play.webp"
+              alt="One player giving spoken directions while the blindfolded pilot listens and types on the laptop"
+              class="howto-illustration"
+              width="960"
+              height="792"
+            />
+          </div>
+          <div class="howto-art-caption">
+            Talk clearly • Listen closely • Guide the rover!
+          </div>
+        </div>
+
+        <!-- Right Column: Clear 2-Player Roles & Logic -->
+        <div class="howto-rules-col">
+          <div class="role-card role-guide">
+            <div class="role-icon">🗣️</div>
+            <div class="role-content">
+              <h3>Player 1: The Guide</h3>
+              <p>Watches the screen and gives clear spoken directions — <strong>"Up!"</strong>, <strong>"Right!"</strong>, <strong>"Hold UP!"</strong> — to steer past bombs and locks.</p>
+            </div>
+          </div>
+
+          <div class="role-card role-pilot">
+            <div class="role-icon">🙈</div>
+            <div class="role-content">
+              <h3>Player 2: The Blind Pilot</h3>
+              <p>Blindfolded or facing away. Listens closely and steers with <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or <kbd>Arrows</kbd> (and types color lock letters).</p>
+            </div>
+          </div>
+
+          <div class="howto-legend">
+            <div class="legend-chip"><span class="legend-dot"></span> Safe Path</div>
+            <div class="legend-chip">☠️ Avoid Bombs</div>
+            <div class="legend-chip">🔒 / 🎨 Defuse Locks</div>
+            <div class="legend-chip">🏁 Reach the Flag</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="howto-footer">
+        <button class="btn btn-howto-confirm" id="btn-howto-gotit" type="button">
+          CONTINUE →
+        </button>
+      </div>
     </div>
   </div>
 

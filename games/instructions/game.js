@@ -74,6 +74,9 @@
   let lastTimerTick = null;
   let roundElapsedSec = 0;
   let scoreRackingAnimId = null;
+  let isHowToPlayOpen = true; // Opens automatically on first load before pilot name
+  let isHowToPlayIntro = true;
+  let pausedByHowToPlay = false;
 
   // --- Leaderboard & Pilot State ---
   const LEADERBOARD_STORAGE_KEY = 'blind_rover_leaderboard_v2';
@@ -129,6 +132,11 @@
 
   // Controls & Drawer
   const btnReset = document.getElementById('btn-reset');
+  const btnHowToPlay = document.getElementById('btn-how-to-play');
+  const btnSplashHowTo = document.getElementById('btn-splash-howto');
+  const howtoBackdrop = document.getElementById('howto-backdrop');
+  const btnCloseHowTo = document.getElementById('btn-close-howto');
+  const btnHowToGotIt = document.getElementById('btn-howto-gotit');
   const btnSettings = document.getElementById('btn-settings');
   const btnCloseSettings = document.getElementById('btn-close-settings');
   const drawerBackdrop = document.getElementById('drawer-backdrop');
@@ -1467,6 +1475,14 @@
   // KEYBOARD LISTENER
   // =========================================================================
   window.addEventListener('keydown', (e) => {
+    if (isHowToPlayOpen) {
+      if (e.key === 'Enter' || (!isHowToPlayIntro && e.key === 'Escape')) {
+        e.preventDefault();
+        closeHowToPlay();
+      }
+      return;
+    }
+
     if (gameState === 'SPLASH') {
       if (e.key === 'Enter') {
         e.preventDefault();
@@ -1665,6 +1681,56 @@
   btnNextVictory.addEventListener('click', () => {
     promptNextPilot();
   });
+
+  // How to Play Popup Toggle (Mandatory Intro First, Then Optional Reference)
+  function openHowToPlay(e) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (!howtoBackdrop) return;
+    isHowToPlayOpen = true;
+    isHowToPlayIntro = false;
+    howtoBackdrop.classList.remove('is-intro');
+    if (btnHowToGotIt) btnHowToGotIt.textContent = '👍 GOT IT!';
+    if (gameState === 'PLAYING' && timerInterval) {
+      stopTimer();
+      pausedByHowToPlay = true;
+    } else {
+      pausedByHowToPlay = false;
+    }
+    const modalEl = howtoBackdrop.querySelector('.howto-modal');
+    if (modalEl) modalEl.scrollTop = 0;
+    howtoBackdrop.classList.add('active');
+  }
+
+  function closeHowToPlay() {
+    if (!howtoBackdrop) return;
+    const wasIntro = isHowToPlayIntro;
+    isHowToPlayOpen = false;
+    isHowToPlayIntro = false;
+    howtoBackdrop.classList.remove('active', 'is-intro');
+    if (wasIntro) {
+      if (inputPilotName) {
+        setTimeout(() => inputPilotName.focus(), 80);
+      }
+      return;
+    }
+    if (pausedByHowToPlay && gameState === 'PLAYING') {
+      startTimer();
+    }
+    pausedByHowToPlay = false;
+  }
+
+  if (btnHowToPlay) btnHowToPlay.addEventListener('click', openHowToPlay);
+  if (btnSplashHowTo) btnSplashHowTo.addEventListener('click', openHowToPlay);
+  if (btnCloseHowTo) btnCloseHowTo.addEventListener('click', closeHowToPlay);
+  if (btnHowToGotIt) btnHowToGotIt.addEventListener('click', closeHowToPlay);
+  if (howtoBackdrop) {
+    howtoBackdrop.addEventListener('click', (e) => {
+      if (!isHowToPlayIntro && e.target === howtoBackdrop) closeHowToPlay();
+    });
+  }
 
   // Settings Drawer Toggle
   btnSettings.addEventListener('click', () => {

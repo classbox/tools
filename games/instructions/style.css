@@ -73,7 +73,7 @@ body {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(8px);
   z-index: 20;
-  min-width: 170px;
+  min-width: 184px;
 }
 
 .side-header {
@@ -201,7 +201,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
 }
 
@@ -1208,6 +1208,13 @@ body {
   font-weight: 600;
 }
 
+.splash-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
 .btn-start {
   background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
   border: 2px solid #38bdf8;
@@ -1223,6 +1230,283 @@ body {
 
 .btn-start:hover {
   transform: scale(1.04);
+}
+
+.btn-howto-splash {
+  background: rgba(30, 41, 59, 0.85);
+  border: 2px solid #475569;
+  color: #e2e8f0;
+  font-size: 1.05rem;
+  padding: 12px 24px;
+  border-radius: 14px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.btn-howto-splash:hover {
+  background: #1e293b;
+  border-color: #38bdf8;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.35);
+}
+
+/* ==========================================================================
+   How to Play Popup (Mandatory 2-Player Intro & In-Game Reference)
+   ========================================================================== */
+.howto-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 7, 18, 0.92);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.howto-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.howto-backdrop.is-intro .howto-close-btn {
+  display: none;
+}
+
+.howto-modal {
+  position: relative;
+  width: 96%;
+  max-width: 960px;
+  max-height: 94vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow-y: auto;
+  background: linear-gradient(160deg, #0f172a 0%, #090e1c 100%);
+  border: 4px solid #38bdf8;
+  border-radius: 28px;
+  padding: clamp(16px, 2.6vh, 26px) clamp(18px, 3vw, 32px);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.9), 0 0 65px rgba(56, 189, 248, 0.35);
+  transform: scale(0.94);
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.howto-backdrop.active .howto-modal {
+  transform: scale(1);
+}
+
+.howto-close-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  font-size: 1.15rem;
+}
+
+.howto-header {
+  text-align: center;
+  margin-bottom: clamp(10px, 1.8vh, 18px);
+}
+
+.howto-pill {
+  display: inline-block;
+  background: rgba(56, 189, 248, 0.16);
+  border: 1.5px solid rgba(56, 189, 248, 0.55);
+  color: #7dd3fc;
+  font-size: clamp(0.74rem, 1.3vh, 0.86rem);
+  font-weight: 900;
+  letter-spacing: 1.8px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  margin-bottom: 5px;
+}
+
+.howto-title {
+  font-size: clamp(1.55rem, 3.2vh, 2.2rem);
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 2px;
+  text-shadow: 0 0 20px rgba(56, 189, 248, 0.45);
+  line-height: 1.1;
+}
+
+.howto-body {
+  display: grid;
+  grid-template-columns: 0.95fr 1.05fr;
+  gap: clamp(14px, 2.2vw, 24px);
+  align-items: center;
+  margin-bottom: clamp(12px, 2vh, 20px);
+}
+
+.howto-art-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.howto-art-stage {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 10px 4px;
+  border-radius: 20px;
+  background: radial-gradient(circle at 50% 52%, rgba(56, 189, 248, 0.22) 0%, rgba(99, 102, 241, 0.1) 48%, rgba(15, 23, 42, 0.25) 100%);
+  border: 2px solid rgba(56, 189, 248, 0.25);
+  box-shadow: inset 0 0 36px rgba(56, 189, 248, 0.12);
+}
+
+.howto-illustration {
+  width: auto;
+  max-width: 100%;
+  max-height: min(44vh, 310px);
+  height: auto;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.65));
+  pointer-events: none;
+}
+
+.howto-art-caption {
+  font-size: clamp(0.82rem, 1.45vh, 0.96rem);
+  font-weight: 800;
+  color: #7dd3fc;
+  letter-spacing: 0.4px;
+  text-align: center;
+}
+
+.howto-rules-col {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 1.4vh, 12px);
+}
+
+.role-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: clamp(10px, 1.6vh, 14px) clamp(12px, 1.6vw, 16px);
+  border-radius: 16px;
+  background: rgba(2, 6, 23, 0.72);
+  border: 2px solid #1e293b;
+  text-align: left;
+}
+
+.role-card.role-guide {
+  border-color: rgba(16, 185, 129, 0.55);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.12);
+}
+
+.role-card.role-pilot {
+  border-color: rgba(56, 189, 248, 0.55);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.12);
+}
+
+.role-icon {
+  font-size: clamp(1.7rem, 3vh, 2.1rem);
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.role-content h3 {
+  font-size: clamp(1rem, 1.85vh, 1.15rem);
+  font-weight: 900;
+  color: #f8fafc;
+  margin-bottom: 3px;
+}
+
+.role-guide .role-content h3 {
+  color: #6ee7b7;
+}
+
+.role-pilot .role-content h3 {
+  color: #7dd3fc;
+}
+
+.role-content p {
+  font-size: clamp(0.84rem, 1.5vh, 0.96rem);
+  line-height: 1.4;
+  color: #cbd5e1;
+  font-weight: 600;
+}
+
+.role-content strong {
+  color: #fde68a;
+}
+
+.role-content kbd {
+  background: #1e293b;
+  border: 1.5px solid #475569;
+  border-bottom-width: 2.5px;
+  padding: 1px 5px;
+  border-radius: 5px;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 800;
+  margin: 0 1px;
+}
+
+.howto-legend {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.legend-chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1.5px solid #334155;
+  border-radius: 10px;
+  padding: 7px 10px;
+  font-size: clamp(0.78rem, 1.4vh, 0.9rem);
+  font-weight: 800;
+  color: #e2e8f0;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #6ee7b7;
+  box-shadow: 0 0 10px #34d399;
+  flex-shrink: 0;
+}
+
+.howto-footer {
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.btn-howto-confirm {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  border: 2px solid #6ee7b7;
+  color: #ffffff;
+  font-size: clamp(1.05rem, 1.9vh, 1.25rem);
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  padding: clamp(10px, 1.6vh, 14px) 48px;
+  border-radius: 14px;
+  width: auto;
+  min-width: 230px;
+  box-shadow: 0 0 28px rgba(16, 185, 129, 0.5);
+}
+
+.btn-howto-confirm:hover {
+  transform: scale(1.04);
+  box-shadow: 0 0 36px rgba(16, 185, 129, 0.75);
 }
 
 /* Settings Reset Records Button */
@@ -1288,7 +1572,8 @@ body {
     height: auto;
     width: 100%;
     min-width: unset;
-    padding: 10px 16px;
+    padding: 8px 12px;
+    gap: 8px;
   }
 
   .side-top-group {
@@ -1297,29 +1582,67 @@ body {
     gap: 8px;
   }
 
+  .game-logo {
+    font-size: 2.2rem;
+  }
+
   .lives-container {
     flex-direction: row;
     padding: 4px 8px;
     gap: 4px;
+    min-width: unset;
+  }
+
+  .life-heart {
+    font-size: 1.8rem;
   }
 
   .timer-box {
     flex-direction: row;
-    padding: 8px 18px;
+    padding: 6px 12px;
     width: auto;
+  }
+
+  .timer-digits {
+    font-size: 1.9rem;
   }
 
   .side-controls {
     flex-direction: row;
     width: auto;
+    gap: 6px;
+  }
+
+  .side-icon-row {
+    width: auto;
+    gap: 6px;
+  }
+
+  .side-icon-row .icon-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
   }
 
   .btn-restart {
     width: auto;
+    padding: 8px 12px;
+    font-size: 0.95rem;
   }
 
   .grid-board {
     width: min(85vw, 85vh);
     height: min(85vw, 85vh);
+  }
+}
+
+@media (max-width: 620px) {
+  .howto-body {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .howto-illustration {
+    max-height: 24vh;
   }
 }
