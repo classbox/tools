@@ -239,7 +239,7 @@ class RobloxPlayer {
     // Left Click: Toggle Firing Sizzling Laser Beam
     window.addEventListener('mousedown', (e) => {
       if (e.button === 0) {
-        if (e.target.closest('#top-bar') || e.target.closest('#bottom-controls-bar') || e.target.closest('.roblox-modal') || (window.uiManager && window.uiManager.isModalOpen)) {
+        if (e.target.closest('#top-bar') || e.target.closest('.top-actions-container') || e.target.closest('#bottom-controls-bar') || e.target.closest('.roblox-modal') || (window.uiManager && window.uiManager.isModalOpen)) {
           return;
         }
         if (this.isPointerLocked) {
@@ -250,7 +250,7 @@ class RobloxPlayer {
   }
 
   onKeyDown(e) {
-    if (e.target.tagName === 'INPUT') return;
+    if (e.target.tagName === 'INPUT' || (window.uiManager && window.uiManager.isModalOpen)) return;
 
     switch (e.code) {
       case 'KeyW':

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 110" width="100%" height="100%">
+  <style>
+    .k-font { font-family: 'Trebuchet MS', 'Segoe UI', Verdana, sans-serif; font-weight: 900; }
+    .arrow-bob { animation: bobDown 0.75s ease-in-out infinite alternate; }
+    @keyframes bobDown {
+      from { transform: translateY(0px); }
+      to { transform: translateY(5px); }
+    }
+  </style>
+
+  <rect width="180" height="110" rx="12" fill="#0f172a" />
+
+  <!-- Keycap 1 (Selected Glow) -->
+  <rect x="16" y="34" width="38" height="40" rx="8" fill="#006eb3" />
+  <rect x="16" y="28" width="38" height="38" rx="8" fill="#00a2ff" stroke="#7dd3fc" stroke-width="2.5" />
+  <text x="35" y="54" text-anchor="middle" fill="#ffffff" font-size="22" class="k-font">1</text>
+
+  <!-- Keycap 2 -->
+  <rect x="62" y="34" width="38" height="40" rx="8" fill="#1e293b" />
+  <rect x="62" y="28" width="38" height="38" rx="8" fill="#334155" stroke="#64748b" stroke-width="2" />
+  <text x="81" y="54" text-anchor="middle" fill="#e2e8f0" font-size="22" class="k-font">2</text>
+
+  <text x="58" y="94" text-anchor="middle" fill="#7dd3fc" font-size="9.5" class="k-font">PRESS 1 OR 2</text>
+
+  <!-- Mini Mirror + Bouncing Yellow Arrow -->
+  <g transform="translate(142, 68)">
+    <!-- Pedestal -->
+    <ellipse cx="0" cy="24" rx="18" ry="6" fill="#475569" stroke="#00a2ff" stroke-width="1.5" />
+    <rect x="-4" y="10" width="8" height="14" fill="#64748b" />
+    <!-- Mirror Glass -->
+    <rect x="-20" y="-12" width="40" height="26" rx="4" fill="#cbd5e1" stroke="#f8fafc" stroke-width="2" />
+    <rect x="-16" y="-9" width="32" height="20" rx="2" fill="#7dd3fc" />
+    <line x1="-12" y1="8" x2="10" y2="-7" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.8" />
+  </g>
+
+  <!-- Bouncing Yellow Selection Arrow -->
+  <g class="arrow-bob">
+    <polygon points="142,42 131,27 137,27 137,13 147,13 147,27 153,27" fill="#ffea00" stroke="#854d0e" stroke-width="1.5" />
+  </g>
+</svg>

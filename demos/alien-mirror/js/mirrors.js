@@ -387,7 +387,7 @@ class MirrorManager {
 
   setupKeyboardControls() {
     window.addEventListener('keydown', (e) => {
-      if (e.target.tagName === 'INPUT') return;
+      if (e.target.tagName === 'INPUT' || (window.uiManager && window.uiManager.isModalOpen)) return;
 
       if (e.code === 'Digit1') {
         this.selectMirror(0);

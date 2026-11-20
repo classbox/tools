@@ -936,11 +936,13 @@ class AlienUFO {
       this.position.y = this.initialPosition.y + Math.sin(this.hoverTime * 2.2) * 0.4;
       this.group.position.copy(this.position);
 
-      // Periodic lobbed bomb throwing at player
-      this.bombCooldownTimer -= delta;
-      if (this.bombCooldownTimer <= 0) {
-        this.throwLobbedBomb();
-        this.bombCooldownTimer = 6.5 + Math.random() * 4.5; // Next bomb in 6.5 - 11.0 seconds
+      // Periodic lobbed bomb throwing at player (paused while splash/victory modal is open)
+      if (!(window.uiManager && window.uiManager.isModalOpen)) {
+        this.bombCooldownTimer -= delta;
+        if (this.bombCooldownTimer <= 0) {
+          this.throwLobbedBomb();
+          this.bombCooldownTimer = 6.5 + Math.random() * 4.5; // Next bomb in 6.5 - 11.0 seconds
+        }
       }
 
       // Pulse downward tractor beam

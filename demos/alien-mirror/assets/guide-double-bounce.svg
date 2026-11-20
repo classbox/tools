@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 270" width="100%" height="100%">
+  <defs>
+    <linearGradient id="mapBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#070d1f" />
+      <stop offset="100%" stop-color="#0d1730" />
+    </linearGradient>
+    <pattern id="cyberGrid" width="24" height="24" patternUnits="userSpaceOnUse">
+      <path d="M 24 0 L 0 0 0 24" fill="none" stroke="#1e3a5f" stroke-width="1" stroke-opacity="0.35" />
+    </pattern>
+    <filter id="beamBlur" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3.5" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <marker id="arrowHead" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#ffffff" />
+    </marker>
+  </defs>
+
+  <style>
+    .t-font { font-family: 'Trebuchet MS', 'Segoe UI', Verdana, sans-serif; font-weight: 800; }
+    .pulse-beam { animation: flowDash 1s linear infinite; }
+    .zap-star { animation: zapPop 0.55s ease-in-out infinite alternate; transform-origin: 182px 68px; }
+    .arrow-bounce { animation: arrowHop 0.8s ease-in-out infinite alternate; }
+    @keyframes flowDash {
+      from { stroke-dashoffset: 36; }
+      to { stroke-dashoffset: 0; }
+    }
+    @keyframes zapPop {
+      from { transform: scale(0.85) rotate(0deg); opacity: 0.85; }
+      to { transform: scale(1.18) rotate(18deg); opacity: 1; }
+    }
+    @keyframes arrowHop {
+      from { transform: translateY(0px); }
+      to { transform: translateY(-4px); }
+    }
+  </style>
+
+  <!-- Tactical Space Arena Map -->
+  <rect width="460" height="270" rx="14" fill="url(#mapBg)" />
+  <rect width="460" height="270" rx="14" fill="url(#cyberGrid)" />
+
+  <!-- Faint Lava Chasm Glow Edges -->
+  <rect x="6" y="6" width="448" height="258" rx="10" fill="none" stroke="#ff4500" stroke-width="2" stroke-opacity="0.28" />
+
+  <!-- Blocked Direct Sightline Hint -->
+  <line x1="160" y1="214" x2="152" y2="154" stroke="#f87171" stroke-width="2.5" stroke-dasharray="4 4" opacity="0.6" />
+  <circle cx="155" cy="176" r="9" fill="#dc2626" opacity="0.88" />
+  <path d="M 151 172 L 159 180 M 159 172 L 151 180" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" />
+
+  <!-- Glowing Cyan Force Field Shield (Between YOU and UFO) -->
+  <g>
+    <rect x="64" y="138" width="194" height="14" rx="7" fill="#00e5ff" fill-opacity="0.28" stroke="#00e5ff" stroke-width="2.5" filter="url(#beamBlur)" />
+    <text x="161" y="148.5" text-anchor="middle" fill="#e0f2fe" font-size="9.5" letter-spacing="1" class="t-font">FORCE FIELD SHIELD</text>
+  </g>
+
+  <!-- 3 Straight Bounced Laser Segments -->
+  <!-- Segment 1: Blaster -> Mirror 1 -->
+  <g filter="url(#beamBlur)">
+    <line x1="176" y1="224" x2="368" y2="170" stroke="#ff1744" stroke-width="8" stroke-opacity="0.6" stroke-linecap="round" />
+    <line x1="176" y1="224" x2="368" y2="170" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" />
+    <!-- Segment 2: Mirror 1 -> Mirror 2 (around the shield!) -->
+    <line x1="368" y1="170" x2="330" y2="62" stroke="#ff1744" stroke-width="8" stroke-opacity="0.6" stroke-linecap="round" />
+    <line x1="368" y1="170" x2="330" y2="62" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" />
+    <!-- Segment 3: Mirror 2 -> UFO -->
+    <line x1="330" y1="62" x2="186" y2="68" stroke="#ff1744" stroke-width="8" stroke-opacity="0.6" stroke-linecap="round" />
+    <line x1="330" y1="62" x2="186" y2="68" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" />
+  </g>
+
+  <!-- Animated Energy Pulses Traveling Along Path -->
+  <path d="M 176 224 L 368 170 L 330 62 L 186 68" fill="none" stroke="#fde047" stroke-width="3" stroke-dasharray="10 26" stroke-linecap="round" class="pulse-beam" />
+  <!-- Mid-segment directional arrowheads -->
+  <polygon points="274,196 262,193 266,204" fill="#ffffff" />
+  <polygon points="348,113 343,125 354,121" fill="#ffffff" />
+  <polygon points="254,65 266,60 266,70" fill="#ffffff" />
+
+  <!-- Player Platform & Blaster (Bottom-Left/Center) -->
+  <g>
+    <rect x="92" y="216" width="128" height="42" rx="10" fill="#1e293b" stroke="#00e5ff" stroke-width="2" />
+    <circle cx="158" cy="231" r="11" fill="#38bdf8" stroke="#ffffff" stroke-width="2" />
+    <path d="M 158 231 L 178 223" stroke="#ff1744" stroke-width="6" stroke-linecap="round" />
+    <text x="156" y="250" text-anchor="middle" fill="#bae6fd" font-size="11.5" class="t-font">YOU (LASER)</text>
+  </g>
+
+  <!-- Mirror 1 (Right) -->
+  <g>
+    <circle cx="378" cy="173" r="24" fill="#0f172a" stroke="#00e5ff" stroke-width="1.8" stroke-dasharray="4 3" />
+    <g transform="translate(371, 171) rotate(-52)">
+      <rect x="-26" y="-5" width="52" height="10" rx="4" fill="#475569" stroke="#cbd5e1" stroke-width="1.5" />
+      <rect x="-23" y="-5" width="46" height="4.5" rx="2" fill="#e0f2fe" />
+    </g>
+    <!-- Yellow Selection Arrow above Mirror 1 -->
+    <g class="arrow-bounce">
+      <polygon points="371,144 363,132 368,132 368,123 374,123 374,132 379,132" fill="#ffea00" stroke="#713f12" stroke-width="1" />
+    </g>
+    <!-- Badge 1 -->
+    <circle cx="404" cy="186" r="13" fill="#00a2ff" stroke="#ffffff" stroke-width="2" />
+    <text x="404" y="191" text-anchor="middle" fill="#ffffff" font-size="14" class="t-font">1</text>
+  </g>
+
+  <!-- Mirror 2 (Top-Right) -->
+  <g>
+    <circle cx="332" cy="59" r="24" fill="#0f172a" stroke="#38bdf8" stroke-width="1.8" stroke-dasharray="4 3" />
+    <g transform="translate(331, 61) rotate(-142)">
+      <rect x="-26" y="-5" width="52" height="10" rx="4" fill="#475569" stroke="#cbd5e1" stroke-width="1.5" />
+      <rect x="-23" y="-5" width="46" height="4.5" rx="2" fill="#e0f2fe" />
+    </g>
+    <!-- Badge 2 -->
+    <circle cx="360" cy="44" r="13" fill="#00a2ff" stroke="#ffffff" stroke-width="2" />
+    <text x="360" y="49" text-anchor="middle" fill="#ffffff" font-size="14" class="t-font">2</text>
+  </g>
+
+  <!-- Alien UFO Target (Top-Left) -->
+  <g>
+    <!-- HP Bar above UFO -->
+    <rect x="112" y="16" width="74" height="12" rx="6" fill="#0f172a" stroke="#475569" stroke-width="1.5" />
+    <rect x="115" y="19" width="42" height="6" rx="3" fill="#22c55e" />
+    <text x="149" y="25" text-anchor="middle" fill="#ffffff" font-size="7.5" class="t-font">UFO HP</text>
+
+    <!-- Saucer -->
+    <ellipse cx="148" cy="68" rx="36" ry="15" fill="#475569" stroke="#94a3b8" stroke-width="2" />
+    <circle cx="122" cy="68" r="3" fill="#00e676" />
+    <circle cx="148" cy="76" r="3" fill="#facc15" />
+    <circle cx="174" cy="68" r="3" fill="#ec4899" />
+    <!-- Dome + Alien -->
+    <circle cx="148" cy="61" r="16" fill="#38bdf8" fill-opacity="0.65" stroke="#bae6fd" stroke-width="2" />
+    <rect x="139" y="53" width="18" height="14" rx="4" fill="#16a34a" />
+    <rect x="142" y="57" width="4" height="3" fill="#ff0033" />
+    <rect x="150" y="57" width="4" height="3" fill="#ff0033" />
+    <text x="148" y="99" text-anchor="middle" fill="#86efac" font-size="12" class="t-font">ALIEN UFO</text>
+
+    <!-- Zap Hit Starburst -->
+    <g class="zap-star">
+      <polygon points="182,53 186,63 196,61 189,69 197,77 186,74 182,84 178,74 167,77 175,69 168,61 178,63" fill="#facc15" stroke="#ffffff" stroke-width="1.5" />
+    </g>
+  </g>
+
+  <!-- Step Callout Pill Tags -->
+  <g font-size="11" class="t-font">
+    <rect x="242" y="218" width="110" height="24" rx="12" fill="#0f172a" stroke="#38bdf8" stroke-width="1.5" />
+    <text x="297" y="234" text-anchor="middle" fill="#bae6fd">1. Hit Mirror 1</text>
+
+    <rect x="336" y="100" width="114" height="24" rx="12" fill="#0f172a" stroke="#38bdf8" stroke-width="1.5" />
+    <text x="393" y="116" text-anchor="middle" fill="#bae6fd">2. Bounce to 2</text>
+
+    <rect x="18" y="34" width="84" height="24" rx="12" fill="#7f1d1d" stroke="#fca5a5" stroke-width="1.5" />
+    <text x="60" y="50" text-anchor="middle" fill="#fef08a">3. Zap UFO!</text>
+  </g>
+</svg>

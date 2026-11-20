@@ -64,6 +64,7 @@ class ReflectionGame {
 
     window.addEventListener('keydown', (e) => {
       if (e.target.tagName === 'INPUT') return;
+      if (window.uiManager && window.uiManager.isModalOpen) return;
       if (e.code === 'ArrowLeft') this.keys.ArrowLeft = true;
       if (e.code === 'ArrowRight') this.keys.ArrowRight = true;
       if (e.code === 'ArrowUp') this.keys.ArrowUp = true;
@@ -104,19 +105,20 @@ class ReflectionGame {
     requestAnimationFrame(() => this.animate());
 
     const delta = Math.min(this.clock.getDelta(), 0.1);
+    const modalOpen = !!(window.uiManager && window.uiManager.isModalOpen);
 
-    if (!this.isVictory) {
-      this.gameElapsedTime = (performance.now() - this.gameStartTime) * 0.001;
-      const hudTimer = document.getElementById('hud-timer-val');
-      if (hudTimer) {
-        const mins = Math.floor(this.gameElapsedTime / 60);
-        const secs = (this.gameElapsedTime % 60).toFixed(1);
-        hudTimer.textContent = `${String(mins).padStart(2, '0')}:${secs < 10 ? '0' : ''}${secs}`;
-      }
+    if (!this.isVictory && !modalOpen) {
+      this.gameElapsedTime += delta;
+    }
+    const hudTimer = document.getElementById('hud-timer-val');
+    if (hudTimer) {
+      const mins = Math.floor(this.gameElapsedTime / 60);
+      const secs = (this.gameElapsedTime % 60).toFixed(1);
+      hudTimer.textContent = `${String(mins).padStart(2, '0')}:${secs < 10 ? '0' : ''}${secs}`;
     }
 
     // Secret 3-second hold debug key: 'K'
-    if (this.keys.KeyK) {
+    if (this.keys.KeyK && !modalOpen) {
       this.keyKHoldTimer += delta;
       if (this.keyKHoldTimer >= 3.0) {
         if (this.ufo && !this.ufo.isDefeated) {
@@ -129,12 +131,14 @@ class ReflectionGame {
       this.keyKHoldTimer = 0;
     }
 
-    const combinedKeys = {
-      ArrowLeft: this.keys.ArrowLeft || (window.uiManager && window.uiManager.touchRotateDir === -1),
-      ArrowRight: this.keys.ArrowRight || (window.uiManager && window.uiManager.touchRotateDir === 1),
-      ArrowUp: this.keys.ArrowUp,
-      ArrowDown: this.keys.ArrowDown
-    };
+    const combinedKeys = modalOpen
+      ? { ArrowLeft: false, ArrowRight: false, ArrowUp: false, ArrowDown: false }
+      : {
+          ArrowLeft: this.keys.ArrowLeft || (window.uiManager && window.uiManager.touchRotateDir === -1),
+          ArrowRight: this.keys.ArrowRight || (window.uiManager && window.uiManager.touchRotateDir === 1),
+          ArrowUp: this.keys.ArrowUp,
+          ArrowDown: this.keys.ArrowDown
+        };
 
     // 1. Update Entities & Atmospheric World
     this.player.update(delta);

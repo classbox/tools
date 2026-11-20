@@ -6,23 +6,30 @@
 class UIManager {
   constructor() {
     this.isModalOpen = true; // Start modal is open initially
+    this.hasGameStarted = false;
     this.playerName = localStorage.getItem('optics_last_player_name') || 'Pilot';
     this.leaderboardKey = 'optics_leaderboard_records_v2';
 
     this.cacheDOMElements();
+    if (window.SplashGuide) {
+      window.splashGuide = new window.SplashGuide();
+    }
     this.setupEventListeners();
     this.initStartModal();
   }
 
   cacheDOMElements() {
     this.btnSound = document.getElementById('btn-sound');
+    this.btnHelp = document.getElementById('btn-help');
     this.btnResetTimes = document.getElementById('btn-reset-times');
     this.startModal = document.getElementById('start-modal');
+    this.btnCloseSplash = document.getElementById('btn-close-splash');
     this.playerNameInput = document.getElementById('player-name-input');
     this.btnStartGame = document.getElementById('btn-start-game');
 
     this.victoryModal = document.getElementById('victory-modal');
     this.btnPlayAgain = document.getElementById('btn-play-again');
+    this.btnNewPilot = document.getElementById('btn-new-pilot');
     this.victoryPlayerName = document.getElementById('victory-player-name');
     this.victoryPlayerTime = document.getElementById('victory-player-time');
     this.victoryRankBadge = document.getElementById('victory-rank-badge');
@@ -42,6 +49,32 @@ class UIManager {
         }
       });
     }
+
+    // 1b. Reopen Science Guide / How to Play
+    if (this.btnHelp) {
+      this.btnHelp.addEventListener('click', () => {
+        this.openSplashGuide({ resetForNewPilot: false, startStep: 1 });
+      });
+    }
+
+    // 1c. Close splash modal when reopened mid-game
+    if (this.btnCloseSplash) {
+      this.btnCloseSplash.addEventListener('click', () => {
+        this.startGameFromModal();
+      });
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (
+        e.key === 'Escape' &&
+        this.isModalOpen &&
+        this.hasGameStarted &&
+        this.startModal &&
+        !this.startModal.classList.contains('hidden')
+      ) {
+        this.startGameFromModal();
+      }
+    });
 
     // 2. Reset Times button under Sound button
     if (this.btnResetTimes) {
@@ -65,7 +98,7 @@ class UIManager {
       });
     }
 
-    // 4. Victory Play Again button
+    // 4. Victory Play Again & New Pilot buttons
     if (this.btnPlayAgain) {
       this.btnPlayAgain.addEventListener('click', () => {
         this.hideVictoryModal();
@@ -74,15 +107,60 @@ class UIManager {
         }
       });
     }
+
+    if (this.btnNewPilot) {
+      this.btnNewPilot.addEventListener('click', () => {
+        if (this.victoryModal) {
+          this.victoryModal.classList.add('hidden');
+        }
+        this.openSplashGuide({ resetForNewPilot: true, startStep: 1 });
+      });
+    }
   }
 
   initStartModal() {
     if (this.playerNameInput) {
       this.playerNameInput.value = this.playerName;
-      setTimeout(() => {
-        this.playerNameInput.focus();
-        this.playerNameInput.select();
-      }, 100);
+    }
+  }
+
+  openSplashGuide({ resetForNewPilot = false, startStep = 1 } = {}) {
+    if (resetForNewPilot) {
+      this.hasGameStarted = false;
+      if (window.game) {
+        window.game.resetGame();
+      }
+      if (window.splashGuide) {
+        window.splashGuide.resetDemo();
+      }
+      if (this.btnStartGame) {
+        this.btnStartGame.textContent = 'START MISSION 🚀';
+      }
+      if (this.btnCloseSplash) {
+        this.btnCloseSplash.classList.add('hidden');
+      }
+    } else {
+      if (window.game && window.game.player && window.game.player.isFiring) {
+        window.game.player.toggleFiring(false);
+      }
+      if (document.exitPointerLock) {
+        document.exitPointerLock();
+      }
+      if (this.btnStartGame) {
+        this.btnStartGame.textContent = 'RESUME MISSION 🚀';
+      }
+      if (this.btnCloseSplash) {
+        this.btnCloseSplash.classList.remove('hidden');
+      }
+    }
+
+    if (this.startModal) {
+      this.startModal.classList.remove('hidden');
+    }
+    this.isModalOpen = true;
+
+    if (window.splashGuide) {
+      window.splashGuide.goToStep(startStep);
     }
   }
 
@@ -96,17 +174,30 @@ class UIManager {
     if (this.startModal) {
       this.startModal.classList.add('hidden');
     }
+    if (this.btnCloseSplash) {
+      this.btnCloseSplash.classList.add('hidden');
+    }
     this.isModalOpen = false;
 
-    if (window.game) {
-      window.game.gameStartTime = performance.now();
-      window.game.gameElapsedTime = 0;
-      window.game.isVictory = false;
+    if (!this.hasGameStarted) {
+      this.hasGameStarted = true;
+      if (window.game) {
+        window.game.gameStartTime = performance.now();
+        window.game.gameElapsedTime = 0;
+        window.game.isVictory = false;
+      }
+    }
 
-      // Lock mouse on start
+    if (window.game) {
+      // Lock mouse on start/resume
       const canvas = document.querySelector('canvas') || document.body;
       if (canvas && canvas.requestPointerLock) {
-        canvas.requestPointerLock();
+        try {
+          const lockResult = canvas.requestPointerLock();
+          if (lockResult && typeof lockResult.catch === 'function') {
+            lockResult.catch(() => {});
+          }
+        } catch (e) {}
       }
     }
   }

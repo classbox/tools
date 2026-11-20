@@ -32,24 +32,272 @@
   <!-- Top-Right Action Controls -->
   <div class="top-actions-container">
     <button id="btn-sound" class="audio-toggle-btn" title="Toggle Sound">🔊 Sound</button>
+    <button id="btn-help" class="help-guide-btn" title="How to Play &amp; Science Guide">❓ How to Play</button>
     <button id="btn-reset-times" class="reset-times-btn" title="Reset All Leaderboard Times">🗑 Reset Times</button>
   </div>
 
-  <!-- Start Mission / Enter Name Modal -->
+  <!-- Welcome & Science Guide Splash Screen Modal -->
   <div id="start-modal" class="modal-backdrop">
-    <div class="modal-content roblox-modal start-card">
-      <div class="start-header">
-        <div class="start-icon">🛸</div>
-        <h2>UFO MIRROR BATTLE</h2>
-      </div>
-      <div class="modal-body start-body">
-        <label for="player-name-input" class="input-label">ENTER YOUR NAME FOR THE LEADERBOARD</label>
-        <div class="input-wrap">
-          <input type="text" id="player-name-input" maxlength="15" placeholder="Pilot Name" autocomplete="off" autofocus />
+    <div class="modal-content roblox-modal splash-modal">
+      <div class="splash-header">
+        <div class="splash-brand">
+          <div class="splash-emblem" aria-hidden="true">
+            <svg viewBox="0 0 64 48" width="54" height="40">
+              <ellipse cx="32" cy="30" rx="26" ry="9" fill="#475569" stroke="#38bdf8" stroke-width="2" />
+              <circle cx="16" cy="30" r="2.5" fill="#00e676" />
+              <circle cx="32" cy="34" r="2.5" fill="#facc15" />
+              <circle cx="48" cy="30" r="2.5" fill="#ec4899" />
+              <path d="M 17 27 A 15 15 0 0 1 47 27 Z" fill="#38bdf8" fill-opacity="0.7" stroke="#bae6fd" stroke-width="2" />
+              <rect x="26" y="16" width="12" height="10" rx="3" fill="#16a34a" />
+              <rect x="28" y="19" width="3" height="2.5" fill="#ff0033" />
+              <rect x="33" y="19" width="3" height="2.5" fill="#ff0033" />
+            </svg>
+          </div>
+          <div class="splash-title-group">
+            <h1>UFO MIRROR BATTLE</h1>
+            <p class="splash-subtitle">Space Science Mission: Light &amp; Mirrors!</p>
+          </div>
         </div>
+
+        <nav class="splash-stepper" aria-label="Mission Briefing Steps">
+          <button type="button" class="step-pill is-active" data-step="1">
+            <span class="step-num">1</span>
+            <span class="step-text">Light Goes Straight</span>
+          </button>
+          <button type="button" class="step-pill" data-step="2">
+            <span class="step-num">2</span>
+            <span class="step-text">Mirrors Bounce Light</span>
+          </button>
+          <button type="button" class="step-pill" data-step="3">
+            <span class="step-num">3</span>
+            <span class="step-text">Controls &amp; Launch</span>
+          </button>
+        </nav>
+
+        <button type="button" id="btn-close-splash" class="splash-close-btn hidden" title="Resume Mission">✕</button>
       </div>
-      <div class="modal-footer start-footer">
-        <button id="btn-start-game" class="roblox-btn primary large-btn start-mission-btn">START MISSION 🚀</button>
+
+      <div class="splash-body">
+        <!-- STEP 1: Light Travels in Straight Lines -->
+        <section id="splash-step-1" class="splash-step">
+          <div class="step-heading">
+            <span class="secret-badge">SCIENCE SECRET #1</span>
+            <h2>Light ALWAYS Travels in a Straight Line!</h2>
+          </div>
+
+          <div class="step1-hero-card">
+            <img src="assets/guide-straight-light.svg" alt="Light travels in a straight line and gets blocked by the alien force field" class="guide-hero-svg" />
+          </div>
+
+          <div class="science-callouts">
+            <div class="callout-card callout-laser">
+              <div class="callout-icon">🔦</div>
+              <div class="callout-copy">
+                <h3>Straight Beam!</h3>
+                <p>Your red laser shoots straight ahead. Light can <strong>NEVER</strong> curve or bend around corners!</p>
+              </div>
+            </div>
+            <div class="callout-card callout-shield">
+              <div class="callout-icon">🛡️</div>
+              <div class="callout-copy">
+                <h3>The Alien's Shield</h3>
+                <p>The UFO is hiding behind a blue force field. Shooting straight at it gets <strong>BLOCKED!</strong></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="splash-step-footer">
+            <button type="button" id="btn-step1-skip" class="roblox-btn secondary splash-skip-btn">Skip to Launch ▶</button>
+            <button type="button" id="btn-step1-next" class="roblox-btn primary splash-next-btn">HOW DO WE BEAT IT? →</button>
+          </div>
+        </section>
+
+        <!-- STEP 2: Mirrors Bounce (Reflect) Light + Interactive Lab -->
+        <section id="splash-step-2" class="splash-step hidden">
+          <div class="step-heading">
+            <span class="secret-badge secret-cyan">SCIENCE SECRET #2</span>
+            <h2>Mirrors BOUNCE (Reflect) Light!</h2>
+          </div>
+
+          <div class="step2-grid">
+            <!-- Left: Interactive Mirror Reflection Lab -->
+            <div class="demo-panel">
+              <div class="panel-mini-header">✨ TRY IT! TURN THE MIRROR</div>
+              <div class="demo-svg-wrap">
+                <svg id="demo-reflection-svg" viewBox="0 0 460 270" width="100%" height="100%" aria-label="Interactive mirror reflection playground">
+                  <defs>
+                    <linearGradient id="demoSky" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stop-color="#060d20" />
+                      <stop offset="100%" stop-color="#0e1b38" />
+                    </linearGradient>
+                    <filter id="demoLaserGlow" x="-40%" y="-40%" width="180%" height="180%">
+                      <feGaussianBlur stdDeviation="3.5" result="blur" />
+                      <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                  </defs>
+
+                  <rect width="460" height="270" rx="12" fill="url(#demoSky)" />
+
+                  <!-- Twinkling Backdrop Stars -->
+                  <g fill="#bae6fd" opacity="0.65">
+                    <circle cx="42" cy="32" r="1.5" />
+                    <circle cx="110" cy="58" r="2" />
+                    <circle cx="165" cy="24" r="1.4" />
+                    <circle cx="355" cy="36" r="1.8" />
+                    <circle cx="418" cy="76" r="1.5" />
+                    <circle cx="395" cy="182" r="2" />
+                    <circle cx="122" cy="236" r="1.5" />
+                  </g>
+
+                  <!-- Equal Angle Wedges -->
+                  <path id="demo-arc-in" d="" fill="#fde047" fill-opacity="0.22" stroke="#fde047" stroke-width="1.5" />
+                  <path id="demo-arc-out" d="" fill="#00e5ff" fill-opacity="0.22" stroke="#00e5ff" stroke-width="1.5" />
+                  <text id="demo-angle-label" x="215" y="156" text-anchor="middle" fill="#fef08a" font-size="10.5" font-weight="800" font-family="'Trebuchet MS', 'Segoe UI', sans-serif">SAME ANGLE!</text>
+
+                  <!-- Dashed Cyan Mirror Normal -->
+                  <line id="demo-normal-line" x1="215" y1="200" x2="162" y2="164" stroke="#00e5ff" stroke-width="2" stroke-dasharray="5 4" stroke-linecap="round" />
+
+                  <!-- Incoming Laser Beam (Blaster -> Mirror Pivot) -->
+                  <g filter="url(#demoLaserGlow)">
+                    <line x1="58" y1="200" x2="215" y2="200" stroke="#ff1744" stroke-width="11" stroke-opacity="0.35" stroke-linecap="round" />
+                    <line x1="58" y1="200" x2="215" y2="200" stroke="#ff1744" stroke-width="5.5" stroke-linecap="round" />
+                    <line x1="58" y1="200" x2="215" y2="200" stroke="#ffffff" stroke-width="2" stroke-linecap="round" />
+                  </g>
+
+                  <!-- Reflected Laser Beam (Mirror Pivot -> Target/Wall) -->
+                  <g filter="url(#demoLaserGlow)">
+                    <line id="demo-reflected-aura" x1="215" y1="200" x2="150" y2="30" stroke="#ff1744" stroke-width="11" stroke-opacity="0.35" stroke-linecap="round" />
+                    <line id="demo-reflected-mid" x1="215" y1="200" x2="150" y2="30" stroke="#ff1744" stroke-width="5.5" stroke-linecap="round" />
+                    <line id="demo-reflected-core" x1="215" y1="200" x2="150" y2="30" stroke="#ffffff" stroke-width="2" stroke-linecap="round" />
+                  </g>
+
+                  <!-- Laser Blaster (Bottom-Left) -->
+                  <g transform="translate(18, 184)">
+                    <rect x="0" y="6" width="38" height="20" rx="5" fill="#1e293b" stroke="#64748b" stroke-width="2" />
+                    <rect x="8" y="10" width="16" height="8" rx="3" fill="#0284c7" stroke="#38bdf8" stroke-width="1.5" />
+                    <rect x="34" y="9" width="8" height="14" rx="2" fill="#0f172a" stroke="#ff1744" stroke-width="2" />
+                    <text x="19" y="42" text-anchor="middle" fill="#93c5fd" font-size="10" font-weight="800" font-family="'Trebuchet MS', 'Segoe UI', sans-serif">LASER</text>
+                  </g>
+
+                  <!-- Hovering Alien UFO Target at (265, 62) -->
+                  <g id="demo-ufo-group" transform="translate(265, 62)">
+                    <circle class="ufo-hit-ring" cx="0" cy="0" r="34" fill="#22c55e" fill-opacity="0.12" stroke="#4ade80" stroke-width="2" stroke-dasharray="5 4" />
+                    <g class="ufo-craft">
+                      <ellipse cx="0" cy="6" rx="34" ry="12" fill="#475569" stroke="#94a3b8" stroke-width="2.5" />
+                      <circle cx="-22" cy="6" r="3" fill="#00e676" />
+                      <circle cx="0" cy="13" r="3" fill="#facc15" />
+                      <circle cx="22" cy="6" r="3" fill="#ec4899" />
+                      <path d="M -18 3 A 18 18 0 0 1 18 3 Z" fill="#38bdf8" fill-opacity="0.7" stroke="#bae6fd" stroke-width="2" />
+                      <rect x="-10" y="-12" width="20" height="14" rx="4" fill="#16a34a" />
+                      <rect x="-7" y="-8" width="5" height="3" fill="#ff0033" />
+                      <rect x="2" y="-8" width="5" height="3" fill="#ff0033" />
+                    </g>
+                    <text x="0" y="-27" text-anchor="middle" fill="#86efac" font-size="10.5" font-weight="800" font-family="'Trebuchet MS', 'Segoe UI', sans-serif">TARGET UFO</text>
+                  </g>
+
+                  <!-- Hit Spark Burst -->
+                  <g id="demo-ufo-hit-spark" class="hidden" transform="translate(265, 62)">
+                    <polygon points="0,-16 4,-5 15,-6 7,2 14,12 3,8 0,18 -3,8 -14,12 -7,2 -15,-6 -4,-5" fill="#fde047" stroke="#ffffff" stroke-width="1.5" />
+                  </g>
+
+                  <!-- Rotatable Silver Mirror Pivot at (215, 200) -->
+                  <g id="demo-mirror-group" transform="translate(215, 200) rotate(-56)">
+                    <!-- Dark metallic backing on +Y side -->
+                    <rect x="-36" y="0" width="72" height="10" rx="4" fill="#334155" stroke="#94a3b8" stroke-width="1.8" />
+                    <!-- Bright reflective glass face on -Y side -->
+                    <rect x="-34" y="-5" width="68" height="6" rx="2.5" fill="#e0f2fe" stroke="#00e5ff" stroke-width="1.5" />
+                    <circle cx="0" cy="2" r="4" fill="#00a2ff" stroke="#ffffff" stroke-width="1.5" />
+                  </g>
+                  <circle cx="215" cy="200" r="2.5" fill="#ffffff" />
+                </svg>
+              </div>
+
+              <div id="demo-status-pill" class="demo-status-pill">Turn the mirror to bounce the laser into the UFO!</div>
+
+              <div class="demo-controls-bar">
+                <button type="button" id="demo-turn-left" class="roblox-btn demo-turn-btn">◀ Left</button>
+                <input type="range" id="demo-mirror-slider" min="22" max="74" step="1" value="34" aria-label="Mirror angle" />
+                <button type="button" id="demo-turn-right" class="roblox-btn demo-turn-btn">Right ▶</button>
+              </div>
+            </div>
+
+            <!-- Right: Battle Plan Diagram -->
+            <div class="battle-plan-panel">
+              <div class="panel-mini-header">🗺️ YOUR BATTLE PLAN</div>
+              <div class="plan-svg-wrap">
+                <img src="assets/guide-double-bounce.svg" alt="Bounce your laser off Mirror 1 and Mirror 2 to hit the Alien UFO" class="guide-plan-svg" />
+              </div>
+              <ul class="battle-tips">
+                <li><strong>Bounce Twice!</strong> Shoot <strong>Mirror 1</strong> ➔ bounce to <strong>Mirror 2</strong> ➔ zap the <strong>UFO</strong> behind its shield!</li>
+                <li><strong>Hold for 5 Seconds!</strong> Keep your bounced laser on the UFO to drain its health and win!</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="splash-step-footer">
+            <button type="button" id="btn-step2-back" class="roblox-btn secondary splash-back-btn">← Back</button>
+            <button type="button" id="btn-step2-next" class="roblox-btn primary splash-next-btn">SEE CONTROLS &amp; PLAY →</button>
+          </div>
+        </section>
+
+        <!-- STEP 3: Controls & Pilot Name Launch -->
+        <section id="splash-step-3" class="splash-step hidden">
+          <div class="step-heading">
+            <span class="secret-badge secret-green">PILOT TRAINING</span>
+            <h2>Easy Controls &amp; Blast Off!</h2>
+          </div>
+
+          <div class="controls-grid">
+            <article class="control-card card-laser">
+              <div class="control-art">
+                <img src="assets/ctrl-laser.svg" alt="Mouse look and Left Click laser toggle" />
+              </div>
+              <h3>Aim &amp; Shoot</h3>
+              <p>Move Mouse to aim. <strong>Left Click</strong> turns laser <strong>ON / OFF</strong>!</p>
+              <span class="control-tip">Leave it ON while turning mirrors!</span>
+            </article>
+
+            <article class="control-card card-select">
+              <div class="control-art">
+                <img src="assets/ctrl-select.svg" alt="Press 1 or 2 to select a mirror" />
+              </div>
+              <h3>Pick a Mirror</h3>
+              <p>Press <strong>1</strong> or <strong>2</strong> to pick a mirror. Look for the <strong>Yellow Arrow</strong>!</p>
+            </article>
+
+            <article class="control-card card-arrows">
+              <div class="control-art">
+                <img src="assets/ctrl-arrows.svg" alt="Arrow keys turn and tilt the selected mirror" />
+              </div>
+              <h3>Turn &amp; Tilt Mirror</h3>
+              <p>Use <strong>Arrow Keys</strong> (<code>← → ↑ ↓</code>) to aim the mirror!</p>
+            </article>
+
+            <article class="control-card card-wasd">
+              <div class="control-art">
+                <img src="assets/ctrl-wasd.svg" alt="WASD to walk and Space to jump" />
+              </div>
+              <h3>Walk &amp; Jump</h3>
+              <p>Use <strong>W A S D</strong> to move and <strong>SPACE</strong> to jump!</p>
+            </article>
+          </div>
+
+          <div class="launch-zone">
+            <div class="launch-input-group">
+              <label for="player-name-input" class="input-label">PILOT NAME FOR LEADERBOARD</label>
+              <input type="text" id="player-name-input" maxlength="15" placeholder="Enter Pilot Name" autocomplete="off" />
+            </div>
+            <button type="button" id="btn-start-game" class="roblox-btn primary large-btn start-mission-btn">START MISSION 🚀</button>
+          </div>
+
+          <div class="splash-step-footer">
+            <button type="button" id="btn-step3-back" class="roblox-btn secondary splash-back-btn">← Back</button>
+            <span class="splash-hint-text">Tip: Press <strong>ESC</strong> anytime to click <strong>❓ How to Play</strong>!</span>
+          </div>
+        </section>
       </div>
     </div>
   </div>
@@ -92,6 +340,7 @@
       </div>
       <div class="modal-footer victory-footer">
         <button id="btn-play-again" class="roblox-btn primary large-btn play-again-hero-btn">Play Again 🔄</button>
+        <button id="btn-new-pilot" class="roblox-btn secondary large-btn new-pilot-btn">New Pilot &amp; Guide 🛸</button>
       </div>
     </div>
   </div>
@@ -103,6 +352,7 @@
   <script src="js/mirrors.js"></script>
   <script src="js/ufo.js"></script>
   <script src="js/optics.js"></script>
+  <script src="js/splash.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/main.js"></script>
 </body>
